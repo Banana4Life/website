@@ -1,0 +1,58 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+#background-stripe {
+    width: 60%;
+    min-width: 600px;
+}
+
+header {
+    text-align: center;
+}
+
+header img {
+    width: 20%;
+}
+
+main {
+    clear: left;
+}
+
+nav ul {
+    list-style-type: none;
+}
+
+nav li {
+    display: block;
+    float: left;
+    width: 25%;
+}
+
+nav a {
+    background-color: #eee;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    line-height: 100%;
+    vertical-align: middle;
+    height: 100%;
+    width: 100%;
+}
+
+footer div {
+    float: left;
+    width: 33%;
+    text-align: center;
+}
+
+footer img {
+    width: 10%;
+}
+
+#copyright {
+    clear: left;
+    float: none;
+    width: 100%;
+}
