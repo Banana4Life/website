@@ -8,4 +8,10 @@ object Application extends Controller {
     Ok(views.html.test())
   }
 
+  def snippets = TODO
+
+  def projects = TODO
+
+  def about = TODO
+
 }
