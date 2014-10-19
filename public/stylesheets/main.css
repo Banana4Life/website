@@ -1,69 +1,7 @@
-* {
-    margin: 0;
-    padding: 0;
-}
+@import url("http://fonts.googleapis.com/css?family=Roboto:400,500,700,900");
 
 .clear {
     clear: both;
-}
-
-html, body {
-    height: 100%;
-}
-
-body {
-    background-color: #96e9ff;
-}
-
-#background-stripe {
-    margin-left: auto;
-    margin-right: auto;
-    background-color: #d6d6d6;
-    width: 50%;
-    min-width: 600px;
-    height: 100%;
-}
-
-header, article, footer {
-    margin-bottom: 20px;
-    margin-left: -10px;
-    margin-right: -10px;
-}
-
-header {
-    text-align: center;
-}
-
-header img {
-    width: 20%;
-}
-
-nav {
-    margin-bottom: 10px;
-    margin-left: -10px;
-    margin-right: -10px;
-    position: relative;
-}
-
-nav ul {
-    list-style-type: none;
-}
-
-nav li {
-    display: block;
-    float: left;
-    width: 25%;
-}
-
-nav a {
-    background-color: #eee;
-    display: block;
-    text-align: center;
-    text-decoration: none;
-    line-height: 30px;
-    vertical-align: middle;
-    height: 30px;
-    width: 100%;
 }
 
 .left {
@@ -86,57 +24,169 @@ nav a {
     border-color: #939393 transparent transparent transparent;
 }
 
-nav a::before,
+.twitter {
+    color: #55acee;
+}
+
+.youtube {
+    color: #e52d27;
+}
+
+html, body {
+    font-family: 'Roboto', sans-serif;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #96e9ff;
+}
+
+#background-stripe {
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #d6d6d6;
+    width: 50%;
+    min-width: 600px;
+    height: 100%;
+}
+
+header {
+    text-align: center;
+}
+
+header img {
+    vertical-align: text-bottom;
+    width: 20%;
+}
+
+nav {
+    margin-bottom: 10px;
+    margin-left: -10px;
+    margin-right: -10px;
+    position: relative;
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav li {
+    margin: 0;
+    padding: 0;
+    position: relative;
+    display: block;
+    float: left;
+    width: 25%;
+}
+
+nav a {
+    background-color: #eee;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    color: #000;
+    line-height: 30px;
+    vertical-align: middle;
+    height: 30px;
+    width: 100%;
+}
+
 nav a::after {
-    display: inline-block;
+    position: absolute;
+    top: 27px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #fff;
+    content: '';
     opacity: 0;
-    -webkit-transition: -webkit-transform 0.3s, opacity 0.2s;
-    -moz-transition: -moz-transform 0.3s, opacity 0.2s;
-    transition: transform 0.3s, opacity 0.2s;
+    -webkit-transition: opacity 0.3s;
+    -moz-transition: opacity 0.3s;
+    transition: opacity 0.3s;
 }
 
-nav a::before {
-    margin-right: 10px;
-    content: '[';
-}
-
-nav a::after {
-    margin-left: 10px;
-    content: ']';
-}
-
-nav a:hover::before,
 nav a:hover::after,
-nav a:focus::before,
 nav a:focus::after {
     opacity: 1;
 }
 
-article {
-    background-color: #fff;
-    padding: 10px;
+nav a:hover {
+    background-color: #e1e1e1;
 }
 
-article footer {
+article section {
     background-color: #fff;
+    padding: 10px;
+    margin-left: -10px;
+    margin-right: -10px;
+}
+
+article section p {
+    text-align: justify;
     margin: 0;
 }
 
-footer {
-    background-color: #666;
+article footer {
+    margin: 0;
+    padding: 10px;
 }
 
-footer div {
+#main-footer {
+    background-color: #fff;
+    padding: 10px;
+    margin-bottom: 20px;
+    margin-left: -10px;
+    margin-right: -10px;
+
+}
+
+#main-footer span {
+    float: right;
+}
+
+#footer-content {
+    padding: 5px;
+    color: #fff;
+    background-color: #545454;
+    margin-left: -10px;
+    margin-right: -10px;
+}
+
+#footer-content section {
+    font-size: 12px;
     float: left;
     width: 33%;
     text-align: center;
 }
 
-footer img {
-    width: 10%;
+#footer-content a {
+    text-decoration: none;
+    font-weight: 500;
+}
+
+#footer-content img {
+    vertical-align: text-bottom;
+    width: 50px;
+}
+
+#footer-content .logo {
+    width: 14px;
+    margin-right: 14px;
+}
+
+#footer-social {
+    text-align: left;
 }
 
 #copyright {
+    padding-top: 5px;
+    font-size: 10px;
+    color: #555;
+    text-align: center;
     clear: left;
     float: none;
     width: 100%;

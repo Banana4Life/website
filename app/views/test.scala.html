@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/html">
     <head lang="en">
       <meta charset="UTF-8">
       <title>Test</title>
@@ -8,14 +8,14 @@
     <body>
         <div id="background-stripe">
             <header>
-                <a href="/"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a>
+                <a href="@routes.Application.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a>
             </header>
             <nav>
                 <ul>
-                    <li><a href="/">Blog</a></li>
-                    <li><a href="/snippets">Snippets</a></li>
-                    <li><a href="/projects">Projects</a></li>
-                    <li><a href="/about">About</a></li>
+                    <li><a href="@routes.Application.index()">Blog</a></li>
+                    <li><a href="@routes.Application.snippets()">Snippets</a></li>
+                    <li><a href="@routes.Application.projects()">Projects</a></li>
+                    <li><a href="@routes.Application.about()">About</a></li>
                 </ul>
                 <div class="right"></div>
                 <div class="left"></div>
@@ -23,6 +23,7 @@
             </nav>
             <main>
                 <article>
+                    <section>
                     <header>
                         <h1>Article Name</h1>
                     </header>
@@ -35,17 +36,33 @@
                         justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem
                         ipsum dolor sit amet.
                     </p>
+                    </section>
                     <footer>
                         Comments
                     </footer>
                 </article>
+                <footer id="main-footer">
+                    <a href="@routes.Application.index()">older</a>
+                    <span><a href="@routes.Application.index()">newer</a></span>
+                </footer>
             </main>
             <footer>
-                <div id="email">info@@banana4.life</div>
-                <div id="logo"><a href="/"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a></div>
-                <div id="social">twitter: @@bananafourlife</div>
-                <div id="copyright">© Banana4Life</div>
-            </footer>
+            <div id="footer-content">
+                <section id="email">
+                    <header>Contact</header>
+                    Banana4Life ist located in Germany.<br>
+                    E-Mail us at info@@banana4.life.
+                </section>
+                <section id="footer-logo"><a href="@routes.Application.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a></section>
+                <section id="footer-social">
+                    <header>Connect</header>
+                    <img class="logo" src="@routes.Assets.at("images/twitter_icon.png")"> <a class="twitter" href="https://twitter.com/bananafourlife">@@bananafourlife</a> <br>
+                    <img class="logo" src="@routes.Assets.at("images/youtube_icon.png")"> <a class="youtube" href="https://www.youtube.com/channel/UCktbmYa9DDuKflH2okA1FjA">Jonas Dann</a> <br>
+                </section>
+                <div class="clear"></div>
+            </div>
+            <div id="copyright">© Banana4Life, all rights reserved | Designed by Jonas Dann</div>
+        </footer>
         </div>
     </body>
 </html>
