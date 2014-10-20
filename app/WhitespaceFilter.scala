@@ -19,8 +19,6 @@ object WhitespaceFilter extends Filter {
     Iteratee.flatten(r.body.apply(bodyAsString)).run.map { s =>
       val filtered = regex.replaceAllIn(s, m => m.group(1)).getBytes(charset)
 
-      println(new String(filtered, charset))
-
       filtered.length -> Enumerator(filtered)
     } map {
       case (len, content) => r.copy(
