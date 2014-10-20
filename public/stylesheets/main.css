@@ -24,6 +24,17 @@
     border-color: #939393 transparent transparent transparent;
 }
 
+.current::after {
+    position: absolute;
+    top: 37px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #ff9a88;
+    content: '';
+    opacity: 1;
+}
+
 .twitter {
     color: #55acee;
 }
@@ -40,16 +51,15 @@ html, body {
 }
 
 body {
-    background-color: #96e9ff;
+    background-color: #272727;
 }
 
 #background-stripe {
     margin-left: auto;
     margin-right: auto;
-    background-color: #d6d6d6;
+    background-color: #eedd7a;
     width: 50%;
     min-width: 600px;
-    height: 100%;
 }
 
 header {
@@ -89,19 +99,19 @@ nav a {
     text-align: center;
     text-decoration: none;
     color: #000;
-    line-height: 30px;
+    line-height: 40px;
     vertical-align: middle;
-    height: 30px;
+    height: 40px;
     width: 100%;
 }
 
 nav a::after {
     position: absolute;
-    top: 27px;
+    top: 37px;
     left: 0;
     width: 100%;
     height: 3px;
-    background: #fff;
+    background: #ff9a88;
     content: '';
     opacity: 0;
     -webkit-transition: opacity 0.3s;
@@ -118,9 +128,24 @@ nav a:hover {
     background-color: #e1e1e1;
 }
 
+article header {
+    text-align: left;
+}
+
+article header h1 {
+    margin-top: 0;
+}
+
+article header span {
+    color: #555;
+    font-size: 0.6em;
+    font-weight: 500;
+    padding: 10px;
+}
+
 article section {
     background-color: #fff;
-    padding: 10px;
+    padding: 5%;
     margin-left: -10px;
     margin-right: -10px;
 }
@@ -137,7 +162,7 @@ article footer {
 
 #main-footer {
     background-color: #fff;
-    padding: 10px;
+    padding: 10px 5%;
     margin-bottom: 20px;
     margin-left: -10px;
     margin-right: -10px;
@@ -184,6 +209,7 @@ article footer {
 
 #copyright {
     padding-top: 5px;
+    padding-bottom: 5px;
     font-size: 10px;
     color: #555;
     text-align: center;
