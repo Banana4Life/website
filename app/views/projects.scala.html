@@ -1,0 +1,7 @@
+@(projects: List[Project])
+
+@main("Projects") {
+    @for(project <- projects) {
+        @project.name
+    }
+}
