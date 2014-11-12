@@ -14,10 +14,10 @@
             </header>
             <nav>
                 <ul>
-                    <li><a href="@routes.Application.index()" class="current">Blog</a></li>
-                    <li><a href="@routes.Application.snippets()">Snippets</a></li>
-                    <li><a href="@routes.Application.projects()">Projects</a></li>
-                    <li><a href="@routes.Application.about()">About</a></li>
+                    <li><a href="@routes.Application.index()" class="@(if(title == "Blog") "current")">Blog</a></li>
+                    <li><a href="@routes.Application.snippets()" class="@(if(title == "Snippets") "current")">Snippets</a></li>
+                    <li><a href="@routes.Application.projects()" class="@(if(title == "Projects") "current")">Projects</a></li>
+                    <li><a href="@routes.Application.about()" class="@(if(title == "About") "current")">About</a></li>
                 </ul>
                 <div class="right"></div>
                 <div class="left"></div>

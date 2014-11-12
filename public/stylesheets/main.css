@@ -136,7 +136,7 @@ article header h1 {
     margin-top: 0;
 }
 
-article header span {
+article header span, .profile header span {
     color: #555;
     font-size: 0.6em;
     font-weight: 500;
@@ -216,4 +216,23 @@ article footer {
     clear: left;
     float: none;
     width: 100%;
+}
+
+.profile img {
+    float: left;
+}
+
+.profile img {
+    height: 200px;
+}
+
+.profile {
+    background-color: #fff;
+    margin-bottom: 15px;
+    margin-left: -10px;
+    margin-right: -10px;
+}
+
+.profile section {
+    padding: 5%;
 }

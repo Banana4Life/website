@@ -20,7 +20,7 @@ object Application extends Controller {
     }
 
     def snippets = Action {
-        Ok(views.html.blog())
+        Ok(views.html.snippets())
     }
 
     def projects = Action.async {
@@ -30,7 +30,7 @@ object Application extends Controller {
     }
 
     def about = Action {
-        Ok(views.html.blog())
+        Ok(views.html.about())
     }
 }
 
