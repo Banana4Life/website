@@ -10,5 +10,7 @@ libraryDependencies ++= Seq(
   jdbc,
   anorm,
   cache,
-  ws
+  ws,
+  "com.tumblr" % "jumblr" % "0.0.10",
+  "org.twitter4j" % "twitter4j" % "4.0.2"
 )

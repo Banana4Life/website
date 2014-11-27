@@ -5,10 +5,10 @@
     <head>
         <title>Banana4Life - @title</title>
         <meta charset="UTF-8">
-        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/main.css")">
+        <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
     </head>
     <body>
-        <div id="background-stripe">
+        <div id="main-column">
             <header>
                 <a href="@routes.Application.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a>
             </header>
@@ -19,8 +19,6 @@
                     <li><a href="@routes.Application.projects()" class="@(if(title == "Projects") "current")">Projects</a></li>
                     <li><a href="@routes.Application.about()" class="@(if(title == "About") "current")">About</a></li>
                 </ul>
-                <div class="right"></div>
-                <div class="left"></div>
                 <div class="clear"></div>
             </nav>
             <main>
