@@ -1,8 +1,14 @@
-#!/bin/sh
+#!/bin/bash
+
+base="target/universal/stage"
 
 git pull
-kill $(cat target/universal/stage/RUNNING_PID)
+kill $(cat $base/RUNNING_PID)
 activator clean stage
-pushd target/universal/stage
+
+ln -s {..,$base}/twitter4j.properties
+ln -s {..,$base}/secret.conf
+
+pushd $base
 ./bin/website > /dev/null &
 popd
