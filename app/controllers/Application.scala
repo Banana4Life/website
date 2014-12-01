@@ -21,11 +21,10 @@ object Application extends Controller {
     }
 
     def index = Action {
-        val client = new JumblrClient(Play.configuration.getString("secret.customerkey").get, Play.configuration.getString("secret.customersecret").get);
-        Ok(views.html.blog(client.blogPosts("bananafourlife"), true, true, 0))
+        Ok(views.html.index("Index"))
     }
 
-    def blog(page: Int = 0) = Action {
+    def blog(page: Int) = Action {
         val client = new JumblrClient(Play.configuration.getString("secret.customerkey").get, Play.configuration.getString("secret.customersecret").get)
         val postCount = client.blogInfo("bananafourlife").getPostCount
         val options = new util.HashMap[String, Int]()
