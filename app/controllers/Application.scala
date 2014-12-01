@@ -1,5 +1,7 @@
 package controllers
 
+import com.tumblr.jumblr.JumblrClient
+import play.api.Play
 import play.api.libs.json._
 import play.api.mvc._
 import play.api.Play.current
@@ -16,7 +18,8 @@ object Application extends Controller {
     }
 
     def index = Action {
-        Ok(views.html.blog())
+        val client = new JumblrClient(Play.configuration.getString("secret.customerkey").get, Play.configuration.getString("secret.customersecret").get);
+        Ok(views.html.blog(client.blogPosts("bananafourlife")))
     }
 
     def snippets = Action {
