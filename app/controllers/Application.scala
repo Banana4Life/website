@@ -12,7 +12,7 @@ import play.api.libs.ws._
 import scala.concurrent.ExecutionContext
 import ExecutionContext.Implicits.global
 
-object Application extends Controller {
+object Application extends Controller with Twitter {
     val maxPosts = 1
 
     implicit object ListOfProjectsFormat extends Format[List[Project]] {
@@ -34,7 +34,7 @@ object Application extends Controller {
     }
 
     def snippets = Action {
-        Ok(views.html.snippets())
+        Ok(views.html.snippets(compiledTweets("bananafourlife")))
     }
 
     def projects = Action.async {

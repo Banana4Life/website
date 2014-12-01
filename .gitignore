@@ -1,7 +1,6 @@
 activator-sbt-*.sbt
 logs
 project/project
-project/target
 target
 tmp
 .history
@@ -17,3 +16,4 @@ projectFilesBackup/.idea
 /.settings
 
 conf/secret.conf
+conf/twitter4j.properties
