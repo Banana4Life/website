@@ -1,5 +1,7 @@
 package controllers
 
+import java.util
+
 import com.tumblr.jumblr.JumblrClient
 import play.api.Play
 import play.api.libs.json._
@@ -11,6 +13,7 @@ import scala.concurrent.ExecutionContext
 import ExecutionContext.Implicits.global
 
 object Application extends Controller {
+    val maxPosts = 1
 
     implicit object ListOfProjectsFormat extends Format[List[Project]] {
         override def writes(projects: List[Project]): JsValue = JsArray(projects.map( project => JsObject(List("name" -> JsString(project.name)))))
@@ -19,7 +22,16 @@ object Application extends Controller {
 
     def index = Action {
         val client = new JumblrClient(Play.configuration.getString("secret.customerkey").get, Play.configuration.getString("secret.customersecret").get);
-        Ok(views.html.blog(client.blogPosts("bananafourlife")))
+        Ok(views.html.blog(client.blogPosts("bananafourlife"), true, true, 0))
+    }
+
+    def blog(page: Int = 0) = Action {
+        val client = new JumblrClient(Play.configuration.getString("secret.customerkey").get, Play.configuration.getString("secret.customersecret").get)
+        val postCount = client.blogInfo("bananafourlife").getPostCount
+        val options = new util.HashMap[String, Int]()
+        options.put("limit", maxPosts)
+        options.put("offset", page * maxPosts)
+        Ok(views.html.blog(client.blogPosts("bananafourlife", options), page > 0, postCount / maxPosts > page + 1, page))
     }
 
     def snippets = Action {

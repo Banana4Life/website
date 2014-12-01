@@ -4,6 +4,8 @@
 
 # Home page
 GET        /                    controllers.Application.index
+GET        /blog                controllers.Default.redirect(to = "/blog/0")
+GET        /blog/:page          controllers.Application.blog(page: Int)
 GET        /snippets            controllers.Application.snippets
 GET        /projects            controllers.Application.projects
 GET        /about               controllers.Application.about
