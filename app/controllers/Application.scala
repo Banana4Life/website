@@ -13,7 +13,7 @@ import scala.concurrent.ExecutionContext
 import ExecutionContext.Implicits.global
 
 object Application extends Controller with Twitter {
-    val maxPosts = 1
+    val maxPosts = 5
 
     implicit object ListOfProjectsFormat extends Format[List[Project]] {
         override def writes(projects: List[Project]): JsValue = JsArray(projects.map( project => JsObject(List("name" -> JsString(project.name)))))
