@@ -3,10 +3,10 @@
 
 @main("Blog") {
     @for(post <- posts) {
-        @if(post.isInstanceOf[TextPost]) {
+        @if(post.isInstanceOf[TextPost] && post.asInstanceOf[TextPost].getTitle != null) {
             <article class="round">
                 <header>
-                    <h1> @post.asInstanceOf[TextPost].getTitle <span> posted by @post.getBlogName | @post.getDateGMT</span></h1>
+                    <h1> @post.asInstanceOf[TextPost].getTitle <span> posted by @post.getBlogName | @post.getDateGMT.substring(0, 10)</span></h1>
                 </header>
                 @Html(post.asInstanceOf[TextPost].getBody)
                 <footer>
