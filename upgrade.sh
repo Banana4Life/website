@@ -4,10 +4,8 @@ base="target/universal/stage"
 
 git pull
 kill $(cat $base/RUNNING_PID)
-activator clean stage
 
-ln -s {..,$base}/twitter4j.properties
-ln -s {..,$base}/secret.conf
+activator clean stage
 
 pushd $base
 ./bin/website > /dev/null &
