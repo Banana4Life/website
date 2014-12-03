@@ -2,6 +2,8 @@ package controllers
 
 import java.text.SimpleDateFormat
 
+import play.api.Play.current
+import play.api.cache.Cache
 import play.twirl.api.Html
 import play.twirl.api.HtmlFormat._
 import play.twirl.api.TemplateMagic.javaCollectionToScala
@@ -13,7 +15,7 @@ trait Twitter {
   val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
 
   def compileTweet(tweet: Status): Html = {
-    val hashtags = tweet.getHashtagEntities.map(h  => (h.getStart, h.getEnd, ("#" + h.getText, "#" + h.getText)))
+    val hashtags = tweet.getHashtagEntities.map(h => (h.getStart, h.getEnd, ("#" + h.getText, "#" + h.getText)))
     val urls = tweet.getURLEntities.map(u => (u.getStart, u.getEnd, (u.getExpandedURL, u.getDisplayURL)))
     val users = tweet.getUserMentionEntities.map(u => (u.getStart, u.getEnd, ("#" + u.getName, "@" + u.getScreenName)))
 
@@ -31,7 +33,11 @@ trait Twitter {
     views.html.snippet.twitter(Html(out.toString()), dateFormat.format(tweet.getCreatedAt))
   }
 
-  def tweets(user: String) = twitter.getUserTimeline(user)
-  
+  def tweets(user: String) = {
+    Cache.getOrElse("remote.twitter." + user, 60 * 60 * 2) {
+      twitter.getUserTimeline(user)
+    }
+  }
+
   def compiledTweets(user: String) = tweets(user).toList.map(compileTweet)
 }
