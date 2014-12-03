@@ -3,14 +3,23 @@
   padding: 10px 0;
   overflow: hidden;
 
-  article {
-    float: left;
-    width: 50%;
 
-    p {
-      padding: 5px;
+
+  .item {
+    width: 180px;
+    margin: 10px;
+    border-radius: 5px;
+    background-color: rgba(232, 120, 20, 1);
+
+    & > * {
       margin: 5px;
-      background-color: rgba(0, 0, 0, .2);
+    }
+
+    article {
+      p {
+        text-align: left !important;
+        background-color: rgba(0, 0, 0, .2);
+      }
     }
   }
 }

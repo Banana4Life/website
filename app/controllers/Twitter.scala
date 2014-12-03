@@ -1,5 +1,7 @@
 package controllers
 
+import java.text.SimpleDateFormat
+
 import play.twirl.api.Html
 import play.twirl.api.HtmlFormat._
 import play.twirl.api.TemplateMagic.javaCollectionToScala
@@ -8,6 +10,7 @@ import twitter4j.{Status, TwitterFactory}
 trait Twitter {
 
   val twitter = TwitterFactory.getSingleton
+  val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
 
   def compileTweet(tweet: Status): Html = {
     val hashtags = tweet.getHashtagEntities.map(h  => (h.getStart, h.getEnd, ("#" + h.getText, "#" + h.getText)))
@@ -25,7 +28,7 @@ trait Twitter {
       last = end
     }
     out ++= text.substring(last)
-    Html(out.toString())
+    views.html.snippet.twitter(Html(out.toString()), dateFormat.format(tweet.getCreatedAt))
   }
 
   def tweets(user: String) = twitter.getUserTimeline(user)

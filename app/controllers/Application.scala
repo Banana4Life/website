@@ -48,6 +48,4 @@ object Application extends Controller with Twitter {
     }
 }
 
-case class Project(name: String) {
-
-}
+case class Project(name: String)
