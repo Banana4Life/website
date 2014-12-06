@@ -1,11 +1,13 @@
-@(tweets: List[Html])
+@(tweets: List[Html], blogs: List[Html], project: Html)
 
 @main("Home") {
     <div id="index-main">
         <div id="index-left">
             <div>
-                <div>Tumblr</div>
-                <div>Projekt</div>
+                <div id="index-blog">LD31 Just started! We're going to make an entire game.</div>
+                <div id="index-project">
+                    <div>LD31(Entire game on one screen)</div>
+                </div>
             </div>
         </div>
 
@@ -18,6 +20,6 @@
                 }
             </div>
         </div>
+        <div class="clear"></div>
     </div>
-    <div class="clear"></div>
 }

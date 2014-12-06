@@ -1,33 +1,21 @@
 package controllers
 
-import java.util
-
-import com.tumblr.jumblr.JumblrClient
-import play.api.Play
-import play.api.cache.{Cache, Cached}
-import play.api.libs.json._
-import play.api.mvc._
 import play.api.Play.current
+import play.api.cache.Cached
+import play.api.libs.json._
 import play.api.libs.ws._
+import play.api.mvc._
 
-import scala.concurrent.ExecutionContext
-import ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object Application extends Controller with Twitter with Tumblr with Youtube with Github {
 
     def index = Action {
-        Ok(views.html.index(compiledTweets("bananafourlife", 4)))
+        Ok(views.html.index(compiledTweets("bananafourlife", 4), null, null))
     }
 
     def blog(page: Int) = Action {
-        Cache.getOrElse("page.blog." + page) {
-            val client = new JumblrClient(Play.configuration.getString("secret.customerkey").get, Play.configuration.getString("secret.customersecret").get)
-            val postCount = client.blogInfo("bananafourlife").getPostCount
-            val options = new util.HashMap[String, Int]()
-            options.put("limit", maxPosts)
-            options.put("offset", page * maxPosts)
-            Ok(views.html.blog(client.blogPosts("bananafourlife", options), page > 0, postCount / maxPosts > page + 1, page))
-        }
+        Ok(views.html.blog(getPosts(page), page > 0, postCountLast / maxPosts > page + 1, page))
     }
 
     def snippets = Action {
