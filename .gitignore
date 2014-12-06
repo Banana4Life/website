@@ -17,3 +17,5 @@ projectFilesBackup/.idea
 
 conf/secret.conf
 conf/twitter4j.properties
+
+Thumbs.db
