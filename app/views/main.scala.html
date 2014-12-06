@@ -9,40 +9,48 @@
         <script type="text/javascript" src="@routes.Assets.at("lib/jquery/jquery.min.js")"></script>
     </head>
     <body>
-        <div id="main-column">
-            <header>
+        <header>
+            <div class="main-column">
                 <a href="@routes.Application.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a>
-            </header>
-            <nav>
+            </div>
+        </header>
+        <nav>
+            <div class="main-column">
                 <ul>
-                    <li><a href="@routes.Application.index()" class="@(if(title == "Home") "current"), first">Home</a></li>
+                    <li><a href="@routes.Application.index()" class="@(if(title == "Home") "current")">Home</a></li>
                     <li><a href="@routes.Application.blog(0)" class="@(if(title == "Blog") "current")">Blog</a></li>
                     <li><a href="@routes.Application.snippets()" class="@(if(title == "Snippets") "current")">Snippets</a></li>
                     <li><a href="@routes.Application.projects()" class="@(if(title == "Projects") "current")">Projects</a></li>
-                    <li><a href="@routes.Application.about()" class="@(if(title == "About") "current"), last">About</a></li>
+                    <li><a href="@routes.Application.about()" class="@(if(title == "About") "current")">About</a></li>
                 </ul>
-                <div class="clear"></div>
-            </nav>
-            <main>
+            </div>
+            <div class="clear"></div>
+        </nav>
+        <main>
+            <div class="main-column">
                 @content
-            </main>
-            <footer>
-                <div id="footer-content">
-                    <section id="email">
-                        <header>Contact</header>
-                        Banana4Life ist located in Germany.<br>
-                        E-Mail us at info@@banana4.life.
-                    </section>
-                    <section id="footer-logo"><a href="@routes.Application.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a></section>
-                    <section id="footer-social">
-                        <header>Connect</header>
-                        <img class="logo" src="@routes.Assets.at("images/twitter_icon.png")"> <a class="twitter" href="https://twitter.com/bananafourlife">@@bananafourlife</a> <br>
-                        <img class="logo" src="@routes.Assets.at("images/youtube_icon.png")"> <a class="youtube" href="https://www.youtube.com/channel/UCktbmYa9DDuKflH2okA1FjA">Jonas Dann</a> <br>
-                    </section>
-                    <div class="clear"></div>
-                </div>
-                <div id="copyright">© Banana4Life, all rights reserved | Designed by Jonas Dann</div>
-            </footer>
+            </div>
+        </main>
+
+        <footer>
+            <div id="footer-content" class="main-column">
+                <section id="email">
+                    <header>Contact</header>
+                    Banana4Life ist located in Germany.<br>
+                    E-Mail us at info@@banana4.life.
+                </section>
+                <section id="footer-logo"><a href="@routes.Application.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a></section>
+                <section id="footer-social">
+                    <header>Connect</header>
+                    <img class="logo" src="@routes.Assets.at("images/twitter_icon.png")"> <a class="twitter" href="https://twitter.com/bananafourlife">@@bananafourlife</a> <br>
+                    <img class="logo" src="@routes.Assets.at("images/youtube_icon.png")"> <a class="youtube" href="https://www.youtube.com/channel/UCktbmYa9DDuKflH2okA1FjA">
+                    Jonas Dann</a> <br>
+                </section>
+                <div class="clear"></div>
+            </div>
+        </footer>
+        <div class="main-column">
+            <div id="copyright">© Banana4Life, all rights reserved | Designed by Jonas Dann</div>
         </div>
         <div class="main-beta">β</div>
     </body>
