@@ -1,5 +1,23 @@
-@(message: String)
+@(tweets: List[Html])
 
 @main("Home") {
-    Index
+    <div id="index-main">
+        <div id="index-left">
+            <div>
+                <div>Tumblr</div>
+                <div>Projekt</div>
+            </div>
+        </div>
+
+        <div id="index-right">
+            <div>
+                @for(tweet <- tweets) {
+                    <div class="item">
+                        @tweet
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="clear"></div>
 }

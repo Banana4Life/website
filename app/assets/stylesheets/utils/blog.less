@@ -1,53 +1,52 @@
-article {
+article.blog-post {
   word-wrap: break-word;
   background-color: #fff;
   padding: 5% 5% 3% 5%;
-  margin-bottom: 2%;
+  margin-bottom: 20px;
+
+  header {
+    text-align: left;
+
+    h1 {
+      font-weight: 700;
+      font-size: 20pt;
+      margin-top: 0;
+    }
+  }
+
+  p {
+    text-align: justify;
+    margin: 0 0 9pt;
+  }
+
+  a {
+    color: #68930a;
+    text-decoration: none;
+    &:hover {
+      color: #e52d27;
+    }
+  }
+
+  footer {
+    font-size: 8pt;
+    margin: 20px 0 0 0;
+
+    a {
+      color: #888;
+      text-decoration: none;
+
+      &:hover {
+        color: #666;
+      }
+    }
+  }
 }
 
-article header {
-  text-align: left;
-}
-
-article header h1 {
-  font-weight: 700;
-  font-size: 20pt;
-  margin-top: 0;
-}
-
-article header span, .profile header span {
+article.blog-post header span, .profile header span {
   color: #888;
   font-size: 8pt;
   font-weight: 300;
   padding: 10px;
-}
-
-article p {
-  text-align: justify;
-  margin: 0 0 9pt;
-}
-
-article a {
-  color: #68930a;
-  text-decoration: none;
-}
-
-article a:hover {
-  color: #e52d27;
-}
-
-article footer {
-  font-size: 8pt;
-  margin: 2% 0 0 0;
-}
-
-article footer a {
-  color: #888;
-  text-decoration: none;
-}
-
-article footer a:hover {
-  color: #666;
 }
 
 #main-footer {
@@ -55,8 +54,7 @@ article footer a:hover {
   padding: 10px 5%;
   margin-bottom: 10px;
 
-}
-
-#main-footer span {
-  float: right;
+  span {
+    float: right;
+  }
 }

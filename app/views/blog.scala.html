@@ -4,7 +4,7 @@
 @main("Blog") {
     @for(post <- posts) {
         @if(post.isInstanceOf[TextPost] && post.asInstanceOf[TextPost].getTitle != null) {
-            <article class="round">
+            <article class="round blog-post">
                 <header>
                     <h1> @post.asInstanceOf[TextPost].getTitle <span> posted by @post.getBlogName | @post.getDateGMT.substring(0, 10)</span></h1>
                 </header>

@@ -40,4 +40,6 @@ trait Twitter {
   }
 
   def compiledTweets(user: String) = tweets(user).toList.map(compileTweet)
+
+  def compiledTweets(user: String, count: Int) = tweets(user).toList.map(compileTweet).take(count)
 }

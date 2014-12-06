@@ -16,7 +16,7 @@ import ExecutionContext.Implicits.global
 object Application extends Controller with Twitter with Tumblr with Youtube with Github {
 
     def index = Action {
-        Ok(views.html.index("Index"))
+        Ok(views.html.index(compiledTweets("bananafourlife", 4)))
     }
 
     def blog(page: Int) = Action {
