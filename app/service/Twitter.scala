@@ -1,4 +1,4 @@
-package controllers
+package service
 
 import java.text.SimpleDateFormat
 
@@ -7,7 +7,10 @@ import play.api.cache.Cache
 import play.twirl.api.Html
 import play.twirl.api.HtmlFormat._
 import play.twirl.api.TemplateMagic.javaCollectionToScala
-import twitter4j.{Status, TwitterFactory}
+import twitter4j.{ResponseList, Status, TwitterFactory}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 trait Twitter {
 
@@ -33,13 +36,17 @@ trait Twitter {
     views.html.snippet.twitter(Html(out.toString()), dateFormat.format(tweet.getCreatedAt))
   }
 
-  def tweets(user: String) = {
+  def tweets(user: String) = Future {
     Cache.getOrElse("remote.twitter." + user, 60 * 60 * 2) {
       twitter.getUserTimeline(user)
     }
   }
 
-  def compiledTweets(user: String) = tweets(user).toList.map(compileTweet)
+  def compiledTweets(user: String) = tweets(user) map {
+    statuses: ResponseList[Status] => statuses.toList.map(compileTweet)
+  }
 
-  def compiledTweets(user: String, count: Int) = tweets(user).toList.map(compileTweet).take(count)
+  def compiledTweets(user: String, count: Int) = tweets(user) map {
+    statuses: ResponseList[Status] => statuses.toList.map(compileTweet).take(count)
+  }
 }

@@ -1,6 +1,7 @@
-package controllers
+package service
 
 import play.api.libs.json._
+import service.github.Project
 
 trait Github {
   implicit object ListOfProjectsFormat extends Format[List[Project]] {

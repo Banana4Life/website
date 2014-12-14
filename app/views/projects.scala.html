@@ -1,7 +1,7 @@
-@(projects: List[Project])
+@(projects: List[service.github.Project])
 
 @main("Projects") {
     @for(project <- projects) {
-        @project.name
+        <div class="project">@project.name</div>
     }
 }
