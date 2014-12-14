@@ -13,10 +13,18 @@ import scala.concurrent.Future
 
 trait Tumblr {
   val maxPosts = 5
-  val client = new JumblrClient(app.configuration.getString("secret.customerkey").get, app.configuration.getString("secret.customersecret").get)
+  val client = {
+    for (
+      key <- app.configuration.getString("tumblr.customerkey");
+      secret <- app.configuration.getString("tumblr.customersecret")
+    ) yield new JumblrClient(key, secret)
+  }
   var postCountLast = 0
 
   def getPosts(page: Int): Future[List[Post]] = Future {
+
+    val client = this.client.get
+
     val postCount = Cache.getOrElse("blog.count", 60 * 60 * 2 /*2h*/) {
       client.blogInfo("bananafourlife").getPostCount
     }

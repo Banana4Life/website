@@ -15,7 +15,7 @@ projectFilesBackup/.idea
 /RUNNING_PID
 /.settings
 
-conf/secret.conf
+conf/tumblr.conf
 conf/twitter4j.properties
 
 Thumbs.db
