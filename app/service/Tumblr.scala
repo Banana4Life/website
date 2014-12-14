@@ -15,7 +15,7 @@ trait Tumblr {
   val maxPosts = 5
   val client = {
     for (
-      key <- app.configuration.getString("tumblr.customerkey");
+      key    <- app.configuration.getString("tumblr.customerkey");
       secret <- app.configuration.getString("tumblr.customersecret")
     ) yield new JumblrClient(key, secret)
   }
