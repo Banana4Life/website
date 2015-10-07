@@ -30,28 +30,37 @@
             <div class="main-column">
                 @content
             </div>
+            <div class="clear"></div>
         </main>
-
         <footer>
             <div id="footer-content" class="main-column">
-                <section id="email">
-                    <header>Contact</header>
-                    Banana4Life ist located in Germany.<br>
-                    E-Mail us at info@@banana4.life.
-                </section>
-                <section id="footer-logo"><a href="@routes.Application.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a></section>
-                <section id="footer-social">
-                    <header>Connect</header>
-                    <img class="logo" src="@routes.Assets.at("images/twitter_icon.png")"> <a class="twitter" href="https://twitter.com/bananafourlife">@@bananafourlife</a> <br>
-                    <img class="logo" src="@routes.Assets.at("images/youtube_icon.png")"> <a class="youtube" href="https://www.youtube.com/channel/UCktbmYa9DDuKflH2okA1FjA">
-                    Jonas Dann</a> <br>
-                </section>
+                <div id="footer-email" class="left">
+                    <div class="left">
+                        Contact
+                    </div>
+                    <div>
+                        Banana4Life ist located in Germany.<br>
+                        E-Mail us at info@@banana4.life.
+                    </div>
+                </div>
+                <div id="footer-logo">
+                    <a href="@routes.Application.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a>
+                </div>
+                <div id="footer-social" class="right">
+                    <div class="right">
+                        Connect
+                    </div>
+                    <div>
+                        <img class="logo" src="@routes.Assets.at("images/twitter_icon.png")">
+                        <a class="twitter" href="https://twitter.com/bananafourlife">@@bananafourlife</a><br>
+                        <img class="logo" src="@routes.Assets.at("images/youtube_icon.png")">
+                        <a class="youtube" href="https://www.youtube.com/channel/UCktbmYa9DDuKflH2okA1FjA">Jonas Dann</a>
+                    </div>
+                </div>
                 <div class="clear"></div>
             </div>
-        </footer>
-        <div class="main-column">
             <div id="copyright">© Banana4Life, all rights reserved | Designed by Jonas Dann</div>
-        </div>
+        </footer>
         <div class="main-beta">β</div>
     </body>
 </html>

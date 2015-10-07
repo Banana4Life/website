@@ -39,8 +39,11 @@ html, body {
   color: #444;
 }
 
-body {
-  background: rgba(200, 200, 200, 0.24) url("../images/noise.png");
+main {
+  background: rgb(221, 221, 221) url("../images/noise.png");
+  padding: 20px 0;
+  z-index: 100;
+  position: relative;
 }
 
 .main-column {
@@ -65,4 +68,12 @@ a {
   &:hover {
     color: #e52d27;
   }
+}
+
+.left {
+  float: left;
+}
+
+.right {
+  float: right;
 }
