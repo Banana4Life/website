@@ -15,9 +15,15 @@ import scala.concurrent.Future
 trait Twitter {
 
   val twitter = TwitterFactory.getSingleton
-  val dateFormat = new SimpleDateFormat("MM-dd-yyyy")
+  val dateFormat = new SimpleDateFormat("dd MMMMM yyyy")
 
   def compileTweet(tweet: Status): Html = {
+    val user = tweet.getUser
+    val userName = user.getName
+    val userHandle = user.getScreenName
+    val imgURL = user.getOriginalProfileImageURLHttps
+    val tweetId = tweet.getId
+
     val hashtags = tweet.getHashtagEntities.map(h => (h.getStart, h.getEnd, ("#" + h.getText, "#" + h.getText)))
     val urls = tweet.getURLEntities.map(u => (u.getStart, u.getEnd, (u.getExpandedURL, u.getDisplayURL)))
     val users = tweet.getUserMentionEntities.map(u => (u.getStart, u.getEnd, ("#" + u.getName, "@" + u.getScreenName)))
@@ -33,7 +39,7 @@ trait Twitter {
       last = end
     }
     out ++= text.substring(last)
-    views.html.snippet.twitter(Html(out.toString()), dateFormat.format(tweet.getCreatedAt))
+    views.html.snippet.twitter(imgURL, tweetId, userName, userHandle, Html(out.toString()), dateFormat.format(tweet.getCreatedAt))
   }
 
   def tweets(user: String) = Future {

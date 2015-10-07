@@ -12,9 +12,10 @@
         </div>
 
         <div id="index-right">
+            <div class="header"><img class="logo" src="@routes.Assets.at("images/twitter_icon.png")"> Twitter</div>
             <div>
                 @for(tweet <- tweets) {
-                    <div class="item">
+                    <div class="twitterItem">
                         @tweet
                     </div>
                 }

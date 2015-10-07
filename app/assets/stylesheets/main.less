@@ -5,6 +5,8 @@
 @import "utils/snippets";
 @import "utils/about";
 @import "utils/index";
+@import "utils/twitter";
+@import "fontAwesome/font-awesome";
 
 @import url("//fonts.googleapis.com/css?family=Open+Sans:400,500,700,900");
 
@@ -38,13 +40,13 @@ html, body {
 }
 
 body {
-  background: rgba(253, 255, 189, 0.24) url("../images/noise.png");
+  background: rgba(200, 200, 200, 0.24) url("../images/noise.png");
 }
 
 .main-column {
   margin-left: auto;
   margin-right: auto;
-  width: 50%;
+  width: 60%;
   min-width: @layout-width;
 }
 
@@ -55,4 +57,12 @@ body {
   font-size: 200px;
   color: #8e0000;
   text-shadow: -2px 0 #ff8400, 0 2px #ff8400, 2px 0 #ff8400, 0 -2px #ff8400;
+}
+
+a {
+  color: #68930a;
+  text-decoration: none;
+  &:hover {
+    color: #e52d27;
+  }
 }

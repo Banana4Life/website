@@ -1,0 +1,53 @@
+.twitterItem {
+  background-color: #fff;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 5px;
+  article {
+    padding: 15px;
+
+    & > div:not(.clear) {
+      float: left;
+    }
+
+    .twitterPictureCol {
+      width: 10%;
+
+      img {
+        width: 100%;
+      }
+    }
+
+    .twitterContentCol {
+      width: 90%;
+
+      & > div {
+        padding-left: 10px;
+      }
+    }
+
+    .twitterTitle {
+      color: #444;
+      span {
+        padding-left: 10px;
+        color: #555;
+        font-size: 10px;
+      }
+    }
+
+    p {
+      padding: 10px 0;
+      margin: 0;
+    }
+
+    .twitterDate {
+      color: #555;
+      font-size: 10px;
+
+      a {
+        float: right;
+      }
+    }
+  }
+
+}
