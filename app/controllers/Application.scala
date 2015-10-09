@@ -15,8 +15,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object Application extends Controller with Twitter with Tumblr with Youtube with Github {
 
     def index = Action.async {
-        compiledTweets("bananafourlife", 4) map {
-            statuses: List[Html] => Ok(views.html.index(statuses, null, null))
+        for {
+            tweets <- compiledTweets("bananafourlife", 4)
+            posts <- getPosts(0)
+            projects <- getProjects()
+        } yield {
+            val postsHtml = posts.map(p => Html(p.getSourceTitle))
+            val projectsHtml = views.html.projects(projects)
+            Ok(views.html.index(tweets, postsHtml, projectsHtml))
         }
     }
 
@@ -34,9 +40,9 @@ object Application extends Controller with Twitter with Tumblr with Youtube with
 
     def projects = Cached((x: RequestHeader) => "page.projects", 60 * 60 * 2) {
         Action.async {
-            val futureResponse = WS.url("https://api.github.com/orgs/Banana4Life/repos").withRequestTimeout(10000).get()
-            val futureProjects = futureResponse.map( response => Json.parse(response.body).as[List[Project]] )
-            futureProjects.map( projects => Ok(views.html.projects(projects)) )
+            getProjects() map {projects =>
+                Ok(views.html.projects(projects))
+            }
         }
     }
 
