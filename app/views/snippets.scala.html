@@ -2,16 +2,23 @@
 
 @main("Snippets") {
     <div id="snippets">
-    @for(tweet <- tweets) {
-        <div class="twitterItem item">
-            <p>@tweet</p>
-        </div>
-    }
+        <div class="grid-sizer"></div>
+        @for(tweet <- tweets) {
+            <div class="item">
+                <div class="twitterItem">
+                    @tweet
+                </div>
+            </div>
+        }
     </div>
     <script type="text/javascript" src="@routes.Assets.at("lib/masonry/masonry.pkgd.min.js")"></script>
     <script>
-        var msnry = new Masonry('#snippets', {
-            itemSelector: '#snippets > .item'
-        })
+        $(document).ready( function() {
+            $('#snippets').masonry({
+                itemSelector: '#snippets > .item',
+                columnWidth: '.grid-sizer',
+                percentPosition: true
+            });
+        });
     </script>
 }

@@ -16,5 +16,5 @@ libraryDependencies ++= Seq(
   "com.google.apis" %  "google-api-services-youtube" % "v3-rev149-1.20.0",
   "org.webjars"     %% "webjars-play"                % "2.4.0-1",
   "org.webjars"     %  "jquery"                      % "2.1.1",
-  "org.webjars"     %  "masonry"                     % "3.1.5"
+  "org.webjars"     %  "masonry"                     % "3.3.2"
 )

@@ -4,10 +4,11 @@
     <div id="index-main">
         <div id="index-left">
             <div>
-                <div id="index-blog">LD31 Just started! We're going to make an entire game.</div>
-                <div id="index-project">
-                    <div>LD31(Entire game on one screen)</div>
-                </div>
+                @for(blog <- blogs) {
+                    <div class="index-blog">
+                        @blog
+                    </div>
+                }
             </div>
         </div>
 
