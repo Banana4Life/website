@@ -1,9 +1,9 @@
 package service
 
 import java.text.SimpleDateFormat
+import javax.inject.Inject
 
-import play.api.Play.current
-import play.api.cache.Cache
+import play.api.cache.CacheApi
 import play.twirl.api.Html
 import play.twirl.api.HtmlFormat._
 import play.twirl.api.TemplateMagic.javaCollectionToScala
@@ -11,8 +11,9 @@ import twitter4j.{ResponseList, Status, TwitterFactory}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
 
-trait Twitter {
+class TwitterService @Inject() (cache: CacheApi) {
 
   val twitter = TwitterFactory.getSingleton
   val dateFormat = new SimpleDateFormat("dd MMMMM yyyy")
@@ -43,7 +44,7 @@ trait Twitter {
   }
 
   def tweets(user: String) = Future {
-    Cache.getOrElse("remote.twitter." + user, 60 * 60 * 2) {
+    cache.getOrElse("remote.twitter." + user, 2.hours) {
       twitter.getUserTimeline(user)
     }
   }
