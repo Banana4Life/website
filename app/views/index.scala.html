@@ -1,8 +1,13 @@
-@(tweets: List[Html], blogs: List[Html], project: Html)
+@(tweets: List[Html], blogs: List[Html], project: Html, twitchPlayer: Option[Html])
 
 @main("Home") {
     <div id="index-main">
         <div id="index-left">
+            @if(twitchPlayer.isDefined) {
+                <div>
+                @twitchPlayer.get
+                </div>
+            }
             <div>
                 @for(blog <- blogs) {
                     <div class="index-blog">
