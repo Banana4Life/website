@@ -1,7 +1,35 @@
-@(projects: List[service.Project])
+@(projects: Seq[service.Project])
 
 @main("Projects") {
     @for(project <- projects) {
-        <div class="project">@project.name</div>
+        <div class="project">
+            <h2><a href="@project.url">@project.displayName</a></h2>
+            <div>@project.description</div>
+            <div>
+                Authors:
+                <ul>
+                    @for(author <- project.authors){
+                        @if(author(0) == '-') {
+                            <li>@(author.drop(1)) (non-member)</li>
+                        } else {
+                            <li>@author</li>
+                        }
+                    }
+                </ul>
+            </div>
+            @for(ld <- project.ludumDare){
+                <div>
+                    Developed for Ludum Dare #@ld.number with the theme "@ld.theme"
+                    @if(ld.comments.nonEmpty) {
+                        <div>
+                            A few cool comments:
+                            @for(comment <- ld.comments) {
+                                <div>@comment</div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
     }
 }
