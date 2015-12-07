@@ -14,40 +14,51 @@ footer {
   width: 30%;
 }
 
-#footer-content > div > div:first-child {
-  width: 20%;
-}
+#footer-email, #footer-social {
+  font-size: 12px;
 
-#footer-content > div > div:first-child + div {
-  margin-left: 20%;
+  .head {
+    width: 20%;
+  }
 }
 
 #footer-email {
-  font-size: 12px;
-  float: left;
+  .head {
+
+  }
+  .body {
+    margin-left: 20%;
+  }
+}
+
+#footer-social {
+  .head {
+
+  }
+  .body {
+    margin-right: 20%;
+  }
+  .logo {
+    width: 14px;
+    margin-right: 14px;
+  }
 }
 
 #footer-logo {
   margin: 0 auto;
 }
 
+#footer-content img {
+  /*vertical-align: text-bottom;*/
+  width: 50px;
+}
+
+/*
 #footer-content a {
   text-decoration: none;
   font-weight: 500;
 }
-
-#footer-content img {
-  vertical-align: text-bottom;
-  width: 50px;
-}
-
-#footer-content .logo {
-  width: 14px;
-  margin-right: 14px;
-}
-
-#footer-social {
-}
+*/
 
 #copyright {
   padding-top: 5px;
@@ -58,4 +69,14 @@ footer {
   clear: left;
   float: none;
   width: 100%;
+
+  & > span:hover {
+    & > span {
+      text-decoration: line-through;
+    }
+
+    &:after {
+      content: " Idiot";
+    }
+  }
 }
