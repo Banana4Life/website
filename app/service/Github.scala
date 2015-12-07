@@ -4,14 +4,15 @@ import java.net.URL
 import java.util.Date
 import javax.inject.Inject
 
-import com.fasterxml.jackson.core.JsonParseException
 import play.api.libs.json._
-import play.api.libs.ws.{WSClient, WS}
+import play.api.libs.ws.WSClient
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-case class ProjectBasics(name: String, html_url: String, full_name: String, pushed_at: Date)
+case class ProjectBasics(name: String, html_url: String, full_name: String, pushed_at: Date) {
+  def file(path: String, branch: String = "master") = s"https://raw.githubusercontent.com/$full_name/$branch/$path"
+}
 
 object ProjectBasics {
   implicit val format = Json.format[ProjectBasics]
@@ -35,7 +36,7 @@ case class Project(repoName: String, displayName: String, url: URL, description:
                    lastUpdated: Date)
 
 class GithubService @Inject() (ws: WSClient) {
-  def getProjects(): Future[Seq[Project]] = {
+  def getProjects: Future[Seq[Project]] = {
     val futureResponse = ws.url("https://api.github.com/orgs/Banana4Life/repos").withRequestTimeout(10000).get()
     futureResponse flatMap {response =>
       complete(Json.parse(response.body).as[Seq[ProjectBasics]])
@@ -44,13 +45,10 @@ class GithubService @Inject() (ws: WSClient) {
 
   def complete(projectBasics: Seq[ProjectBasics]): Future[Seq[Project]] = {
     val futures = projectBasics map {basics =>
-      val metaUrl = s"https://raw.githubusercontent.com/${basics.full_name}/master/.banana4.json"
-      val imageUrl = s"https://raw.githubusercontent.com/${basics.full_name}/master/.banana4.png"
-      ws.url(metaUrl).get() map {response =>
+      ws.url(basics.file(".banana4.json")).get() map {response =>
         val meta = Json.parse(response.body).as[ProjectMeta]
-        println(meta.ludumdare)
         Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.ludumdare,
-          meta.authors, new URL(imageUrl), basics.pushed_at)
+          meta.authors, new URL(basics.file(".banana4.png")), basics.pushed_at)
       }
     }
 

@@ -21,7 +21,7 @@ class Application @Inject() (cached: Cached,
         for {
             tweets <- twitter.compiledTweets("bananafourlife", 4)
             posts <- tumblr.getPosts(0)
-            projects <- github.getProjects()
+            projects <- github.getProjects
             twitchPlayer <- twitch.getPlayer
         } yield {
             val postsHtml = posts.map(p => Html(p.asInstanceOf[TextPost].getTitle))
@@ -44,7 +44,7 @@ class Application @Inject() (cached: Cached,
 
     def projects = cached((x: RequestHeader) => "page.projects", 60 * 60 * 2) {
         Action.async {
-            github.getProjects() map {projects =>
+            github.getProjects map {projects =>
                 Ok(views.html.projects(projects))
             }
         }
