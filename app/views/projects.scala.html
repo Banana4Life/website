@@ -5,6 +5,10 @@
         <div class="project">
             <h2><a href="@project.url">@project.displayName</a></h2>
             <div>@project.description</div>
+            <div>Download <a target="_blank" href="@project.download">here</a>!</div>
+            @for(sound <- project.soundtrack){
+                <div>Get the soundtrack <a target="_blank" href="@sound">here</a>!</div>
+            }
             <div>
                 Authors:
                 <ul>

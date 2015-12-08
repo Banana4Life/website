@@ -12,6 +12,7 @@ import scala.concurrent.Future
 
 case class ProjectBasics(name: String, html_url: String, full_name: String, pushed_at: Date) {
   def file(path: String, branch: String = "master") = s"https://raw.githubusercontent.com/$full_name/$branch/$path"
+  lazy val latestRelease = new URL(s"https://github.com/$full_name/releases/latest")
 }
 
 object ProjectBasics {
@@ -24,7 +25,8 @@ object LudumDareInfo {
   implicit val format = Json.format[LudumDareInfo]
 }
 
-case class ProjectMeta(name: String, description: String, ludumdare: Option[LudumDareInfo], authors: Seq[String])
+case class ProjectMeta(name: String, description: String, ludumdare: Option[LudumDareInfo], authors: Seq[String],
+                      download: Option[String], soundtrack: Option[String])
 
 object ProjectMeta {
   implicit val format = Json.format[ProjectMeta]
@@ -33,7 +35,7 @@ object ProjectMeta {
 
 case class Project(repoName: String, displayName: String, url: URL, description: String,
                    ludumDare: Option[LudumDareInfo], authors: Seq[String], imageUrl: URL,
-                   lastUpdated: Date)
+                   lastUpdated: Date, download: URL, soundtrack: Option[URL])
 
 class GithubService @Inject() (ws: WSClient) {
   def getProjects: Future[Seq[Project]] = {
@@ -48,7 +50,8 @@ class GithubService @Inject() (ws: WSClient) {
       ws.url(basics.file(".banana4.json")).get() map {response =>
         val meta = Json.parse(response.body).as[ProjectMeta]
         Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.ludumdare,
-          meta.authors, new URL(basics.file(".banana4.png")), basics.pushed_at)
+          meta.authors, new URL(basics.file(".banana4.png")), basics.pushed_at,
+          meta.download.map(new URL(_)).getOrElse(basics.latestRelease), meta.soundtrack.map(new URL(_)))
       }
     }
 
