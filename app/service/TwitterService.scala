@@ -3,6 +3,7 @@ package service
 import java.text.SimpleDateFormat
 import javax.inject.Inject
 
+import play.api.Logger
 import play.api.cache.CacheApi
 import play.twirl.api.Html
 import play.twirl.api.HtmlFormat._
@@ -43,10 +44,17 @@ class TwitterService @Inject() (cache: CacheApi) {
     views.html.snippet.twitter(imgURL, tweetId, userName, userHandle, Html(out.toString()), dateFormat.format(tweet.getCreatedAt))
   }
 
-  def tweets(user: String) = Future {
-    cache.getOrElse("remote.twitter." + user, 2.hours) {
-      twitter.getUserTimeline(user)
+  def tweets(user: String) = {
+    val future = Future {
+      cache.getOrElse("remote.twitter." + user, 2.hours) {
+        twitter.getUserTimeline(user)
+      }
     }
+    future onFailure {
+      case e: Exception =>
+        Logger.error("Failed to get the tweets!", e)
+    }
+    future
   }
 
   def compiledTweets(user: String) = tweets(user) map {
