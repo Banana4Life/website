@@ -2,8 +2,13 @@
 
 @main("Projects") {
     @for(project <- projects) {
-        <div class="project">
-            <h2><a href="@project.url">@project.displayName</a></h2>
+        <div class="project round">
+            <header>
+                <h1><a href="@project.url">@project.displayName</a></h1>
+                @for(ld <- project.ludumDare) {
+                    <div>Ludum Dare #@ld.number | Theme "@ld.theme"</div>
+                }
+            </header>
             <div>@project.description</div>
             <div>Download <a target="_blank" href="@project.download">here</a>!</div>
             @for(sound <- project.soundtrack){
@@ -21,7 +26,7 @@
                     }
                 </ul>
             </div>
-            @for(ld <- project.ludumDare){
+            @for(ld <- project.ludumDare) {
                 <div>
                     Developed for <a href="@ld.site">Ludum Dare #@ld.number with the theme "@ld.theme"</a>
                     @if(ld.comments.nonEmpty) {
