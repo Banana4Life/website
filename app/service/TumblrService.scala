@@ -27,16 +27,16 @@ class TumblrService @Inject() (app: Application, cache: CacheApi) {
 
     val client = this.client.get
 
-    val postCount = cache.getOrElse("blog.count", 2.hours) {
+   var postCount = cache.getOrElse("blog.count", 2.hours) {
       client.blogInfo("bananafourlife").getPostCount
     }
 
     if (postCount > postCountLast) {
       postCountLast = postCount
-      while (postCountLast > 0)
+      while (postCount > 0)
       {
-        cache.remove("blog.page." + postCountLast / maxPosts)
-        postCountLast -= maxPosts
+        cache.remove("blog.page." + postCount / maxPosts)
+        postCount -= maxPosts
       }
     }
 
