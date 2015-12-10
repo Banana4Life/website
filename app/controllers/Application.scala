@@ -32,7 +32,7 @@ class Application @Inject() (cached: Cached,
 
     def blog(page: Int) = Action.async {
         tumblr.getPosts(page) map {
-            posts: List[Post] => Ok(views.html.blog(posts, page > 0, tumblr.postCountLast / tumblr.maxPosts > page + 1, page))
+            posts: List[Post] => Ok(views.html.blog(posts, page > 0, tumblr.postCountLast.toFloat / tumblr.maxPosts > page + 1, page))
         }
     }
 

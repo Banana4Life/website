@@ -23,12 +23,12 @@
         }
     }
     @if(prev || next) {
-        <footer id="main-footer">
+        <footer id="main-footer" class="round">
             @if(prev) {
-                <a href="@routes.Application.blog(page - 1)">newer</a>
+                <a href="@routes.Application.blog(page - 1)"><< newer</a>
             }
             @if(next) {
-                <span><a href="@routes.Application.blog(page + 1)">older</a></span>
+                <span><a href="@routes.Application.blog(page + 1)">older >></a></span>
             }
             <div class="clear"></div>
         </footer>
