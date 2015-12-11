@@ -1,9 +1,9 @@
-@(tweets: List[Html])
+@(snippets: Seq[Html])
 
 @main("Snippets") {
     <div id="snippets">
         <div class="grid-sizer"></div>
-        @for(tweet <- tweets) {
+        @for(tweet <- snippets) {
             <div class="item">
                 <div class="twitterItem">
                     @tweet

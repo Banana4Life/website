@@ -6,7 +6,7 @@
 GET        /                    controllers.Application.index
 GET        /blog                controllers.Application.blog(page: Int = 0)
 GET        /blog/:page          controllers.Application.blog(page: Int)
-GET        /snippets            controllers.Application.snippets
+GET        /snippets            controllers.Snippets.show
 GET        /projects            controllers.Application.projects
 GET        /about               controllers.Application.about
 

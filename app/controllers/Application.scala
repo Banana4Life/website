@@ -36,14 +36,6 @@ class Application @Inject() (cached: Cached,
         }
     }
 
-    def snippets = Action.async {
-        youtube.getVideos.foreach(f => f.foreach(v => println(v.url)))
-
-        twitter.compiledTweets("bananafourlife") map {
-            statuses: List[Html] => Ok(views.html.snippets(statuses))
-        }
-    }
-
     def projects = cached((x: RequestHeader) => "page.projects", 60 * 60 * 2) {
         Action.async {
             github.getProjects map {projects =>
