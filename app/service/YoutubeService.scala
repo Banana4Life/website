@@ -37,13 +37,13 @@ class YoutubeService @Inject() (conf: Configuration) {
   }
 
   private lazy val uploadsPlaylistId: Future[String] = Future {
-    val userName = conf.getString("youtube.username")
-    if (userName.isEmpty) {
-      throw new Exception("No username configured!")
+    val channelId = conf.getString("youtube.channelId")
+    if (channelId.isEmpty) {
+      throw new Exception("No channel ID configured!")
     }
     val res = youtube.channels()
       .list("contentDetails")
-      .setForUsername(userName.get)
+      .setId(channelId.get)
       .execute()
     val items = res.getItems
     if (items.size() > 0) {
