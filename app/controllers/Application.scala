@@ -37,6 +37,8 @@ class Application @Inject() (cached: Cached,
     }
 
     def snippets = Action.async {
+        youtube.getVideos.foreach(f => f.foreach(v => println(v.url)))
+
         twitter.compiledTweets("bananafourlife") map {
             statuses: List[Html] => Ok(views.html.snippets(statuses))
         }
