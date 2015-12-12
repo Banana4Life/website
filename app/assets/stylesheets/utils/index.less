@@ -1,14 +1,28 @@
 #index-left {
-  background-color: rgba(77, 0, 11, 0.45);
+  //background-color: rgba(77, 0, 11, 0.45);
   float: left;
   width: 65%;
 
+  #twitchplayer {
+    width: 100%;
+    height: 378px;
 
-  & > div {
-    margin: 7px;
+    margin-bottom: 10px;
+  }
 
-    & > div {
-      border: 1px solid black;
+  & > .blog {
+    background-color: white;
+    padding: 10px;
+
+    h2 {
+      margin: 3px;
+    }
+
+    & > .blog-entry {
+      padding-left: 4px;
+      margin: 2px 0;
+      border-bottom: 1px dotted gray;
+      border-radius: 4px;
     }
   }
 }

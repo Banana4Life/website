@@ -5,14 +5,13 @@
         <div id="index-left">
             @if(twitchPlayer.isDefined) {
                 <div>
-                @twitchPlayer.get
+                    @twitchPlayer.get
                 </div>
             }
-            <div>
+            <div class="blog round">
+                <h2>Latest Posts</h2>
                 @for(blog <- blogs) {
-                    <div class="index-blog">
-                        @blog
-                    </div>
+                    @blog
                 }
             </div>
         </div>

@@ -24,7 +24,7 @@ class Application @Inject() (cached: Cached,
             projects <- github.getProjects
             twitchPlayer <- twitch.getPlayer
         } yield {
-            val postsHtml = posts.map(p => Html(p.asInstanceOf[TextPost].getTitle))
+            val postsHtml = posts.map(p => views.html.indexpost(p.asInstanceOf[TextPost]))
             val projectsHtml = views.html.projects(projects)
             Ok(views.html.index(tweets, postsHtml, projectsHtml, twitchPlayer))
         }

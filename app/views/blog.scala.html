@@ -8,7 +8,7 @@
 @main("Blog") {
     @for(post <- posts) {
         @if(post.isInstanceOf[TextPost] && post.asInstanceOf[TextPost].getTitle != null) {
-            <article class="round blog-post">
+            <article id="@post.getId" class="round blog-post">
                 <header>
                     <h1> @post.asInstanceOf[TextPost].getTitle</h1>
                     <div>posted by @post.getBlogName | @dateFormatDest.format(dateFormatSrc.parse(post.getDateGMT.substring(0, 10)))</div>
