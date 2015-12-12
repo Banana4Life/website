@@ -4,9 +4,7 @@
     <div id="snippets">
         <div class="grid-sizer"></div>
         @for(snippet <- snippets) {
-            <div class="item">
-                @snippet
-            </div>
+            @snippet
         }
     </div>
     <script type="text/javascript" src="@routes.Assets.at("lib/masonry/masonry.pkgd.min.js")"></script>

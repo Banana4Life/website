@@ -59,7 +59,7 @@ class TwitterService @Inject() (cache: CacheApi) {
     // add images
     for (media <- tweet.getMediaEntities) {
       if (media.getType == TypePhoto) {
-        out ++= s"""<div class="box"><img src="${escape(media.getMediaURLHttps)}" alt="Help me! I am trapped behind this image"></img></div>"""
+        out ++= s"""<div class="box"><img src="${escape(media.getMediaURLHttps)}" alt="Help me! I am trapped behind this image"></div>"""
       }
       // TODO handle other types of media
     }

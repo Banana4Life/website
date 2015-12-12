@@ -22,7 +22,7 @@ class Snippets @Inject() (youtubeService: YoutubeService, twitterService: Twitte
 
     val videos = youtubeService.getVideos map {videos =>
       for (video <- videos) yield {
-        (video.publishedAt.getValue, () => views.html.snippet.youtube(video))
+        (video.publishedAt.getTime, () => views.html.snippet.youtube(video, twitterService.dateFormat.format(video.publishedAt)))
       }
     }
 

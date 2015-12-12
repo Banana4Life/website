@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class TwitchService @Inject() (conf: Configuration, client: WSClient) {
 
-  val apiUrl = conf.getString("twitch_stream_url").getOrElse("https://api.twitch.tv/kraken/streams/jonasdann")
+  val apiUrl = conf.getString("twitch_stream_url").getOrElse("https://api.twitch.tv/kraken/streams/bananafourlife")
 
   def getPlayer: Future[Option[Html]] = {
 
