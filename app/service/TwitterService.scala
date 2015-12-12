@@ -19,6 +19,11 @@ class TwitterService @Inject() (cache: CacheApi) {
   val twitter = TwitterFactory.getSingleton
   val dateFormat = new SimpleDateFormat("dd MMMMM yyyy")
 
+  val TypePhoto = "photo"
+
+  val patternHashtag = "#(.+)".r
+  val patternAt = "@(.+)".r
+
   def compileTweet(tweet: Status): Html = {
     val user = tweet.getUser
     val userName = user.getName
@@ -28,7 +33,7 @@ class TwitterService @Inject() (cache: CacheApi) {
 
     val hashtags = tweet.getHashtagEntities.map(h => (h.getStart, h.getEnd, ("#" + h.getText, "#" + h.getText)))
     val urls = tweet.getURLEntities.map(u => (u.getStart, u.getEnd, (u.getExpandedURL, u.getDisplayURL)))
-    val users = tweet.getUserMentionEntities.map(u => (u.getStart, u.getEnd, ("#" + u.getName, "@" + u.getScreenName)))
+    val users = tweet.getUserMentionEntities.map(u => (u.getStart, u.getEnd, (u.getName, "@" + u.getScreenName)))
 
     val elements = (hashtags ++ urls ++ users).sortWith((a, b) => a._1 < b._1)
 
@@ -37,10 +42,28 @@ class TwitterService @Inject() (cache: CacheApi) {
     var last = 0
     for ((start, end, (href, linkText)) <- elements) {
       out ++= text.substring(last, start)
-      out ++= s"""<a href="${escape(href)}">${escape(linkText)}</a>"""
+
+      // get correct url for hashtags and usernames
+      val link = linkText match {
+        case patternHashtag(c) => "https://twitter.com/hashtag/" + c
+        case patternAt(c) => "https://twitter.com/" + c
+        case _ => href
+      }
+
+      out ++= s"""<a href="${escape(link)}">${escape(linkText)}</a>"""
+
       last = end
     }
     out ++= text.substring(last)
+
+    // add images
+    for (media <- tweet.getMediaEntities) {
+      if (media.getType == TypePhoto) {
+        out ++= s"""<div class="box"><img src="${escape(media.getMediaURLHttps)}" alt="Help me! I am trapped behind this image"></img></div>"""
+      }
+      // TODO handle other types of media
+    }
+
     views.html.snippet.twitter(imgURL, tweetId, userName, userHandle, Html(out.toString()), dateFormat.format(tweet.getCreatedAt))
   }
 

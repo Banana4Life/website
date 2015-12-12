@@ -19,6 +19,14 @@
                 columnWidth: '.grid-sizer',
                 percentPosition: true
             });
+
+            window.addEventListener('load', function() {
+                $('#snippets').masonry({
+                    itemSelector: '#snippets > .item',
+                    columnWidth: '.grid-sizer',
+                    percentPosition: true
+                });
+            })
         });
     </script>
 }
