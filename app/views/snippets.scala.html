@@ -3,11 +3,9 @@
 @main("Snippets") {
     <div id="snippets">
         <div class="grid-sizer"></div>
-        @for(tweet <- snippets) {
+        @for(snippet <- snippets) {
             <div class="item">
-                <div class="twitterItem">
-                    @tweet
-                </div>
+                @snippet
             </div>
         }
     </div>

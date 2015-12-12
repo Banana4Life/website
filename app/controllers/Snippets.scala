@@ -2,10 +2,9 @@ package controllers
 
 import javax.inject.Inject
 
-import com.tumblr.jumblr.types.TextPost
 import play.api.mvc._
 import play.twirl.api.Html
-import service.{YtVideo, TwitterService, YoutubeService}
+import service.{ TwitterService, YoutubeService}
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -29,7 +28,7 @@ class Snippets @Inject() (youtubeService: YoutubeService, twitterService: Twitte
 
     Future.sequence(Seq(tweets, videos))
       .map(_.foldLeft(Seq[Snippet]())((a, b) => a ++ b))
-      .map(s => s.sortBy(_._1))
+      .map(s => s.sortBy(-_._1))
       .map(s => s.map(s => s._2()))
       .map(s => Ok(views.html.snippets(s)))
   }
