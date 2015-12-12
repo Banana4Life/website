@@ -8,6 +8,22 @@
         <link rel="shortcut icon" type="image/x-icon" href="@routes.Assets.at("images/favicon.png")">
         <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
         <script type="text/javascript" src="@routes.Assets.at("lib/jquery/jquery.min.js")"></script>
+		<!-- Piwik -->
+		<script type="text/javascript">
+		  var _paq = _paq || [];
+		  _paq.push(["setCookieDomain", "*.banana4.life"]);
+		  _paq.push(['trackPageView']);
+		  _paq.push(['enableLinkTracking']);
+		  (function() {
+			var u="//analytics.cubyte.org/";
+			_paq.push(['setTrackerUrl', u+'piwik.php']);
+			_paq.push(['setSiteId', 6]);
+			var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+			g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+		  })();
+		</script>
+		<noscript><p><img src="//analytics.cubyte.org/piwik.php?idsite=6" style="border:0;" alt="" /></p></noscript>
+		<!-- End Piwik Code -->	
     </head>
     <body>
         <header>
