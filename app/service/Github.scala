@@ -2,6 +2,7 @@ package service
 
 import java.net.URL
 import java.util.Date
+import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 import play.api.libs.json._
@@ -47,16 +48,19 @@ class GithubService @Inject() (ws: WSClient) {
 
   def complete(projectBasics: Seq[ProjectBasics]): Future[Seq[Project]] = {
     val futures = projectBasics map {basics =>
-      ws.url(basics.file(".banana4.json")).get() map {response =>
+      ws.url(basics.file(".banana4.json")).get().map {response =>
         val meta = Json.parse(response.body).as[ProjectMeta]
         Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.ludumdare,
           meta.authors, new URL(basics.file(".banana4.png")), basics.created_at,
           meta.download.map(new URL(_)).getOrElse(basics.latestRelease), meta.soundtrack.map(new URL(_)))
-      }
+      }.recover({
+        case e: Exception => println(e)
+              null
+      })
     }
 
     Future.sequence(futures) map {projects =>
-      projects.sortBy(_.createdAt).reverse
+        projects.filter(_ != null).sortBy(_.createdAt).reverse
+      }
     }
-  }
 }
