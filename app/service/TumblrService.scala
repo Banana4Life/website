@@ -5,7 +5,7 @@ import javax.inject.Inject
 
 import com.tumblr.jumblr.JumblrClient
 import com.tumblr.jumblr.types.Post
-import play.api.Application
+import play.api.{Configuration}
 import play.api.cache.CacheApi
 import play.twirl.api.TemplateMagic.javaCollectionToScala
 
@@ -13,12 +13,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
 
-class TumblrService @Inject() (app: Application, cache: CacheApi) {
+class TumblrService @Inject() (config: Configuration, cache: CacheApi) {
   val maxPosts = 5
   val client = {
     for {
-      key <- app.configuration.getString("tumblr.customerkey")
-      secret <- app.configuration.getString("tumblr.customersecret")
+      key <- config.getString("tumblr.customerkey")
+      secret <- config.getString("tumblr.customersecret")
     } yield new JumblrClient(key, secret)
   }
   var postCountLast = 0

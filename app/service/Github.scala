@@ -2,7 +2,6 @@ package service
 
 import java.net.URL
 import java.util.Date
-import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 
 import play.api.libs.json._
@@ -10,6 +9,7 @@ import play.api.libs.ws.WSClient
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
 
 case class ProjectBasics(name: String, html_url: String, full_name: String, created_at: Date) {
   def file(path: String, branch: String = "master") = s"https://raw.githubusercontent.com/$full_name/$branch/$path"
@@ -40,7 +40,7 @@ case class Project(repoName: String, displayName: String, url: URL, description:
 
 class GithubService @Inject() (ws: WSClient) {
   def getProjects: Future[Seq[Project]] = {
-    val futureResponse = ws.url("https://api.github.com/orgs/Banana4Life/repos").withRequestTimeout(10000).get()
+    val futureResponse = ws.url("https://api.github.com/orgs/Banana4Life/repos").withRequestTimeout(10000.milliseconds).get()
     futureResponse flatMap {response =>
       complete(Json.parse(response.body).as[Seq[ProjectBasics]])
     }
