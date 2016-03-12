@@ -11,11 +11,11 @@ import service._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class Application @Inject() (cached: Cached,
-                              github: GithubService,
-                              tumblr: TumblrService,
-                              twitter: TwitterService,
-                              youtube: YoutubeService,
-                              twitch: TwitchService) extends Controller {
+                             github: GithubService,
+                             tumblr: TumblrService,
+                             twitter: TwitterService,
+                             youtube: YoutubeService,
+                             twitch: TwitchService) extends Controller {
 
     def index = Action.async {
         for {
