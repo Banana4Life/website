@@ -1,58 +1,81 @@
 @main("About") {
     <section id="about" class="round">
-        Banana4Life was found as a hobby team that irregularly participates in Ludum Dare by Anselm (Faithcaio), Jonas, Katharina and Phillip.
-        Our goal is to create fun and polished games. We always try to accompany our game creation process with blog posts about what we are
-        doing and a twitch stream. Subscribe to our social media linked in the footer to always know when we participate and if you are a
-        competitor we wish you the best of luck.
+        <header>
+            <h1>About Banana4Life</h1>
+        </header>
+        <p>
+            Banana4Life was found as a hobby team that irregularly participates in Ludum Dare by Anselm (Faithcaio), Jonas, Katharina and Phillip.
+            Our goal is to create fun and polished games. We always try to accompany our game creation process with blog posts about what we are
+            doing and a twitch stream. Subscribe to our social media linked in the footer to always know when we participate and if you are a
+            competitor we wish you the best of luck.
+        </p>
     </section>
-    <section class="profile round">
-        <img src="@routes.Assets.at("images/Katha.png")">
-        <section>
-            <header>
-                <h1>Katharina <span>Student of Economic Computer Science in Mannheim, Germany</span></h1>
-            </header>
-            <p>
-                Not even writing something about herself. :P
-            </p>
+    <div class="leftaboutcolumn">
+        <section class="profile round">
+            <div class="imagecolumn"><img src="@routes.Assets.at("images/Katha.png")"></div>
+            <section>
+                <div>
+                    <header>
+                        <h1>Katharina <div>Student of Economic Computer Science in Mannheim, Germany</div></h1>
+                    </header>
+                    <p>
+                        Not even writing something about herself. :P
+                    </p>
+                </div>
+            </section>
+            <div class="clear"></div>
         </section>
-        <div class="clear"></div>
-    </section>
-    <section class="profile round">
-        <img src="@routes.Assets.at("images/Baum.png")">
-        <section>
-            <header>
-                <h1>Faithcaio <span>A Tree, Germany</span></h1>
-            </header>
-            <p>
-                Growing steadily.
-            </p>
+    </div>
+    <div class="rightaboutcolumn">
+        <section class="profile round">
+            <div class="imagecolumn"><img src="@routes.Assets.at("images/Baum.png")"></div>
+            <section>
+                <div>
+                    <header>
+                        <h1>Faithcaio <div>A Tree, Germany</div></h1>
+                    </header>
+                    <p>
+                        Growing steadily.
+                    </p>
+                </div>
+            </section>
+            <div class="clear"></div>
         </section>
-        <div class="clear"></div>
-    </section>
-    <section class="profile round">
-        <img src="@routes.Assets.at("images/Phillip.png")">
-        <section>
-            <header>
-                <h1>Phillip <span>Student of Applied Computer Science in Karlsruhe, Germany</span></h1>
-            </header>
-            <p>
-                Nobody knows what he is doing.
-            </p>
+    </div>
+    <div class="clear"></div>
+    <div class="leftaboutcolumn">
+        <section class="profile round">
+            <div class="imagecolumn"><img src="@routes.Assets.at("images/Phillip.png")"></div>
+            <section>
+                <div>
+                    <header>
+                        <h1>Phillip <div>Student of Applied Computer Science in Karlsruhe, Germany</div></h1>
+                    </header>
+                    <p>
+                        Nobody knows what he is doing.
+                    </p>
+                </div>
+            </section>
+            <div class="clear"></div>
         </section>
-        <div class="clear"></div>
-    </section>
-    <section class="profile round">
-        <img src="@routes.Assets.at("images/Jonas.png")">
-        <section>
-            <header>
-                <h1>Jonas <span>Student of Applied Computer Science in Karlsruhe, Germany</span></h1>
-            </header>
-            <p>
-                Jonas is the graphics designer of the team. He produces beautiful experiences, but the rest of the team wants another
-                designer. Thus, he is always really sad. :,( Besides being sad he has a Bachelor of Science in Applied Computer Science
-                and studies for the Masters degree at the Karlsruhe Institute Technology.
-            </p>
+    </div>
+    <div class="rightaboutcolumn">
+        <section class="profile round">
+            <div class="imagecolumn"><img src="@routes.Assets.at("images/Jonas.png")"></div>
+            <section>
+                <div>
+                    <header>
+                        <h1>Jonas <div>Student of Applied Computer Science in Karlsruhe, Germany</div></h1>
+                    </header>
+                    <p>
+                        Jonas is the graphics designer of the team. He produces beautiful experiences, but the rest of the team wants another
+                        designer. Thus, he is always really sad. :,( Besides being sad he has a Bachelor of Science in Applied Computer Science
+                        and studies for the Masters degree at the Karlsruhe Institute Technology.
+                    </p>
+                </div>
+            </section>
+            <div class="clear"></div>
         </section>
-        <div class="clear"></div>
-    </section>
+    </div>
+    <div class="clear"></div>
 }
