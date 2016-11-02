@@ -12,9 +12,9 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   "com.tumblr"           %  "jumblr"                      % "0.0.11",
-  "org.twitter4j"        %  "twitter4j-core"              % "4.0.4",
-  "com.google.apis"      %  "google-api-services-youtube" % "v3-rev174-1.22.0",
-  "org.webjars"          %% "webjars-play"                % "2.5.0-2",
-  "org.webjars"          %  "jquery"                      % "2.2.4",
+  "org.twitter4j"        %  "twitter4j-core"              % "4.0.5",
+  "com.google.apis"      %  "google-api-services-youtube" % "v3-rev179-1.22.0",
+  "org.webjars"          %% "webjars-play"                % "2.5.0-3",
+  "org.webjars"          %  "jquery"                      % "3.1.1",
   "org.webjars"          %  "masonry"                     % "3.3.2"
 )
