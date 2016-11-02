@@ -9,6 +9,7 @@ import play.twirl.api.Html
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.DurationInt
 
 class TwitchService @Inject() (conf: Configuration, client: WSClient) {
 
@@ -16,13 +17,13 @@ class TwitchService @Inject() (conf: Configuration, client: WSClient) {
 
   def getPlayer: Future[Option[Html]] = {
 
-    client.url(apiUrl).get() map {response =>
+    client.url(apiUrl).withRequestTimeout(2.seconds).get() map {response =>
       response.json \ "stream" \ "channel" \ "url" match {
         case JsDefined(JsString(url)) =>
           Some(views.html.twitchplayer(url))
         case _ => None
       }
-    }
+    } recover { case _ => None }
 
   }
 

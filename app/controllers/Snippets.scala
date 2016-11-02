@@ -15,7 +15,7 @@ class Snippets @Inject() (youtubeService: YoutubeService, twitterService: Twitte
     type Snippet = (Long, () => Html)
 
     val tweets = twitterService.tweets("bananafourlife") map {tweets =>
-      for (tweet <- tweets.asScala) yield {
+      for (tweet <- tweets) yield {
         (tweet.getCreatedAt.getTime, () => twitterService.compileTweet(tweet))
       }
     }

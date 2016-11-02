@@ -7,6 +7,7 @@ import javax.inject.Inject
 import play.api.cache.CacheApi
 import play.api.libs.json._
 import play.api.libs.ws.WSClient
+import service.CacheHelper.{CacheDuration, ProjectsCacheKey}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -42,11 +43,11 @@ case class Project(repoName: String, displayName: String, url: URL, description:
 
 class GithubService @Inject()(ws: WSClient, cache: CacheApi) {
 
-    private val orgaUrl = "https://api.github.com/orgs/Banana4Life"
-    private val reposUrl = s"$orgaUrl/repos"
+    private val orga = "Banana4Life"
+    private val reposUrl = s"https://api.github.com/orgs/$orga/repos"
 
     def getProjects: Future[Seq[Project]] = {
-        cache.getOrElse("github.projects", 24.hours) {
+        cache.getOrElse(ProjectsCacheKey, CacheDuration) {
             val futureResponse = ws.url(reposUrl).withRequestTimeout(10000.milliseconds).get()
             futureResponse flatMap { response =>
                 complete(Json.parse(response.body).as[Seq[ProjectBasics]])
