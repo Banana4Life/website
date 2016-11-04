@@ -2,24 +2,26 @@
 
 @main("Home") {
     <div id="index-main">
-        <div id="index-left">
-            @if(twitchPlayer.isDefined) {
-                <div>
-                    @twitchPlayer.get
-                </div>
-            }
-            <div class="blog round">
-                <h2>Latest Posts</h2>
-                @for(blog <- blogs) {
-                    @blog
-                }
+        @if(twitchPlayer.isDefined) {
+            <div>
+            @twitchPlayer.get
             </div>
+        }
+        <div class="blog" id="index-left">
+            <header class="round">
+                <h1>Latest Activities</h1>
+            </header>
+            @for(blog <- blogs) {
+                <article class="blog-post round">
+                    @blog
+                </article>
+            }
         </div>
 
         <div id="index-right">
-            <div class="header">
-                <a href="https://twitter.com"><img class="twitterLogo" src="@routes.Assets.at("images/twitter_icon.png")"> Twitter</a>
-            </div>
+            <header class="round">
+                <a href="https://twitter.com"><img class="twitterLogo" src="@routes.Assets.at("images/twitter_icon.png")"> <h1>Twitter</h1></a>
+            </header>
             <div>
                 @for(tweet <- tweets) {
                     <div class="twitterItem">
