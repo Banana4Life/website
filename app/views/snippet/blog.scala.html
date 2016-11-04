@@ -1,0 +1,21 @@
+@(post: com.tumblr.jumblr.types.Post, page: Int)
+@import com.tumblr.jumblr.types.TextPost
+@import java.text.SimpleDateFormat
+
+@dateFormatSrc = @{new SimpleDateFormat("yyyy-MM-dd")}
+@dateFormatDest = @{new SimpleDateFormat("dd MMMMM yyyy")}
+
+@if(post.isInstanceOf[TextPost] && post.asInstanceOf[TextPost].getTitle != null) {
+    <article id="@post.getId" class="round blog-post">
+        <header>
+            <h1> @post.asInstanceOf[TextPost].getTitle</h1>
+            <div>posted by @post.getBlogName | @dateFormatDest.format(dateFormatSrc.parse(post.getDateGMT.substring(0, 10)))</div>
+        </header>
+        @Html(post.asInstanceOf[TextPost].getBody)
+        <footer>
+            @for(tag <- post.getTags) {
+                <a href="@routes.Application.blog(page)#@tag">#@tag</a>
+            }
+        </footer>
+    </article>
+}

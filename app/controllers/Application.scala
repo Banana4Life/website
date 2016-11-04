@@ -24,7 +24,13 @@ class Application @Inject() (cached: Cached,
             projects <- github.getProjects
             twitchPlayer <- twitch.getPlayer
         } yield {
-            val postsHtml = posts.map(p => views.html.indexpost(p.asInstanceOf[TextPost]))
+            val postsHtml = posts.map {
+                case textPost: TextPost =>
+                    val index = textPost.getBody.indexOf("</p>") + 4
+                    textPost.setBody(textPost.getBody.substring(0, index))
+                    textPost
+                case post => post
+            }.map(post => views.html.snippet.blog(post, 0))
             val projectsHtml = views.html.projects(projects)
             Ok(views.html.index(tweets, postsHtml, projectsHtml, twitchPlayer))
         }
@@ -32,7 +38,7 @@ class Application @Inject() (cached: Cached,
 
     def blog(page: Int) = Action.async {
         tumblr.getPosts(page) map {
-            posts: List[Post] => Ok(views.html.blog(posts, page > 0, tumblr.postCountLast.toFloat / tumblr.maxPosts > page + 1, page))
+            posts: List[Post] => Ok(views.html.blog(posts.map(post => views.html.snippet.blog(post, page)), page > 0, tumblr.postCountLast.toFloat / tumblr.maxPosts > page + 1, page))
         }
     }
 
