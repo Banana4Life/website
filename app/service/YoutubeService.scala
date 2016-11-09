@@ -20,7 +20,7 @@ object DummyInitializer extends HttpRequestInitializer {
   override def initialize(request: HttpRequest): Unit = {}
 }
 
-case class YtVideo(id: String, name: String, description: String, thumbnail: URL, publishedAt: Date) {
+case class YtVideo(id: String, channelName: String, name: String, description: String, thumbnail: URL, publishedAt: Date) {
   lazy val url = new URL(s"https://www.youtube.com/watch?v=$id")
 }
 
@@ -68,7 +68,7 @@ class YoutubeService @Inject() (conf: Configuration) {
     for (item <- res.getItems.asScala) yield {
       val s = item.getSnippet
       val id = s.getResourceId.getVideoId
-      YtVideo(id, s.getTitle, s.getDescription, getBestThumbnailURL(id, s.getThumbnails), new Date(s.getPublishedAt.getValue))
+      YtVideo(id, s.getChannelTitle, s.getTitle, s.getDescription, getBestThumbnailURL(id, s.getThumbnails), new Date(s.getPublishedAt.getValue))
     }
   }
 

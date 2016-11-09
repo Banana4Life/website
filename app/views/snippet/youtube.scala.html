@@ -1,18 +1,11 @@
 @import service.YtVideo
-@(vid: YtVideo, publishedAt: String)
+@(video: YtVideo, publishedAt: String)
 
-@base("x2"){
-<div class="twitterItem">
-  <article>
-    <div class="twitterPictureCol"><a href="@vid.url"><img src="@routes.Assets.at("images/youtube_icon.png")"></a></div>
-    <div class="twitterContentCol">
-      <div>
-        <div class="twitterTitle">@vid.name</div>
-        <div><a href="@vid.url"><img src="@vid.thumbnail" alt="Help me! I am trapped in this video."></a></div>
-        <div class="twitterDate">@publishedAt</div>
-      </div>
-    </div>
-    <div class="clear"></div>
-  </article>
-</div>
-}
+<article class="round blog-post">
+    <header>
+        <a class="youtube" href="https://www.youtube.com/channel/UCktbmYa9DDuKflH2okA1FjA"><img src="@routes.Assets.at("images/youtube_icon.png")"></a>
+        <a href="https://youtu.be/@video.id"><h1>@video.name</h1></a>
+        <div>posted by @video.channelName | @publishedAt</div>
+    </header>
+    <iframe src="https://www.youtube.com/embed/@video.id" frameborder="0" allowfullscreen></iframe>
+</article>

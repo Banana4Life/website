@@ -9,22 +9,34 @@
   float: left;
   width: 65%;
 
-  header {
-    padding: 8px 0;
+  header .fa-newspaper-o {
+    padding-right: 2px;
+    font-size: 17pt;
+  }
 
-    .fa-newspaper-o {
-      padding-right: 2px;
-      font-size: 17pt;
+  header > a.youtube {
+    left: -33px;
+    top: 4px;
+    & > img {
+      width: 16pt;
     }
   }
 
-  & > .blog-post, header{
+  .thumbnail {
+    width: 100%;
+  }
+
+  & > .blog-post, & > header, & > div{
     margin-right: 10px;
     margin-bottom: 5px;
   }
 
-  & > .blog-post:last-of-type {
+  & > :last-child {
     margin-bottom: 0;
+  }
+
+  article iframe {
+    width: 100%; height: 304px;
   }
 }
 
@@ -50,7 +62,7 @@
     }
   }
 
-  & > div, header {
+  & > div, & > header {
     margin-left: 10px;
   }
 }

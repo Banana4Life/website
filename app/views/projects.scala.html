@@ -2,43 +2,6 @@
 
 @main("Projects") {
     @for(project <- projects) {
-        <div class="project round">
-            <header>
-                <h1><a href="@project.url">@project.displayName</a></h1>
-                @for(ld <- project.ludumDare) {
-                    <div>Ludum Dare #@ld.number | Theme "@ld.theme"</div>
-                }
-            </header>
-            <div>@project.description</div>
-            <div>Download <a target="_blank" href="@project.download">here</a>!</div>
-            @for(sound <- project.soundtrack){
-                <div>Get the soundtrack <a target="_blank" href="@sound">here</a>!</div>
-            }
-            <div>
-                Authors:
-                <ul>
-                    @for(author <- project.authors){
-                        @if(author(0) == '-') {
-                            <li>@(author.drop(1)) (non-member)</li>
-                        } else {
-                            <li>@author</li>
-                        }
-                    }
-                </ul>
-            </div>
-            @for(ld <- project.ludumDare) {
-                <div>
-                    Developed for <a href="@ld.site">Ludum Dare #@ld.number with the theme "@ld.theme"</a>
-                    @if(ld.comments.nonEmpty) {
-                        <div>
-                            A few cool comments:
-                            @for(comment <- ld.comments) {
-                                <div>@comment</div>
-                            }
-                        </div>
-                    }
-                </div>
-            }
-        </div>
+        @snippet.project(project)
     }
 }

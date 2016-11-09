@@ -1,4 +1,4 @@
-@(tweets: List[Html], blogs: List[Html], project: Html, twitchPlayer: Option[Html])
+@(tweets: List[Html], activities: List[Html], twitchPlayer: Option[Html])
 
 @main("Home") {
     <div id="index-main">
@@ -11,8 +11,8 @@
             <header class="round">
                 <h1><span class="fa fa-newspaper-o" aria-hidden="true"></span> Latest Activities</h1>
             </header>
-            @for(blog <- blogs) {
-                @blog
+            @for(activity <- activities) {
+                @activity
             }
         </div>
 

@@ -7,10 +7,14 @@
     @if(prev || next) {
         <footer id="main-footer" class="round">
             @if(prev) {
-                <a href="@routes.Application.blog(page - 1)"><< newer</a>
+                <a class="newer" href="@routes.Application.blog(page - 1)">
+                    << newer
+                </a>
             }
             @if(next) {
-                <span><a href="@routes.Application.blog(page + 1)">older >></a></span>
+                <a class="older" href="@routes.Application.blog(page + 1)">
+                    older >>
+                </a>
             }
             <div class="clear"></div>
         </footer>

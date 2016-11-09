@@ -6,6 +6,20 @@ article.blog-post {
 
   header {
     text-align: left;
+    position: relative;
+
+    a {
+      color: #444;
+    }
+
+    a:first-child {
+      position: absolute;
+      left: -36px;
+      top: 2px;
+      img {
+        width: 20pt;
+      }
+    }
 
     h1 {
       font-weight: 700;
@@ -51,11 +65,27 @@ article.blog-post header div, .profile header span {
 }
 
 #main-footer {
-  background-color: #fff;
-  padding: 10px 5%;
+  overflow: hidden;
+  background-color: #595959;
   margin-bottom: 0;
 
-  span {
-    float: right;
+  a {
+    display: block;
+    color: #fff;
+    font-weight: 700;
+    padding: 10px 5%;
+
+    &.newer {
+      float: left;
+    }
+
+    &.older {
+      float: right;
+    }
+
+    &:hover {
+      color: #f8e61e;
+      background-color: #424242;
+    }
   }
 }
