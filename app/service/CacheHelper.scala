@@ -8,7 +8,7 @@ object CacheHelper {
 
     val BaseCacheKey = "banana4life"
     val ProjectsCacheKey = s"$BaseCacheKey.projects"
-    val BlogCacheKeyPrefix = s"$BaseCacheKey.blog.page"
+    val BlogCacheKey = s"$BaseCacheKey.blog.posts"
     val BlogCountCacheKey = s"$BaseCacheKey.blog.count"
     val TwitterCacheKeyPrefix = s"$BaseCacheKey.twitter.page"
 }

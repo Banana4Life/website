@@ -8,7 +8,7 @@ import com.tumblr.jumblr.types.Post
 import play.api.Configuration
 import play.api.cache.CacheApi
 import play.twirl.api.TemplateMagic.javaCollectionToScala
-import service.CacheHelper.{BlogCacheKeyPrefix, CacheDuration}
+import service.CacheHelper.{BlogCacheKey, CacheDuration}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -21,30 +21,31 @@ class TumblrService @Inject()(config: Configuration, cache: CacheApi) {
             secret <- config.getString("tumblr.customersecret")
         } yield new JumblrClient(key, secret)
     }
-    var postCountLast = 0
+    var postCount = 0
 
-    def getPosts(page: Int): Future[List[Post]] = Future {
+    def getPost(id: Long): Future[Option[Post]] = {
+        getPosts.map(list => list.find(post => id == post.getId))
+    }
 
+    def getPosts(page: Int): Future[List[Post]] = {
+        getPosts.map(list => list.slice(page * maxPosts, page * maxPosts + maxPosts))
+    }
+
+    def getPosts: Future[List[Post]] = Future {
         val client = this.client.get
         val blogName = "bananafourlife"
 
-        var postCount = cache.getOrElse(CacheHelper.BlogCountCacheKey, CacheDuration) {
+        postCount = cache.getOrElse(CacheHelper.BlogCountCacheKey, CacheDuration) {
             client.blogInfo(blogName).getPostCount
         }
 
-        if (postCount > postCountLast) {
-            postCountLast = postCount
-            while (postCount > 0) {
-                cache.remove("blog.page." + postCount / maxPosts)
-                postCount -= maxPosts
-            }
-        }
-
-        cache.getOrElse(s"$BlogCacheKeyPrefix.$page", CacheDuration) {
-            val options = new util.HashMap[String, Int]()
-            options.put("limit", maxPosts)
-            options.put("offset", page * maxPosts)
-            client.blogPosts(blogName, options).toList
+        cache.getOrElse(BlogCacheKey, CacheDuration) {
+            (0 to postCount / 20).toList.flatMap(i => {
+                val options = new util.HashMap[String, Int]()
+                options.put("limit", 20)
+                options.put("offset", i * 20)
+                client.blogPosts(blogName, options).toList
+            })
         }
     }
 }

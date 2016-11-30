@@ -29,6 +29,12 @@
             <div class="main-column" style="position: relative">
                 <span class="clear"></span>
                 <a href="@routes.Application.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo-Header.png")"></a>
+                <form method="GET" action="@routes.Application.search("")">
+                    <div id="searchBoxWrapper">
+                        <span class="fa fa-search" aria-hidden="true"></span>
+                        <input name="query" type="text" id="searchBox" placeholder="Search">
+                    </div>
+                </form>
             </div>
         </header>
         <nav>

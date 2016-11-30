@@ -10,13 +10,15 @@ import play.api.mvc._
 import service._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class Application @Inject() (cached: Cached,
                              github: GithubService,
                              tumblr: TumblrService,
                              twitter: TwitterService,
                              youtube: YoutubeService,
-                             twitch: TwitchService) extends Controller {
+                             twitch: TwitchService,
+                             searchIndex: SearchIndex) extends Controller {
 
     def index = Action.async {
         for {
@@ -37,7 +39,7 @@ class Application @Inject() (cached: Cached,
 
     def blog(page: Int) = Action.async {
         tumblr.getPosts(page) map {
-            posts: List[Post] => Ok(views.html.blog(posts.map(post => views.html.snippet.blogpost(post, page, trunc = false)), page > 0, tumblr.postCountLast.toFloat / tumblr.maxPosts > page + 1, page))
+            posts: List[Post] => Ok(views.html.blog(posts.map(post => views.html.snippet.blogpost(post, page, trunc = false)), page > 0, tumblr.postCount.toFloat / tumblr.maxPosts > page + 1, page))
         }
     }
 
@@ -51,6 +53,12 @@ class Application @Inject() (cached: Cached,
 
     def about = Action {
         Ok(views.html.about())
+    }
+
+    def search(query: String) = Action.async {
+        tumblr.getPosts.map(posts => Ok(views.html.blog(
+            searchIndex.query(posts, query).map(doc => views.html.snippet.blogpost(doc.asInstanceOf[TumblrDoc].post, 0, trunc = false)), prev = false, next = false, 0
+        )))
     }
 }
 
