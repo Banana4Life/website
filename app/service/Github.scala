@@ -23,14 +23,14 @@ object ProjectBasics {
     implicit val format = Json.format[ProjectBasics]
 }
 
-case class LudumDareInfo(number: Int, theme: String, site: String, comments: Seq[String])
+case class JamInfo(name: String, number: Int, theme: String, site: String, comments: Seq[String])
 
-object LudumDareInfo {
-    implicit val format = Json.format[LudumDareInfo]
+object JamInfo {
+    implicit val format = Json.format[JamInfo]
 }
 
-case class ProjectMeta(name: String, description: String, ludumdare: Option[LudumDareInfo], authors: Seq[String],
-                       download: Option[String], soundtrack: Option[String])
+case class ProjectMeta(name: String, description: String, jam: Option[JamInfo], authors: Seq[String],
+                       download: Option[String], soundtrack: Option[String], date: Option[Date])
 
 object ProjectMeta {
     implicit val format = Json.format[ProjectMeta]
@@ -38,7 +38,7 @@ object ProjectMeta {
 
 
 case class Project(repoName: String, displayName: String, url: URL, description: String,
-                   ludumDare: Option[LudumDareInfo], authors: Seq[String], imageUrl: URL,
+                   jam: Option[JamInfo], authors: Seq[String], imageUrl: URL,
                    createdAt: Date, download: URL, soundtrack: Option[URL])
 
 class GithubService @Inject()(ws: WSClient, cache: CacheApi) {
@@ -59,8 +59,8 @@ class GithubService @Inject()(ws: WSClient, cache: CacheApi) {
         val futures = projectBasics map { basics =>
             ws.url(basics.file(".banana4.json")).get().map { response =>
                 val meta = Json.parse(response.body).as[ProjectMeta]
-                Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.ludumdare,
-                    meta.authors, new URL(basics.file(".banana4.png")), basics.created_at,
+                Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.jam,
+                    meta.authors, new URL(basics.file(".banana4.png")), meta.date.getOrElse(basics.created_at),
                     meta.download.map(new URL(_)).getOrElse(basics.latestRelease), meta.soundtrack.map(new URL(_)))
             }.recover({
                 case e: Exception => println(e)
