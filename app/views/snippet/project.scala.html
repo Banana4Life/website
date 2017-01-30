@@ -25,13 +25,13 @@
         }
         </ul>
     </div>
-    @for(ld <- project.jam) {
+    @for(jam <- project.jam) {
         <div>
-                    Developed for <a href="@ld.site">Ludum Dare #@ld.number with the theme "@ld.theme"</a>
-            @if(ld.comments.nonEmpty) {
+                    Developed for <a href="@jam.site">@jam.name #@jam.number with the theme "@jam.theme"</a>
+            @if(jam.comments.nonEmpty) {
                 <div>
                     A few cool comments:
-                    @for(comment <- ld.comments) {
+                    @for(comment <- jam.comments) {
                         <div>@comment</div>
                     }
                 </div>
