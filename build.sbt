@@ -14,8 +14,9 @@ libraryDependencies ++= Seq(
   "com.tumblr"           %  "jumblr"                      % "0.0.11",
   "org.twitter4j"        %  "twitter4j-core"              % "4.0.5",
   "com.google.apis"      %  "google-api-services-youtube" % "v3-rev179-1.22.0",
+  "gov.sandia.foundry"   %  "porter-stemmer"              % "1.4",
   "org.webjars"          %% "webjars-play"                % "2.5.0-3",
   "org.webjars"          %  "jquery"                      % "3.1.1",
   "org.webjars"          %  "masonry"                     % "3.3.2",
-  "gov.sandia.foundry"   %  "porter-stemmer"              % "1.4"
+  "org.webjars"          % "font-awesome"                 % "4.7.0"
 )
