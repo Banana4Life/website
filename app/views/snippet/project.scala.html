@@ -1,41 +1,46 @@
 @(project: service.Project)
 
 <div class="project round">
-    <header>
-        <a class="github" href="https://github.com/Banana4Life"><span class="fa fa-github" aria-hidden="true"></span></a>
-        <h1><a href="@project.url">@project.displayName</a></h1>
-        @for(jam <- project.jam) {
-            <div>@jam.name #@jam.number | Theme "@jam.theme"</div>
-        }
-    </header>
-    <div>@project.description</div>
-    <div>Download <a target="_blank" href="@project.download">here</a>!</div>
-    @for(sound <- project.soundtrack){
-        <div>Get the soundtrack <a target="_blank" href="@sound">here</a>!</div>
-    }
     <div>
-        Authors:
-        <ul>
-        @for(author <- project.authors){
-            @if(author(0) == '-') {
-                <li>@(author.drop(1)) (non-member)</li>
-            } else {
-                <li>@author</li>
+        <header>
+            <a class="github" href="https://github.com/Banana4Life"><span class="fa fa-github" aria-hidden="true"></span></a>
+            <h1><a href="@project.url">@project.displayName</a></h1>
+            @for(jam <- project.jam) {
+                <div>@jam.name #@jam.number | Theme "@jam.theme"</div>
             }
+        </header>
+        <div>@project.description</div>
+        <div>Download <a target="_blank" href="@project.download">here</a>!</div>
+        @for(sound <- project.soundtrack){
+            <div>Get the soundtrack <a target="_blank" href="@sound">here</a>!</div>
         }
-        </ul>
-    </div>
-    @for(jam <- project.jam) {
         <div>
-                    Developed for <a href="@jam.site">@jam.name #@jam.number with the theme "@jam.theme"</a>
-            @if(jam.comments.nonEmpty) {
-                <div>
-                    A few cool comments:
-                    @for(comment <- jam.comments) {
-                        <div>@comment</div>
-                    }
-                </div>
+            Authors:
+            <ul>
+            @for(author <- project.authors){
+                @if(author(0) == '-') {
+                    <li>@(author.drop(1)) (non-member)</li>
+                } else {
+                    <li>@author</li>
+                }
             }
-                </div>
-    }
+            </ul>
+        </div>
+        @for(jam <- project.jam) {
+            <div>
+                        Developed for <a href="@jam.site">@jam.name #@jam.number with the theme "@jam.theme"</a>
+                @if(jam.comments.nonEmpty) {
+                    <div>
+                        A few cool comments:
+                        @for(comment <- jam.comments) {
+                            <div>@comment</div>
+                        }
+                    </div>
+                }
+                    </div>
+        }
+    </div>
+    <div class="column-2">
+        <img src="@project.imageUrl"/>
+    </div>
 </div>

@@ -61,7 +61,7 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec
             ws.url(basics.file(".banana4.json")).get().map { response =>
                 val meta = Json.parse(response.body).as[ProjectMeta]
                 Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.jam,
-                    meta.authors, new URL(basics.file(".banana4.png")), meta.date.getOrElse(basics.created_at),
+                    meta.authors, new URL(basics.file("banana4life/main.png")), meta.date.getOrElse(basics.created_at),
                     meta.download.map(new URL(_)).getOrElse(basics.latestRelease), meta.soundtrack.map(new URL(_)))
             }.recover({
                 case e: Exception => println(e)
