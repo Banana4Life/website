@@ -1,16 +1,15 @@
 package controllers
 
-import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
-import com.tumblr.jumblr.types.{Post, TextPost}
+import com.tumblr.jumblr.types.Post
 import play.api.cache.Cached
 import play.api.mvc._
 import service._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class Application @Inject() (cached: Cached,
                              github: GithubService,
@@ -29,9 +28,9 @@ class Application @Inject() (cached: Cached,
             videos <- youtube.getVideos
             twitchPlayer <- twitch.getPlayer
         } yield {
-            val projectsHtml = projects.map(project => (LocalDate.parse(project.createdAt.toString, DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss z yyyy")), views.html.snippet.project(project)))
-            val postsHtml = posts.map(post => (LocalDate.parse(post.getDateGMT, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z")), views.html.snippet.blogpost(post, 0, trunc = true)))
-            val videosHtml = videos.map(video => (LocalDate.parse(video.publishedAt.toString, DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss z yyyy")), views.html.snippet.youtube(video, twitter.dateFormat.format(video.publishedAt))))
+            val projectsHtml = projects.map(project => (project.createdAt, views.html.snippet.project(project)))
+            val postsHtml = posts.map(post => (ZonedDateTime.parse(post.getDateGMT, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z")), views.html.snippet.blogpost(post, 0, trunc = true)))
+            val videosHtml = videos.map(video => (video.publishedAt, views.html.snippet.youtube(video, video.publishedAt.format(DateTimeFormatter.ofPattern("dd MMMMM yyyy")))))
             val activities = (postsHtml ++ projectsHtml ++ videosHtml).sortWith((a, b) => a._1.isAfter(b._1)).map(_._2).take(5)
 
             Ok(views.html.index(tweets, activities, twitchPlayer))

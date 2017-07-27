@@ -1,7 +1,7 @@
 package service
 
 import java.net.URL
-import java.util.Date
+import java.time.{Instant, ZoneId, ZonedDateTime}
 import javax.inject.Inject
 
 import com.google.api.client.http.javanet.NetHttpTransport
@@ -18,7 +18,7 @@ object DummyInitializer extends HttpRequestInitializer {
   override def initialize(request: HttpRequest): Unit = {}
 }
 
-case class YtVideo(id: String, channelName: String, name: String, description: String, thumbnail: URL, publishedAt: Date) {
+case class YtVideo(id: String, channelName: String, name: String, description: String, thumbnail: URL, publishedAt: ZonedDateTime) {
   lazy val url = new URL(s"https://www.youtube.com/watch?v=$id")
 }
 
@@ -59,7 +59,7 @@ class YoutubeService @Inject() (conf: Configuration, implicit val ec: ExecutionC
     for (item <- res.getItems.asScala) yield {
       val s = item.getSnippet
       val id = s.getResourceId.getVideoId
-      YtVideo(id, s.getChannelTitle, s.getTitle, s.getDescription, getBestThumbnailURL(id, s.getThumbnails), new Date(s.getPublishedAt.getValue))
+      YtVideo(id, s.getChannelTitle, s.getTitle, s.getDescription, getBestThumbnailURL(id, s.getThumbnails), ZonedDateTime.ofInstant(Instant.ofEpochMilli(s.getPublishedAt.getValue), ZoneId.systemDefault()))
     }
   }
 

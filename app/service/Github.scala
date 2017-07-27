@@ -1,7 +1,7 @@
 package service
 
 import java.net.URL
-import java.util.Date
+import java.time.ZonedDateTime
 import javax.inject.Inject
 
 import play.api.cache.SyncCacheApi
@@ -9,10 +9,10 @@ import play.api.libs.json._
 import play.api.libs.ws.WSClient
 import service.CacheHelper.{CacheDuration, ProjectsCacheKey}
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.DurationInt
+import scala.concurrent.{ExecutionContext, Future}
 
-case class ProjectBasics(name: String, html_url: String, full_name: String, created_at: Date) {
+case class ProjectBasics(name: String, html_url: String, full_name: String, created_at: ZonedDateTime) {
     def file(path: String, branch: String = "master") = s"https://raw.githubusercontent.com/$full_name/$branch/$path"
 
     lazy val latestRelease = new URL(s"https://github.com/$full_name/releases/latest")
@@ -29,7 +29,7 @@ object JamInfo {
 }
 
 case class ProjectMeta(name: String, description: String, jam: Option[JamInfo], authors: Seq[String],
-                       download: Option[String], soundtrack: Option[String], date: Option[Date])
+                       download: Option[String], soundtrack: Option[String], date: Option[ZonedDateTime])
 
 object ProjectMeta {
     implicit val format: Format[ProjectMeta] = Json.format
@@ -38,7 +38,7 @@ object ProjectMeta {
 
 case class Project(repoName: String, displayName: String, url: URL, description: String,
                    jam: Option[JamInfo], authors: Seq[String], imageUrl: URL,
-                   createdAt: Date, download: URL, soundtrack: Option[URL])
+                   createdAt: ZonedDateTime, download: URL, soundtrack: Option[URL])
 
 class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec: ExecutionContext) {
 
@@ -53,6 +53,8 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec
             }
         }
     }
+
+    implicit val localDateOrdering: Ordering[ZonedDateTime] = Ordering.by(_.toEpochSecond)
 
     def complete(projectBasics: Seq[ProjectBasics]): Future[Seq[Project]] = {
         val futures = projectBasics map { basics =>
