@@ -23,9 +23,9 @@ abstract class Doc(val text: String) {
 class TumblrDoc(val post: Post) extends Doc(post.asInstanceOf[TextPost].getBody.replaceAll("<[^>]*>", " "))
 
 class SearchIndex {
-    var docs: List[Doc] = List()
+    var docs: Seq[Doc] = List()
 
-    def query(tumblrPosts: List[Post], query: String): List[Doc] = {
+    def query(tumblrPosts: Seq[Post], query: String): Seq[Doc] = {
         docs = tumblrPosts.map(post => new TumblrDoc(post))
         val idf = fillIDF()
         val avgDocLen = avgDocLength()

@@ -7,14 +7,12 @@ import javax.inject.Inject
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.http.{HttpRequest, HttpRequestInitializer}
 import com.google.api.client.json.jackson2.JacksonFactory
-import com.google.api.client.util.DateTime
 import com.google.api.services.youtube.model.ThumbnailDetails
 import com.google.api.services.youtube.{YouTube, YouTubeRequestInitializer}
 import play.api.Configuration
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 object DummyInitializer extends HttpRequestInitializer {
   override def initialize(request: HttpRequest): Unit = {}
@@ -24,27 +22,20 @@ case class YtVideo(id: String, channelName: String, name: String, description: S
   lazy val url = new URL(s"https://www.youtube.com/watch?v=$id")
 }
 
-class YoutubeService @Inject() (conf: Configuration) {
+class YoutubeService @Inject() (conf: Configuration, implicit val ec: ExecutionContext) {
 
   private val youtube = {
     val builder = new YouTube.Builder(new NetHttpTransport, new JacksonFactory, DummyInitializer)
       .setApplicationName("banana4.life")
 
-    for (apikey <- conf.getString("youtube.apikey")) {
-      builder.setYouTubeRequestInitializer(new YouTubeRequestInitializer(apikey))
-    }
-
+    builder.setYouTubeRequestInitializer(new YouTubeRequestInitializer(conf.get[String]("youtube.apikey")))
     builder.build()
   }
 
   private lazy val uploadsPlaylistId: Future[String] = Future {
-    val channelId = conf.getString("youtube.channelId")
-    if (channelId.isEmpty) {
-      throw new Exception("No channel ID configured!")
-    }
     val res = youtube.channels()
       .list("contentDetails")
-      .setId(channelId.get)
+      .setId(conf.get[String]("youtube.channelId"))
       .execute()
     val items = res.getItems
     if (items.size() > 0) {

@@ -18,7 +18,8 @@ class Application @Inject() (cached: Cached,
                              twitter: TwitterService,
                              youtube: YoutubeService,
                              twitch: TwitchService,
-                             searchIndex: SearchIndex) extends Controller {
+                             searchIndex: SearchIndex,
+                             components: ControllerComponents) extends AbstractController(components) {
 
     def index = Action.async {
         for {
@@ -39,7 +40,7 @@ class Application @Inject() (cached: Cached,
 
     def blog(page: Int) = Action.async {
         tumblr.getPosts(page) map {
-            posts: List[Post] => Ok(views.html.blog(posts.map(post => views.html.snippet.blogpost(post, page, trunc = false)), page > 0, tumblr.postCount.toFloat / tumblr.maxPosts > page + 1, page))
+            posts: Seq[Post] => Ok(views.html.blog(posts.map(post => views.html.snippet.blogpost(post, page, trunc = false)), page > 0, tumblr.postCount.toFloat / tumblr.maxPosts > page + 1, page))
         }
     }
 

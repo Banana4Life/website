@@ -1,4 +1,4 @@
-@(posts: List[Html], prev: Boolean, next: Boolean, page: Int)
+@(posts: Seq[Html], prev: Boolean, next: Boolean, page: Int)
 
 @main("Blog") {
     @for(post <- posts) {

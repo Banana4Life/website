@@ -4,13 +4,12 @@ import java.net.URL
 import java.util.Date
 import javax.inject.Inject
 
-import play.api.cache.CacheApi
+import play.api.cache.SyncCacheApi
 import play.api.libs.json._
 import play.api.libs.ws.WSClient
 import service.CacheHelper.{CacheDuration, ProjectsCacheKey}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.DurationInt
 
 case class ProjectBasics(name: String, html_url: String, full_name: String, created_at: Date) {
@@ -20,20 +19,20 @@ case class ProjectBasics(name: String, html_url: String, full_name: String, crea
 }
 
 object ProjectBasics {
-    implicit val format = Json.format[ProjectBasics]
+    implicit val format: Format[ProjectBasics] = Json.format
 }
 
 case class JamInfo(name: String, number: Int, theme: String, site: String, comments: Seq[String])
 
 object JamInfo {
-    implicit val format = Json.format[JamInfo]
+    implicit val format: Format[JamInfo] = Json.format
 }
 
 case class ProjectMeta(name: String, description: String, jam: Option[JamInfo], authors: Seq[String],
                        download: Option[String], soundtrack: Option[String], date: Option[Date])
 
 object ProjectMeta {
-    implicit val format = Json.format[ProjectMeta]
+    implicit val format: Format[ProjectMeta] = Json.format
 }
 
 
@@ -41,13 +40,13 @@ case class Project(repoName: String, displayName: String, url: URL, description:
                    jam: Option[JamInfo], authors: Seq[String], imageUrl: URL,
                    createdAt: Date, download: URL, soundtrack: Option[URL])
 
-class GithubService @Inject()(ws: WSClient, cache: CacheApi) {
+class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec: ExecutionContext) {
 
     private val orga = "Banana4Life"
     private val reposUrl = s"https://api.github.com/orgs/$orga/repos"
 
     def getProjects: Future[Seq[Project]] = {
-        cache.getOrElse(ProjectsCacheKey, CacheDuration) {
+        cache.getOrElseUpdate(ProjectsCacheKey, CacheDuration) {
             val futureResponse = ws.url(reposUrl).withRequestTimeout(10000.milliseconds).get()
             futureResponse flatMap { response =>
                 complete(Json.parse(response.body).as[Seq[ProjectBasics]])

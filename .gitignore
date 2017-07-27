@@ -16,7 +16,7 @@ projectFilesBackup/.idea
 /.settings
 
 conf/tumblr.conf
-conf/twitter4j.properties
+twitter4j.properties
 conf/youtube.conf
 
 Thumbs.db

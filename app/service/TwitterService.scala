@@ -3,27 +3,25 @@ package service
 import java.text.SimpleDateFormat
 import javax.inject.Inject
 
+import scala.collection.JavaConverters._
 import play.api.Logger
-import play.api.cache.CacheApi
+import play.api.cache.SyncCacheApi
 import play.twirl.api.Html
 import play.twirl.api.HtmlFormat._
-import play.twirl.api.TemplateMagic.javaCollectionToScala
 import service.CacheHelper.{CacheDuration, TwitterCacheKeyPrefix}
-import twitter4j.{ResponseList, Status, TwitterFactory}
+import twitter4j.{Status, TwitterFactory}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.{ExecutionContext, Future}
 
-class TwitterService @Inject()(cache: CacheApi) {
+class TwitterService @Inject()(cache: SyncCacheApi, implicit val ec: ExecutionContext) {
 
-    val twitter = TwitterFactory.getSingleton
+    private val twitter = TwitterFactory.getSingleton
     val dateFormat = new SimpleDateFormat("dd MMMMM yyyy")
 
     val TypePhoto = "photo"
 
-    val patternHashtag = "#(.+)".r
-    val patternAt = "@(.+)".r
+    private val patternHashtag = "#(.+)".r
+    private val patternAt = "@(.+)".r
 
     def compileTweet(tweet: Status): Html = {
         val user = tweet.getUser
@@ -68,11 +66,11 @@ class TwitterService @Inject()(cache: CacheApi) {
         views.html.snippet.twitter(imgURL, tweetId, userName, userHandle, Html(out.toString()), dateFormat.format(tweet.getCreatedAt))
     }
 
-    def tweets(user: String): Future[List[Status]] = {
+    def tweets(user: String): Future[Seq[Status]] = {
         Future {
-            cache.getOrElse(s"$TwitterCacheKeyPrefix." + user, CacheDuration) {
+            cache.getOrElseUpdate(s"$TwitterCacheKeyPrefix." + user, CacheDuration) {
                 try {
-                    twitter.getUserTimeline(user).toList
+                    twitter.getUserTimeline(user).asScala
                 } catch {
                     case e: Exception =>
                         Logger.error("Failed to get the tweets!", e)
@@ -82,11 +80,11 @@ class TwitterService @Inject()(cache: CacheApi) {
         }
     }
 
-    def compiledTweets(user: String) = tweets(user) map {
+    def compiledTweets(user: String): Future[Seq[Html]] = tweets(user) map {
         _.map(compileTweet)
     }
 
-    def compiledTweets(user: String, count: Int) = tweets(user) map {
+    def compiledTweets(user: String, count: Int): Future[Seq[Html]] = tweets(user) map {
         _.map(compileTweet).take(count)
     }
 }
