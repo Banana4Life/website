@@ -56,9 +56,18 @@ class Application @Inject() (cached: Cached,
     }
 
     def search(query: String) = Action.async {
-        tumblr.getPosts.map(posts => Ok(views.html.blog(
-            searchIndex.query(posts, query).map(doc => views.html.snippet.blogpost(doc.asInstanceOf[TumblrDoc].post, 0, trunc = false)), prev = false, next = false, 0
-        )))
+        for {
+            blogPosts <- tumblr.getPosts
+            projects <- github.getProjects
+        } yield {
+            val blogDocs = blogPosts.map(TumblrDoc)
+            val projectDocs = projects.map(ProjectDoc)
+
+            val docs: Seq[Doc] = blogDocs ++ projectDocs
+
+            val searchResults = searchIndex.query(docs, query).map(_.toHtml)
+            Ok(views.html.blog(searchResults, prev = false, next = false, 0))
+        }
     }
 }
 
