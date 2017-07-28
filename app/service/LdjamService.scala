@@ -14,23 +14,30 @@ class LdjamService @Inject()(conf: Configuration, cache: SyncCacheApi, implicit 
   val maxPosts = 5
   var postCount = 0
 
+  private val apiBaseUrl = conf.get[String]("ldjam.api")
+  private val accountIds = conf.get[Seq[Int]]("ldjam.account")
+
   def getPosts(page: Int): Future[Seq[LdjamPost]] = {
     getPosts.map(list => list.slice(page * maxPosts, page * maxPosts + maxPosts))
   }
 
-  def getPosts: Future[Seq[LdjamPost]] = {
-    val apiBaseUrl = conf.get[String]("ldjam.api")
-    Future.sequence(
-      conf.get[Seq[String]]("ldjam.account").map { userid =>
-        ws.url(s"$apiBaseUrl/vx/node/feed/$userid/author/post").get().map { r =>
-          (r.json \ "feed" \\ "id").collect { case JsNumber(v) => v.toInt }
-        }
-      }).flatMap { l =>
-      val posts = l.flatten.mkString("+")
-      ws.url(s"$apiBaseUrl/vx/node/get/$posts").get().map(r => r.json \ "node").collect {
-        case JsDefined(JsObject(node)) => node.values.map(e => e.as[LdjamPost]).toSeq
-      }
+  private def findPostIdsForUser(userid: Int) = {
+    ws.url(s"$apiBaseUrl/vx/node/feed/$userid/author/post").get().map { r =>
+      (r.json \ "feed" \\ "id").collect { case JsNumber(v) => v.toInt }
     }
+  }
+
+  private def loadPosts(ids: Seq[Int]) = {
+    val posts = ids.mkString("+")
+    ws.url(s"$apiBaseUrl/vx/node/get/$posts").get().map(r => r.json \ "node").collect {
+      case JsDefined(JsObject(node)) => node.values.map(e => e.as[LdjamPost]).toSeq
+    }
+  }
+
+  def getPosts: Future[Seq[LdjamPost]] = {
+    Future.sequence(accountIds.map(findPostIdsForUser))
+          .map(_.flatten)
+          .flatMap(loadPosts)
   }
 }
 
