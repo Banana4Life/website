@@ -12,5 +12,5 @@ trait BlogPost {
 }
 
 object BlogPost {
-    val format: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MMMMM yyyy")
+    val format: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy")
 }

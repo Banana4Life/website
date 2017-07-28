@@ -64,7 +64,7 @@ class LdjamService @Inject()(conf: Configuration, cache: SyncCacheApi, implicit 
 
   def getPosts: Future[Seq[LdjamPost]] = {
     Future.sequence(accountIds.map(findPostNodeIdsForUser))
-          .map(_.flatten ++ accountIds)
+          .map(_.flatten.sortBy(-_).take(20) ++ accountIds)
           .flatMap(loadNodes)
           .map(nodesToPosts)
   }
