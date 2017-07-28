@@ -28,7 +28,7 @@ class LdjamService @Inject()(conf: Configuration, cache: SyncCacheApi, implicit 
   }
 
   private def loadPosts(ids: Seq[Int]) = {
-    val posts = ids.mkString("+")
+    val posts = ids.sortBy(-_).take(20).mkString("+")
     ws.url(s"$apiBaseUrl/vx/node/get/$posts").get().map(r => r.json \ "node").collect {
       case JsDefined(JsObject(node)) => node.values.map(e => e.as[LdjamPost]).toSeq
     }
