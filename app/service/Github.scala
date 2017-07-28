@@ -1,7 +1,7 @@
 package service
 
 import java.net.URL
-import java.time.ZonedDateTime
+import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import javax.inject.Inject
 
 import com.fasterxml.jackson.core.JsonParseException
@@ -31,7 +31,7 @@ object JamInfo {
 }
 
 case class ProjectMeta(name: String, description: String, jam: Option[JamInfo], authors: Seq[String],
-                       download: Option[String], soundtrack: Option[String], date: Option[ZonedDateTime])
+                       download: Option[String], soundtrack: Option[String], date: Option[LocalDate])
 
 object ProjectMeta {
     implicit val format: Format[ProjectMeta] = Json.format
@@ -62,9 +62,14 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec
         val futures = projectBasics map { basics =>
             val fileName = ".banana4.json"
             ws.url(basics.file(fileName)).get().map { response =>
+
                 val meta = Json.parse(response.body).as[ProjectMeta]
+                val date = meta.date
+                    .map(d => d.atStartOfDay(ZoneId.systemDefault()))
+                    .getOrElse(basics.created_at)
+
                 Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.jam,
-                    meta.authors, new URL(basics.file("banana4life/main.png")), meta.date.getOrElse(basics.created_at),
+                    meta.authors, new URL(basics.file("banana4life/main.png")), date,
                     meta.download.map(new URL(_)).getOrElse(basics.latestRelease), meta.soundtrack.map(new URL(_)))
             }.recover({
                 case _: JsonParseException =>
