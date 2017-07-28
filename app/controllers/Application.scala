@@ -1,19 +1,19 @@
 package controllers
 
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
-import com.tumblr.jumblr.types.Post
 import play.api.cache.Cached
 import play.api.mvc._
+import play.twirl.api.Html
 import service._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class Application @Inject() (cached: Cached,
                              github: GithubService,
                              tumblr: TumblrService,
+                             ldjam: LdjamService,
                              twitter: TwitterService,
                              youtube: YoutubeService,
                              twitch: TwitchService,
@@ -29,8 +29,8 @@ class Application @Inject() (cached: Cached,
             twitchPlayer <- twitch.getPlayer
         } yield {
             val projectsHtml = projects.map(project => (project.createdAt, views.html.snippet.project(project)))
-            val postsHtml = posts.map(post => (ZonedDateTime.parse(post.getDateGMT, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z")), views.html.snippet.blogpost(post, 0, trunc = true)))
-            val videosHtml = videos.map(video => (video.publishedAt, views.html.snippet.youtube(video, video.publishedAt.format(DateTimeFormatter.ofPattern("dd MMMMM yyyy")))))
+            val postsHtml = posts.map(post => (post.createdAt, views.html.snippet.blogpost(post, 0, trunc = true)))
+            val videosHtml = videos.map(video => (video.publishedAt, views.html.snippet.youtube(video, video.publishedAt.format(BlogPost.format))))
             val activities = (postsHtml ++ projectsHtml ++ videosHtml).sortWith((a, b) => a._1.isAfter(b._1)).map(_._2).take(5)
 
             Ok(views.html.index(tweets, activities, twitchPlayer))
@@ -38,9 +38,21 @@ class Application @Inject() (cached: Cached,
     }
 
     def blog(page: Int) = Action.async {
-        tumblr.getPosts(page) map {
-            posts: Seq[Post] => Ok(views.html.blog(posts.map(post => views.html.snippet.blogpost(post, page, trunc = false)), page > 0, tumblr.postCount.toFloat / tumblr.maxPosts > page + 1, page))
+        val posts: Future[Seq[BlogPost]] = for {
+            tumblrPosts <- tumblr.getPosts
+            ldjamPosts <- ldjam.getPosts
+        } yield tumblrPosts ++ ldjamPosts
+
+        posts.map { posts =>
+            val snippets: Seq[Html] = posts collect {
+                case post: TumblrPost =>
+                    views.html.snippet.blogpost(post, page, trunc = false)
+                case post: LdjamPost =>
+                    views.html.snippet.ldjampost(post, trunc = false)
+            }
+            Ok(views.html.blog(snippets, page > 0, tumblr.postCount.toFloat / tumblr.maxPosts > page + 1, page))
         }
+
     }
 
     def projects = cached((x: RequestHeader) => "page.projects", 60 * 60 * 2) {

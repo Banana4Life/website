@@ -3,7 +3,6 @@ package service
 
 import javax.inject.Singleton
 
-import com.tumblr.jumblr.types.{Post, TextPost}
 import org.tartarus.martin.Stemmer
 import play.api.Logger
 import play.twirl.api.Html
@@ -17,8 +16,8 @@ abstract class Doc(val cacheKey: String, val text: String) {
     def toHtml: Html
 }
 
-case class TumblrDoc(post: Post)
-    extends Doc("tumblr:" + post.getId, post.asInstanceOf[TextPost].getBody.replaceAll("<[^>]*>", " ")) {
+case class TumblrDoc(post: TumblrPost)
+    extends Doc("tumblr:" + post.id, post.body.replaceAll("<[^>]*>", " ")) {
     override def toHtml: Html = views.html.snippet.blogpost(post, 0, trunc = false)
 }
 

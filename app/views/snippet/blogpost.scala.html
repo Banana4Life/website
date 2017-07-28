@@ -1,30 +1,22 @@
-@(post: com.tumblr.jumblr.types.Post, page: Int, trunc: Boolean)
-@import com.tumblr.jumblr.types.TextPost
-@import java.text.SimpleDateFormat
-
-@dateFormatSrc = @{new SimpleDateFormat("yyyy-MM-dd")}
-@dateFormatDest = @{new SimpleDateFormat("dd MMMMM yyyy")}
-@paragraphs = @{post.asInstanceOf[TextPost].getBody.split("</p>")}
-
-@if(post.isInstanceOf[TextPost] && post.asInstanceOf[TextPost].getTitle != null) {
-    <article id="@post.getId" class="round blog-post">
-        <header>
-            <a href="@routes.Application.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a>
-            <a href="@routes.Application.blog(0)#@post.getId"><h1> @post.asInstanceOf[TextPost].getTitle</h1></a>
-            <div>posted by @post.getBlogName | @dateFormatDest.format(dateFormatSrc.parse(post.getDateGMT.substring(0, 10)))</div>
-        </header>
-        @if(trunc && paragraphs.length > 2) {
-            @Html(paragraphs.take(2).mkString("</p>") + "</p>")
-            <p>
-                <a href="@routes.Application.blog(0)#@post.getId">...</a>
-            </p>
-        } else {
-            @Html(post.asInstanceOf[TextPost].getBody)
+@import service.TumblrPost
+@(post: TumblrPost, page: Int, trunc: Boolean)
+<article id="@post.anchor" class="round blog-post">
+    <header>
+        <a href="@routes.Application.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a>
+        <a href="@routes.Application.blog(0)#@post.anchor"><h1> @post.title</h1></a>
+        <div>posted by @post.blogName | @post.formattedDate</div>
+    </header>
+    @if(trunc && post.paragraphs.length > 2) {
+        @Html(post.truncatedBody(2))
+        <p>
+            <a href="@routes.Application.blog(0)#@post.anchor">...</a>
+        </p>
+    } else {
+        @Html(post.body)
+    }
+    <footer>
+        @for(tag <- post.tags) {
+            <a href="@routes.Application.blog(page)#@tag">#@tag</a>
         }
-        <footer>
-            @for(tag <- post.getTags) {
-                <a href="@routes.Application.blog(page)#@tag">#@tag</a>
-            }
-        </footer>
-    </article>
-}
+    </footer>
+</article>

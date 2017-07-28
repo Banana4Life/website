@@ -41,7 +41,12 @@ class LdjamService @Inject()(conf: Configuration, cache: SyncCacheApi, implicit 
   }
 }
 
-case class LdjamPost(name: String, body: String, created: ZonedDateTime)
+case class LdjamPost(id: Int, name: String, body: String, created: ZonedDateTime) extends BlogPost {
+  override def anchor: String = s"ldjam_$id"
+  override def createdAt: ZonedDateTime = created
+
+  override def truncatedBody(paragraphs: Int): String = body
+}
 
 object LdjamPost {
   implicit val format: Format[LdjamPost] = Json.format
