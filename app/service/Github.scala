@@ -31,7 +31,7 @@ object JamInfo {
 }
 
 case class ProjectMeta(name: String, description: String, jam: Option[JamInfo], authors: Seq[String],
-                       download: Option[String], soundtrack: Option[String], date: Option[LocalDate])
+                       download: Option[String], soundtrack: Option[String], date: Option[LocalDate], web: Option[String])
 
 object ProjectMeta {
     implicit val format: Format[ProjectMeta] = Json.format
@@ -40,7 +40,7 @@ object ProjectMeta {
 
 case class Project(repoName: String, displayName: String, url: URL, description: String,
                    jam: Option[JamInfo], authors: Seq[String], imageUrl: URL,
-                   createdAt: ZonedDateTime, download: URL, soundtrack: Option[URL])
+                   createdAt: ZonedDateTime, download: URL, soundtrack: Option[URL], web: Option[URL])
 
 class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec: ExecutionContext) {
 
@@ -70,7 +70,7 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec
 
                 Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.jam,
                     meta.authors, new URL(basics.file("banana4life/main.png")), date,
-                    meta.download.map(new URL(_)).getOrElse(basics.latestRelease), meta.soundtrack.map(new URL(_)))
+                    meta.download.map(new URL(_)).getOrElse(basics.latestRelease), meta.soundtrack.map(new URL(_)), meta.web.map(new URL(_)))
             }.recover({
                 case _: JsonParseException =>
                     Logger.warn(s"Failed to parse $fileName for project ${basics.full_name}!")

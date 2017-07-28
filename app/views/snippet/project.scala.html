@@ -11,6 +11,9 @@
         </header>
         <div>@project.description</div>
         <div>Download <a target="_blank" href="@project.download">here</a>!</div>
+        @for(web <- project.web){
+            <div>Play the game in your browser <a target="_blank" href="@web">here</a>!</div>
+        }
         @for(sound <- project.soundtrack){
             <div>Get the soundtrack <a target="_blank" href="@sound">here</a>!</div>
         }
