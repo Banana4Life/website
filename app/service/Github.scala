@@ -4,6 +4,8 @@ import java.net.URL
 import java.time.ZonedDateTime
 import javax.inject.Inject
 
+import com.fasterxml.jackson.core.JsonParseException
+import play.api.Logger
 import play.api.cache.SyncCacheApi
 import play.api.libs.json._
 import play.api.libs.ws.WSClient
@@ -58,13 +60,18 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec
 
     def complete(projectBasics: Seq[ProjectBasics]): Future[Seq[Project]] = {
         val futures = projectBasics map { basics =>
-            ws.url(basics.file(".banana4.json")).get().map { response =>
+            val fileName = ".banana4.json"
+            ws.url(basics.file(fileName)).get().map { response =>
                 val meta = Json.parse(response.body).as[ProjectMeta]
                 Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.jam,
                     meta.authors, new URL(basics.file("banana4life/main.png")), meta.date.getOrElse(basics.created_at),
                     meta.download.map(new URL(_)).getOrElse(basics.latestRelease), meta.soundtrack.map(new URL(_)))
             }.recover({
-                case e: Exception => println(e)
+                case _: JsonParseException =>
+                    Logger.warn(s"Failed to parse $fileName for project ${basics.full_name}!")
+                    null
+                case e: Exception =>
+                    Logger.error(s"Failed to complete project info for ${basics.full_name}!", e)
                     null
             })
         }
