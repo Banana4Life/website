@@ -3,16 +3,16 @@
 
 <article id="ldjam_@post.id" class="round blog-post">
     <header>
-        <a href="@routes.Application.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a>
+        <a href="@routes.Application.index()"><img src="@post.avatarLink.getOrElse(routes.Assets.at("images/Banana4Life-Logo.png"))"></a>
         <a href="@routes.Application.blog(0)#@post.id"><h1> @post.name</h1></a>
-        <div>posted by @post.name | @post.created</div>
+        <div>posted by <a href="@post.authorLink">@post.author.name</a> | @post.createdAt</div>
     </header>
     @if(trunc) {
-        @post.body
+        @Html(post.body)
         <p>
             <a href="@routes.Application.blog(0)#ldjam_@post.id">...</a>
         </p>
     } else {
-        @post.body
+        @Html(post.body)
     }
 </article>

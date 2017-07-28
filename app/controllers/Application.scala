@@ -7,8 +7,7 @@ import play.api.mvc._
 import play.twirl.api.Html
 import service._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class Application @Inject() (cached: Cached,
                              github: GithubService,
@@ -18,6 +17,7 @@ class Application @Inject() (cached: Cached,
                              youtube: YoutubeService,
                              twitch: TwitchService,
                              searchIndex: SearchIndex,
+                             implicit val ec: ExecutionContext,
                              components: ControllerComponents) extends AbstractController(components) {
 
     def index = Action.async {
@@ -44,12 +44,13 @@ class Application @Inject() (cached: Cached,
         } yield tumblrPosts ++ ldjamPosts
 
         posts.map { posts =>
-            val snippets: Seq[Html] = posts collect {
+            val snippets: Seq[Html] = posts.sortBy(-_.createdAt.toEpochSecond) collect {
                 case post: TumblrPost =>
                     views.html.snippet.blogpost(post, page, trunc = false)
                 case post: LdjamPost =>
                     views.html.snippet.ldjampost(post, trunc = false)
             }
+
             Ok(views.html.blog(snippets, page > 0, tumblr.postCount.toFloat / tumblr.maxPosts > page + 1, page))
         }
 

@@ -16,6 +16,7 @@ libraryDependencies ++= Seq(
   "org.twitter4j"        %  "twitter4j-core"              % "4.0.6",
   "com.google.apis"      %  "google-api-services-youtube" % "v3-rev183-1.22.0",
   "gov.sandia.foundry"   %  "porter-stemmer"              % "1.4",
+  "com.vladsch.flexmark" % "flexmark-all"                 % "0.22.16",
   "org.webjars"          %% "webjars-play"                % "2.6.1",
   "org.webjars"          %  "jquery"                      % "3.1.1",
   "org.webjars"          % "font-awesome"                 % "4.7.0"
