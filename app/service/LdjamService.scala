@@ -17,6 +17,7 @@ import play.api.libs.ws.WSClient
 import service.LdjamNode.metaFormat
 import Formats._
 
+import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 
 class LdjamService @Inject()(conf: Configuration, cache: SyncCacheApi, implicit val ec: ExecutionContext, ws: WSClient) {
@@ -60,7 +61,7 @@ class LdjamService @Inject()(conf: Configuration, cache: SyncCacheApi, implicit 
 
     posts.map {n =>
         val author = authors(n.author)
-        val avatar = author.meta.left.toOption.map(m => cdnBaseUrl + m.avatar.substring(2) + ".32x32.fit.jpg")
+        val avatar = author.meta.left.toOption.flatMap(_.avatar).map(avatar => cdnBaseUrl + avatar.substring(2) + ".32x32.fit.jpg")
         val body = mdRenderer.render(mdParser.parse(n.body))
         LdjamPost(n.id, n.name, author, body, n.created, s"$pageBaseUrl${author.path}", avatar)
     }
@@ -69,7 +70,11 @@ class LdjamService @Inject()(conf: Configuration, cache: SyncCacheApi, implicit 
   private def nodeToJamEntry(node: LdjamNode) = {
     // TODO get authors \ "link" \ "author" - list
     // TODO cleanup body
-    val body = mdRenderer.render(mdParser.parse(node.body))
+    val r = "//(/raw/[^\\.].\\w+)".r
+    val r2 = "<p>(<img[^>]+>)</p>".r
+    var body = r.replaceAllIn(node.body, cdnBaseUrl + _.group(1))
+    body = mdRenderer.render(mdParser.parse(body))
+    body = r2.replaceAllIn(body, "<div class=\"image-container\">" + _.group(1) + "</div>")
     LdJamEntry(node.id, node.name, body)
   }
 
@@ -81,24 +86,24 @@ class LdjamService @Inject()(conf: Configuration, cache: SyncCacheApi, implicit 
   }
 
   def findEntry(project: Project): Future[Option[LdJamEntry]] = {
-    project.jam match {
-      case Some(jam) =>
-        ws.url(s"$apiBaseUrl/vx/node/walk/1${jam.site.getPath}").get().flatMap { r =>
-          r.json \ "node" match {
-            case JsDefined(JsNumber(n)) =>
+    cache.getOrElseUpdate(CacheHelper.JamEntry(project), CacheHelper.CacheDuration) {
+      project.jam match {
+        case Some(jam) =>
+          ws.url(s"$apiBaseUrl/vx/node/walk/1${jam.site.getPath}").get().flatMap { r =>
+            r.json \ "node" match {
+              case JsDefined(JsNumber(n)) =>
 
-              loadNodes(Seq(n.toInt)).map(nodes => nodes.headOption.map(nodeToJamEntry))
-            case _ => Future.successful(None)
+                loadNodes(Seq(n.toInt)).map(nodes => nodes.headOption.map(nodeToJamEntry))
+              case _ => Future.successful(None)
+            }
           }
-        }
-      case None => Future.successful(None)
+        case None => Future.successful(None)
+      }
     }
-
   }
-
 }
 
-case class LdjamMeta(avatar: String)
+case class LdjamMeta(avatar: Option[String])
 
 case class LdjamNode(id: Int, name: String, author: Int, body: String, created: ZonedDateTime, `type`: String, path: String, meta: Either[LdjamMeta, Int])
 

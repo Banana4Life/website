@@ -42,6 +42,37 @@
 
 #index-top {
   margin-bottom: 5px;
+  .image-container {
+
+    @small-img: 200px;
+
+    display: inline-block;
+    overflow: hidden;
+    height: @small-img;
+    width: 33%;
+
+    & img {
+      height: @small-img + 50px;
+    }
+
+    &:first-of-type {
+      width: 100%;
+      display: block;
+      & img {
+        width: 100%;
+        height: auto;
+      }
+      height: auto;
+    }
+  }
+
+  .top-project {
+    background-color: #fff;
+    margin-bottom: 20px;
+    padding: 50px;
+    align-items: center;
+  }
+
 }
 
 #index-right {

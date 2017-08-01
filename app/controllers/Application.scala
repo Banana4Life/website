@@ -23,7 +23,7 @@ class Application @Inject()(cached: Cached,
   def index = Action.async {
     val future = for {
       curProject <- github.getCurrent
-      projects <- github.getProjects.map(_.filterNot(curProject.contains))
+      projects <- github.getProjects
       posts <- tumblr.getPosts(0)
       tweets <- twitter.compiledTweets("bananafourlife", 9)
       videos <- youtube.getVideos

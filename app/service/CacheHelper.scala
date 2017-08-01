@@ -11,4 +11,7 @@ object CacheHelper {
     val BlogCacheKey = s"$BaseCacheKey.blog.posts"
     val BlogCountCacheKey = s"$BaseCacheKey.blog.count"
     val TwitterCacheKeyPrefix = s"$BaseCacheKey.twitter.page"
+
+    def JamEntry(project: Project) = s"$BaseCacheKey.ldham.project.${project.repoName}"
+
 }
