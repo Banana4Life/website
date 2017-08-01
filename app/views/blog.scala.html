@@ -1,6 +1,6 @@
 @(posts: Seq[Html], prev: Boolean, next: Boolean, page: Int)
 
-@main("Blog") {
+@main("Blog", "blog") {
     @for(post <- posts) {
         @post
     }

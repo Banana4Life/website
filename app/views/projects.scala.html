@@ -1,6 +1,6 @@
 @(projects: Seq[service.Project])
 
-@main("Projects") {
+@main("Projects", "projects") {
     @for(project <- projects) {
         @snippet.project(project)
     }

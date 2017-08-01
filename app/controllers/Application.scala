@@ -95,15 +95,18 @@ class Application @Inject() (cached: Cached,
     }
 
 
-    def simpleSlug(slug: String) = slug.replace("-", "").toLowerCase().replace(" ", "")
+    def simpleSlug(slug: String) = slug.replaceAll("[^A-Za-z0-9]", "").toLowerCase()
 
     def compareSlugs(p1: String, p2: String): Boolean = simpleSlug(p1) == simpleSlug(p2)
 
     def project(jam: String, slug: String) = Action.async {
-        github.getProjects.map { projects =>
+        val jamSlug = simpleSlug(jam)
+        val slugSlug = simpleSlug(slug)
+        if (jam != jamSlug || slug != slugSlug) Future.successful(Redirect(routes.Application.project(jamSlug, slugSlug)))
+        else github.getProjects.map { projects =>
             projects.find(p => compareSlugs(p.repoName, slug) && compareSlugs(p.jam.map(ji => ji.name).getOrElse("unknown"), jam)) match {
-                case p @ Some(_) => Ok(views.html.projects(p.toSeq))
-                case None      => NotFound
+                case Some(p)  => Ok(views.html.singleproject(p))
+                case None     => NotFound(views.html.projects(Seq())) // TODO not found?
             }
         }
     }

@@ -1,6 +1,6 @@
 @(snippets: Seq[Html])
 
-@main("Snippets") {
+@main("Snippets", "snippets") {
     <div id="snippets">
         <div class="grid-sizer"></div>
         @for(snippet <- snippets) {

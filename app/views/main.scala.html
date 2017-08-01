@@ -1,4 +1,4 @@
-@(title: String)(content: Html)
+@(title: String, className: String)(content: Html)
 <!DOCTYPE html>
 <html>
     <head>
@@ -32,7 +32,7 @@
             </div>
             <div class="clear"></div>
         </nav>
-        <main class="@title.toLowerCase()">
+        <main class="@className">
             <div class="main-column">
                 @content
             </div>

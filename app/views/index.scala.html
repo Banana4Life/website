@@ -1,6 +1,6 @@
 @(tweets: Seq[Html], activities: Seq[Html], twitchPlayer: Option[Html], currentProject: Option[Html])
 
-@main("Home") {
+@main("Home", "home") {
     <div id="index-main">
         @for(project <- currentProject) {
             <div id="index-top">
