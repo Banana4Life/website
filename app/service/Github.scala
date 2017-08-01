@@ -67,7 +67,7 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec
 
     def complete(projectBasics: Seq[ProjectBasics]): Future[Seq[Project]] = {
         val futures = projectBasics map { basics =>
-            val fileName = ".banana4.json"
+            val fileName = ".banana4life/project.json"
             ws.url(basics.file(fileName)).get().map { response =>
 
                 val meta = Json.parse(response.body).as[ProjectMeta]
@@ -76,7 +76,7 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec
                     .getOrElse(basics.created_at)
 
                 Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.jam,
-                    meta.authors, new URL(basics.file("banana4life/main.png")), date,
+                    meta.authors, new URL(basics.file(".banana4life/main.png")), date,
                     meta.download.map(new URL(_)).getOrElse(basics.latestRelease), meta.soundtrack.map(new URL(_)), meta.web.map(new URL(_)))
             }.recover({
                 case _: JsonParseException =>
