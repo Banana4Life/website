@@ -31,17 +31,22 @@ object JamInfo {
     implicit val format: Format[JamInfo] = Json.format
 }
 
+case class WebCheat(label: String, gameObject: String, message: String)
+
+object WebCheat {
+    implicit val format: Format[WebCheat] = Json.format
+}
+
 case class ProjectMeta(name: String, description: String, jam: Option[JamInfo], authors: Seq[String],
-                       download: Option[String], soundtrack: Option[String], date: Option[LocalDate], web: Option[String])
+                       download: Option[String], soundtrack: Option[String], date: Option[LocalDate], web: Option[String], cheats: Option[Seq[WebCheat]])
 
 object ProjectMeta {
     implicit val format: Format[ProjectMeta] = Json.format
 }
 
-
 case class Project(repoName: String, displayName: String, url: URL, description: String,
                    jam: Option[JamInfo], authors: Seq[String], imageUrl: URL,
-                   createdAt: ZonedDateTime, download: URL, soundtrack: Option[URL], web: Option[URL])
+                   createdAt: ZonedDateTime, download: URL, soundtrack: Option[URL], web: Option[URL], cheats: Seq[WebCheat])
 
 class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec: ExecutionContext) {
 
@@ -77,7 +82,8 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec
 
                 Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.jam,
                     meta.authors, new URL(basics.file(".banana4life/main.png")), date,
-                    meta.download.map(new URL(_)).getOrElse(basics.latestRelease), meta.soundtrack.map(new URL(_)), meta.web.map(new URL(_)))
+                    meta.download.map(new URL(_)).getOrElse(basics.latestRelease), meta.soundtrack.map(new URL(_)),
+                    meta.web.map(new URL(_)), meta.cheats.getOrElse(Nil))
             }.recover({
                 case _: JsonParseException =>
                     Logger.warn(s"Failed to parse $fileName for project ${basics.full_name}!")
