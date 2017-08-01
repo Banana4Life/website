@@ -4,7 +4,7 @@ import java.net.URL
 import java.time.temporal.ChronoUnit
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import javax.inject.Inject
-import service.LdjamNode.metaFormat
+
 import Formats._
 import com.fasterxml.jackson.core.JsonParseException
 import play.api.Logger
@@ -32,17 +32,22 @@ object JamInfo {
     implicit val format: Format[JamInfo] = Json.format
 }
 
+case class WebCheat(label: String, gameObject: String, message: String)
+
+object WebCheat {
+    implicit val format: Format[WebCheat] = Json.format
+}
+
 case class ProjectMeta(name: String, description: String, jam: Option[JamInfo], authors: Seq[String],
-                       download: Option[URL], soundtrack: Option[URL], date: Option[LocalDate], web: Option[URL])
+                       download: Option[URL], soundtrack: Option[URL], date: Option[LocalDate], web: Option[URL], cheats: Option[Seq[WebCheat]])
 
 object ProjectMeta {
     implicit val format: Format[ProjectMeta] = Json.format
 }
 
-
 case class Project(repoName: String, displayName: String, url: URL, description: String,
                    jam: Option[JamInfo], authors: Seq[String], imageUrl: URL,
-                   createdAt: ZonedDateTime, download: URL, soundtrack: Option[URL], web: Option[URL])
+                   createdAt: ZonedDateTime, download: URL, soundtrack: Option[URL], web: Option[URL], cheats: Seq[WebCheat])
 
 class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec: ExecutionContext) {
 
@@ -78,7 +83,7 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec
 
                 Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.jam,
                     meta.authors, new URL(basics.file(".banana4life/main.png")), date,
-                    meta.download.getOrElse(basics.latestRelease), meta.soundtrack, meta.web)
+                    meta.download.getOrElse(basics.latestRelease), meta.soundtrack, meta.web, meta.cheats.getOrElse(Nil))
             }.recover({
                 case _: JsonParseException =>
                     Logger.warn(s"Failed to parse $fileName for project ${basics.full_name}!")
