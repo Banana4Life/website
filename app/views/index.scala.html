@@ -1,10 +1,15 @@
-@(tweets: Seq[Html], activities: Seq[Html], twitchPlayer: Option[Html])
+@(tweets: Seq[Html], activities: Seq[Html], twitchPlayer: Option[Html], currentProject: Option[Html])
 
 @main("Home") {
     <div id="index-main">
-        @if(twitchPlayer.isDefined) {
+        @for(project <- currentProject) {
             <div>
-            @twitchPlayer.get
+            @project
+            </div>
+        }
+        @for(player <- twitchPlayer) {
+            <div>
+            @player
             </div>
         }
         <div class="blog" id="index-left">

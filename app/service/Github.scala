@@ -1,6 +1,7 @@
 package service
 
 import java.net.URL
+import java.time.temporal.ChronoUnit
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import javax.inject.Inject
 
@@ -54,6 +55,12 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec
                 complete(Json.parse(response.body).as[Seq[ProjectBasics]])
             }
         }
+    }
+
+    def getCurrent: Future[Option[Project]] = {
+        getProjects.map(l => l.headOption.flatMap{
+            p => if (p.createdAt.isAfter(ZonedDateTime.now().minus(24, ChronoUnit.DAYS))) Some(p) else None
+        })
     }
 
     implicit val localDateOrdering: Ordering[ZonedDateTime] = Ordering.by(_.toEpochSecond)

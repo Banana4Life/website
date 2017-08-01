@@ -27,13 +27,15 @@ class Application @Inject() (cached: Cached,
             tweets <- twitter.compiledTweets("bananafourlife", 9)
             videos <- youtube.getVideos
             twitchPlayer <- twitch.getPlayer
+            curProject <- github.getCurrent
         } yield {
             val projectsHtml = projects.map(project => (project.createdAt, views.html.snippet.project(project)))
             val postsHtml = posts.map(post => (post.createdAt, views.html.snippet.blogpost(post, trunc = true)))
             val videosHtml = videos.map(video => (video.publishedAt, views.html.snippet.youtube(video, video.publishedAt.format(BlogPost.format))))
             val activities = (postsHtml ++ projectsHtml ++ videosHtml).sortWith((a, b) => a._1.isAfter(b._1)).map(_._2).take(5)
+            val currentProject = curProject.map(p => views.html.snippet.project(p))
 
-            Ok(views.html.index(tweets, activities, twitchPlayer))
+            Ok(views.html.index(tweets, activities, twitchPlayer, currentProject))
         }
     }
 
