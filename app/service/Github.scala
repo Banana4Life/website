@@ -4,7 +4,8 @@ import java.net.URL
 import java.time.temporal.ChronoUnit
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import javax.inject.Inject
-
+import service.LdjamNode.metaFormat
+import Formats._
 import com.fasterxml.jackson.core.JsonParseException
 import play.api.Logger
 import play.api.cache.SyncCacheApi
@@ -25,14 +26,14 @@ object ProjectBasics {
     implicit val format: Format[ProjectBasics] = Json.format
 }
 
-case class JamInfo(name: String, number: Int, theme: String, site: String, comments: Seq[String])
+case class JamInfo(name: String, number: Int, theme: String, site: URL, comments: Seq[String])
 
 object JamInfo {
     implicit val format: Format[JamInfo] = Json.format
 }
 
 case class ProjectMeta(name: String, description: String, jam: Option[JamInfo], authors: Seq[String],
-                       download: Option[String], soundtrack: Option[String], date: Option[LocalDate], web: Option[String])
+                       download: Option[URL], soundtrack: Option[URL], date: Option[LocalDate], web: Option[URL])
 
 object ProjectMeta {
     implicit val format: Format[ProjectMeta] = Json.format
@@ -77,7 +78,7 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec
 
                 Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.jam,
                     meta.authors, new URL(basics.file(".banana4life/main.png")), date,
-                    meta.download.map(new URL(_)).getOrElse(basics.latestRelease), meta.soundtrack.map(new URL(_)), meta.web.map(new URL(_)))
+                    meta.download.getOrElse(basics.latestRelease), meta.soundtrack, meta.web)
             }.recover({
                 case _: JsonParseException =>
                     Logger.warn(s"Failed to parse $fileName for project ${basics.full_name}!")

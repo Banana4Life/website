@@ -21,7 +21,7 @@ class Application @Inject()(cached: Cached,
                             components: ControllerComponents) extends AbstractController(components) {
 
   def index = Action.async {
-    for {
+    val future = for {
       curProject <- github.getCurrent
       projects <- github.getProjects.map(_.filterNot(curProject.contains))
       posts <- tumblr.getPosts(0)
@@ -33,10 +33,16 @@ class Application @Inject()(cached: Cached,
       val postsHtml = posts.map(post => (post.createdAt, views.html.snippet.blogpost(post, trunc = true)))
       val videosHtml = videos.map(video => (video.publishedAt, views.html.snippet.youtube(video, video.publishedAt.format(BlogPost.format))))
       val activities = (postsHtml ++ projectsHtml ++ videosHtml).sortWith((a, b) => a._1.isAfter(b._1)).map(_._2).take(5)
-      val currentProject = curProject.map(p => views.html.snippet.project(p))
-
-      Ok(views.html.index(tweets, activities, twitchPlayer, currentProject))
+      curProject match {
+        case Some(p) =>
+          ldjam.findEntry(p).map {
+            case Some(node) => Ok(views.html.index(tweets, activities, twitchPlayer, Some(views.html.currentproject(p, node))))
+            case None => Ok(views.html.index(tweets, activities, twitchPlayer, None))
+          }
+        case None => Future.successful(Ok(views.html.index(tweets, activities, twitchPlayer, None)))
+      }
     }
+    future.flatten
   }
 
   val PostPerPage = 5
@@ -109,6 +115,21 @@ class Application @Inject()(cached: Cached,
         case None => NotFound(views.html.projects(Seq())) // TODO not found?
       }
     }
+  }
+
+  def dev() = Action.async {
+
+    github.getCurrent.flatMap {
+      case Some(project) =>
+
+        ldjam.findEntry(project).map {
+          case Some(post) => Ok(" "  + post)
+          case None => NotFound
+        }
+      case None => Future.successful(NotFound)
+
+    }
+
   }
 
 }
