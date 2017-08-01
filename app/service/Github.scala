@@ -92,4 +92,8 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec
             projects.filter(_ != null).sortBy(_.createdAt).reverse
         }
     }
+
+    def getWebVersion() = {
+        ws.url("https://banana4life.github.io/LegendarySpaceSpaceSpace/latest/").get()
+    }
 }
