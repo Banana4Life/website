@@ -22,12 +22,12 @@ class Application @Inject() (cached: Cached,
 
     def index = Action.async {
         for {
-            projects <- github.getProjects
+            curProject <- github.getCurrent
+            projects <- github.getProjects.map(_.filterNot(curProject.contains))
             posts <- tumblr.getPosts(0)
             tweets <- twitter.compiledTweets("bananafourlife", 9)
             videos <- youtube.getVideos
             twitchPlayer <- twitch.getPlayer
-            curProject <- github.getCurrent
         } yield {
             val projectsHtml = projects.map(project => (project.createdAt, views.html.snippet.project(project)))
             val postsHtml = posts.map(post => (post.createdAt, views.html.snippet.blogpost(post, trunc = true)))
