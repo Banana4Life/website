@@ -29,13 +29,15 @@ class Application @Inject() (cached: Cached,
             twitchPlayer <- twitch.getPlayer
         } yield {
             val projectsHtml = projects.map(project => (project.createdAt, views.html.snippet.project(project)))
-            val postsHtml = posts.map(post => (post.createdAt, views.html.snippet.blogpost(post, 0, trunc = true)))
+            val postsHtml = posts.map(post => (post.createdAt, views.html.snippet.blogpost(post, trunc = true)))
             val videosHtml = videos.map(video => (video.publishedAt, views.html.snippet.youtube(video, video.publishedAt.format(BlogPost.format))))
             val activities = (postsHtml ++ projectsHtml ++ videosHtml).sortWith((a, b) => a._1.isAfter(b._1)).map(_._2).take(5)
 
             Ok(views.html.index(tweets, activities, twitchPlayer))
         }
     }
+
+    val PostPerPage = 5
 
     def blog(page: Int) = Action.async {
         val posts: Future[Seq[BlogPost]] = for {
@@ -44,14 +46,21 @@ class Application @Inject() (cached: Cached,
         } yield tumblrPosts ++ ldjamPosts
 
         posts.map { posts =>
-            val snippets: Seq[Html] = posts.sortBy(-_.createdAt.toEpochSecond) collect {
-                case post: TumblrPost =>
-                    views.html.snippet.blogpost(post, page, trunc = false)
-                case post: LdjamPost =>
-                    views.html.snippet.ldjampost(post, trunc = false)
+
+            if (posts.isEmpty) Redirect(routes.Application.projects())
+            else {
+                val skip = PostPerPage * (page - 1)
+                val snippets: Seq[Html] = posts.sortBy(-_.createdAt.toEpochSecond).slice(skip, skip + PostPerPage).collect {
+                    case post: TumblrPost =>
+                        views.html.snippet.blogpost(post, trunc = false)
+                    case post: LdjamPost =>
+                        views.html.snippet.ldjampost(post, trunc = false)
+                }
+
+                if (snippets.isEmpty) Redirect(routes.Application.blog(1))
+                else Ok(views.html.blog(snippets, page > 1, posts.length.toFloat / PostPerPage > page, page))
             }
 
-            Ok(views.html.blog(snippets, page > 0, tumblr.postCount.toFloat / tumblr.maxPosts > page + 1, page))
         }
 
     }

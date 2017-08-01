@@ -1,5 +1,5 @@
 @import service.TumblrPost
-@(post: TumblrPost, page: Int, trunc: Boolean)
+@(post: TumblrPost, trunc: Boolean)
 <article id="@post.anchor" class="round blog-post">
     <header>
         <a href="@routes.Application.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a>
@@ -16,7 +16,7 @@
     }
     <footer>
         @for(tag <- post.tags) {
-            <a href="@routes.Application.blog(page)#@tag">#@tag</a>
+            <a href="@routes.Application.blog(1)#@tag">#@tag</a>
         }
     </footer>
 </article>

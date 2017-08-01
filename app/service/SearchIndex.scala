@@ -18,7 +18,7 @@ abstract class Doc(val cacheKey: String, val text: String) {
 
 case class TumblrDoc(post: TumblrPost)
     extends Doc("tumblr:" + post.id, post.body.replaceAll("<[^>]*>", " ")) {
-    override def toHtml: Html = views.html.snippet.blogpost(post, 0, trunc = false)
+    override def toHtml: Html = views.html.snippet.blogpost(post, trunc = false)
 }
 
 case class ProjectDoc(project: Project)
