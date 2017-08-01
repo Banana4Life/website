@@ -7,6 +7,7 @@ GET        /                    controllers.Application.index
 GET        /blog                controllers.Application.blog(page: Int = 1)
 GET        /blog/:page          controllers.Application.blog(page: Int)
 GET        /projects            controllers.Application.projects
+GET        /project/:jam/:slug  controllers.Application.project(jam: String, slug: String)
 GET        /about               controllers.Application.about
 GET        /search              controllers.Application.search(query: String)
 

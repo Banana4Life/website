@@ -93,6 +93,21 @@ class Application @Inject() (cached: Cached,
             Ok(views.html.blog(searchResults, prev = false, next = false, 0))
         }
     }
+
+
+    def simpleSlug(slug: String) = slug.replace("-", "").toLowerCase().replace(" ", "")
+
+    def compareSlugs(p1: String, p2: String): Boolean = simpleSlug(p1) == simpleSlug(p2)
+
+    def project(jam: String, slug: String) = Action.async {
+        github.getProjects.map { projects =>
+            projects.find(p => compareSlugs(p.repoName, slug) && compareSlugs(p.jam.map(ji => ji.name).getOrElse("unknown"), jam)) match {
+                case p @ Some(_) => Ok(views.html.projects(p.toSeq))
+                case None      => NotFound
+            }
+        }
+    }
+
 }
 
 
