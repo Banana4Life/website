@@ -1,6 +1,5 @@
 package service
 
-import java.net.URL
 import java.time.ZonedDateTime
 import java.util.Arrays.asList
 import javax.inject.Inject
@@ -11,16 +10,15 @@ import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.options.MutableDataSet
 import play.api.{Configuration, Logger}
-import play.api.cache.SyncCacheApi
+import play.api.cache.AsyncCacheApi
 import play.api.libs.json._
 import play.api.libs.ws.WSClient
-import service.LdjamNode.metaFormat
-import Formats._
+import service.CacheHelper.CacheDuration
+import service.Formats._
 
-import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 
-class LdjamService @Inject()(conf: Configuration, cache: SyncCacheApi, implicit val ec: ExecutionContext, ws: WSClient) {
+class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit val ec: ExecutionContext, ws: WSClient) {
 
   val maxPosts = 5
   var postCount = 0
@@ -34,24 +32,56 @@ class LdjamService @Inject()(conf: Configuration, cache: SyncCacheApi, implicit 
     AutolinkExtension.create(),
     EmojiExtension.create()
   )
-  private val options = new MutableDataSet()
-  options.set(EmojiExtension.USE_IMAGE_URLS, java.lang.Boolean.TRUE)
-  private val mdParser = Parser.builder(options).extensions(extensions).build()
-  private val mdRenderer = HtmlRenderer.builder(options).extensions(extensions).build()
+
+  private val compileMarkdown: String => String = {
+    val options = new MutableDataSet()
+    options.set(EmojiExtension.USE_IMAGE_URLS, java.lang.Boolean.TRUE)
+    val mdParser = Parser.builder(options).extensions(extensions).build()
+    val mdRenderer = HtmlRenderer.builder(options).extensions(extensions).build()
+
+    s => mdRenderer.render(mdParser.parse(s))
+  }
 
   def getPosts(page: Int): Future[Seq[LdjamPost]] = {
     getPosts.map(list => list.slice(page * maxPosts, page * maxPosts + maxPosts))
   }
 
-  private def findPostNodeIdsForUser(userid: Int) = {
-    ws.url(s"$apiBaseUrl/vx/node/feed/$userid/author/post").get().map { r =>
-      (r.json \ "feed" \\ "id").collect { case JsNumber(v) => v.toInt }
+  private def findPostNodeIdsForUser(userid: Int): Future[Seq[Int]] = {
+    cache.get[Seq[Int]](CacheHelper.jamUserFeed(userid)) flatMap {
+      case Some(nodes) => Future.successful(nodes)
+      case _ =>
+        ws.url(s"$apiBaseUrl/vx/node/feed/$userid/author/post").get().map {
+          case r if r.status == 200 =>
+            val nodes = (r.json \ "feed" \\ "id").collect { case JsNumber(v) => v.toInt }
+            cache.set(CacheHelper.jamUserFeed(userid), nodes, CacheDuration)
+            nodes
+          case _ => Nil
+        }
     }
   }
   private def loadNodes(ids: Seq[Int]): Future[Seq[LdjamNode]] = {
-    val posts = ids.mkString("+")
-    ws.url(s"$apiBaseUrl/vx/node/get/$posts").get().map(r => r.json \ "node").collect {
-      case JsDefined(JsArray(nodes)) => nodes.map(_.as[LdjamNode])
+    val cachedNodes = Future.sequence(ids.map(i => cache.get[LdjamNode](CacheHelper.jamNode(i)))).map(_.flatten)
+
+    cachedNodes.flatMap { knownNodes =>
+      val knownIds = knownNodes.map(_.id).toSet
+      val leftOver = ids.filterNot(knownIds.contains)
+      if (leftOver.isEmpty) Future.successful(knownNodes)
+      else {
+        val urlSection = leftOver.mkString("+")
+        Logger.info(s"Cache missed for $urlSection, loading...")
+        val res = ws.url(s"$apiBaseUrl/vx/node/get/$urlSection").get()
+        res.flatMap {
+          case r if r.status == 200 =>
+            r.json \ "node" match {
+              case JsDefined(JsArray(nodes)) =>
+                val newNodes = nodes.map(_.as[LdjamNode])
+                Future.sequence(newNodes.map(n => cache.set(CacheHelper.jamNode(n.id), CacheDuration)))
+                    .map(_ => newNodes)
+              case _ => Future.successful(knownNodes)
+            }
+          case _ => Future.successful(knownNodes)
+        }
+      }
     }
   }
 
@@ -62,7 +92,7 @@ class LdjamService @Inject()(conf: Configuration, cache: SyncCacheApi, implicit 
     posts.map {n =>
         val author = authors(n.author)
         val avatar = author.meta.left.toOption.flatMap(_.avatar).map(avatar => cdnBaseUrl + avatar.substring(2) + ".32x32.fit.jpg")
-        val body = mdRenderer.render(mdParser.parse(n.body))
+        val body = compileMarkdown(n.body)
         LdjamPost(n.id, n.name, author, body, n.created, s"$pageBaseUrl${author.path}", avatar)
     }
   }
@@ -73,7 +103,7 @@ class LdjamService @Inject()(conf: Configuration, cache: SyncCacheApi, implicit 
     val r = "//(/raw/[^\\.].\\w+)".r
     val r2 = "<p>(<img[^>]+>)</p>".r
     var body = r.replaceAllIn(node.body, cdnBaseUrl + _.group(1))
-    body = mdRenderer.render(mdParser.parse(body))
+    body = compileMarkdown(body)
     body = r2.replaceAllIn(body, "<div class=\"image-container\">" + _.group(1) + "</div>")
     LdJamEntry(node.id, node.name, body)
   }
@@ -86,19 +116,32 @@ class LdjamService @Inject()(conf: Configuration, cache: SyncCacheApi, implicit 
   }
 
   def findEntry(project: Project): Future[Option[LdJamEntry]] = {
-    cache.getOrElseUpdate(CacheHelper.JamEntry(project), CacheHelper.CacheDuration) {
-      project.jam match {
-        case Some(jam) =>
-          ws.url(s"$apiBaseUrl/vx/node/walk/1${jam.site.getPath}").get().flatMap { r =>
-            r.json \ "node" match {
-              case JsDefined(JsNumber(n)) =>
+    project.jam match {
+      case Some(jam) =>
+        val cacheKey = CacheHelper.jamEntry(project.repoName)
 
-                loadNodes(Seq(n.toInt)).map(nodes => nodes.headOption.map(nodeToJamEntry))
-              case _ => Future.successful(None)
+        cache.get[Int](cacheKey) flatMap {
+          case Some(node) => Future.successful(Some(node))
+          case _ =>
+            Logger.info(s"Cache missed for $cacheKey, loading...")
+            ws.url(s"$apiBaseUrl/vx/node/walk/1${jam.site.getPath}").get().map {
+              case r if r.status == 200 =>
+                r.json \ "node" match {
+                  case JsDefined(JsNumber(n)) =>
+                    val id = n.toInt
+                    cache.set(cacheKey, id, CacheDuration)
+                    Some(id)
+                  case _ => None
+                }
+              case _ => None
             }
-          }
-        case None => Future.successful(None)
-      }
+        } flatMap {
+          case Some(node) =>
+            loadNodes(Seq(node)).map(_.headOption.map(nodeToJamEntry))
+          case None =>
+            Future.successful(None)
+        }
+      case None => Future.successful(None)
     }
   }
 }
@@ -114,11 +157,3 @@ case class LdjamPost(id: Int, name: String, author: LdjamNode, body: String, cre
 }
 
 case class LdJamEntry(id: Int, name: String, body: String)
-
-object LdjamNode {
-  val metaFormat: Format[LdjamMeta] = Json.format
-
-  implicit val format: Format[LdjamNode] = {
-    Json.format
-  }
-}

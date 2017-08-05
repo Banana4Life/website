@@ -3,9 +3,11 @@ package service
 import java.net.URL
 
 import play.api.libs.json._
-import service.LdjamNode.metaFormat
 
 object Formats {
+
+  implicit val metaFormat: Format[LdjamMeta] = Json.format
+
   implicit object UrlFormat extends Format[URL] {
     override def reads(json: JsValue): JsResult[URL] = json match {
       case JsString(s) => JsSuccess(new URL(s))
@@ -27,5 +29,7 @@ object Formats {
       case _ => JsError("LdjamMeta must be an empty array or an object!")
     }
   }
+
+  implicit val format: Format[LdjamNode] = Json.format
 
 }
