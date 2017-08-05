@@ -75,7 +75,7 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
             r.json \ "node" match {
               case JsDefined(JsArray(nodes)) =>
                 val newNodes = nodes.map(_.as[LdjamNode])
-                Future.sequence(newNodes.map(n => cache.set(CacheHelper.jamNode(n.id), CacheDuration)))
+                Future.sequence(newNodes.map(n => cache.set(CacheHelper.jamNode(n.id), n, CacheDuration)))
                     .map(_ => newNodes)
               case _ => Future.successful(knownNodes)
             }
