@@ -9,13 +9,14 @@ import com.vladsch.flexmark.ext.emoji.EmojiExtension
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.options.MutableDataSet
-import play.api.{Configuration, Logger}
 import play.api.cache.AsyncCacheApi
 import play.api.libs.json._
-import play.api.libs.ws.WSClient
+import play.api.libs.ws.{WSClient, WSRequest}
+import play.api.{Configuration, Logger}
 import service.CacheHelper.CacheDuration
 import service.Formats._
 
+import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 
 class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit val ec: ExecutionContext, ws: WSClient) {
@@ -42,6 +43,11 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
     s => mdRenderer.render(mdParser.parse(s))
   }
 
+  private def request(url: String): WSRequest =
+    ws.url(url)
+      .withHttpHeaders("User-Agent" -> "Banana4Life")
+      .withRequestTimeout(5.seconds)
+
   def getPosts(page: Int): Future[Seq[LdjamPost]] = {
     getPosts.map(list => list.slice(page * maxPosts, page * maxPosts + maxPosts))
   }
@@ -50,7 +56,7 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
     cache.get[Seq[Int]](CacheHelper.jamUserFeed(userid)) flatMap {
       case Some(nodes) => Future.successful(nodes)
       case _ =>
-        ws.url(s"$apiBaseUrl/vx/node/feed/$userid/author/post").get().map {
+        request(s"$apiBaseUrl/vx/node/feed/$userid/author/post").get().map {
           case r if r.status == 200 =>
             val nodes = (r.json \ "feed" \\ "id").collect { case JsNumber(v) => v.toInt }
             cache.set(CacheHelper.jamUserFeed(userid), nodes, CacheDuration)
@@ -59,6 +65,7 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
         }
     }
   }
+
   private def loadNodes(ids: Seq[Int]): Future[Seq[LdjamNode]] = {
     val cachedNodes = Future.sequence(ids.map(i => cache.get[LdjamNode](CacheHelper.jamNode(i)))).map(_.flatten)
 
@@ -69,7 +76,7 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
       else {
         val urlSection = leftOver.mkString("+")
         Logger.info(s"Cache missed for $urlSection, loading...")
-        val res = ws.url(s"$apiBaseUrl/vx/node/get/$urlSection").get()
+        val res = request(s"$apiBaseUrl/vx/node/get/$urlSection").get()
         res.flatMap {
           case r if r.status == 200 =>
             r.json \ "node" match {
@@ -124,7 +131,7 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
           case Some(node) => Future.successful(Some(node))
           case _ =>
             Logger.info(s"Cache missed for $cacheKey, loading...")
-            ws.url(s"$apiBaseUrl/vx/node/walk/1${jam.site.getPath}").get().map {
+              request(s"$apiBaseUrl/vx/node/walk/1${jam.site.getPath}").get().map {
               case r if r.status == 200 =>
                 r.json \ "node" match {
                   case JsDefined(JsNumber(n)) =>
