@@ -7,8 +7,8 @@ import javax.inject.Inject
 
 import com.tumblr.jumblr.JumblrClient
 import com.tumblr.jumblr.types.{Post, TextPost}
-import play.api.{Configuration, Logger}
 import play.api.cache.AsyncCacheApi
+import play.api.{Configuration, Logger}
 import service.CacheHelper.BlogCacheKey
 
 import scala.collection.JavaConverters._

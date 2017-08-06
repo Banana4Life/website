@@ -4,22 +4,22 @@ import javax.inject.Inject
 
 import play.api.Logger
 import play.api.cache.Cached
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
+import play.api.mvc.{AbstractController, ControllerComponents}
 import play.twirl.api.Html
 import service._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class BlogController @Inject()(cached: Cached,
-                            github: GithubService,
-                            tumblr: TumblrService,
-                            ldjam: LdjamService,
-                            twitter: TwitterService,
-                            youtube: YoutubeService,
-                            twitch: TwitchService,
-                            searchIndex: SearchIndex,
-                            implicit val ec: ExecutionContext,
-                            components: ControllerComponents) extends AbstractController(components) {
+                               github: GithubService,
+                               tumblr: TumblrService,
+                               ldjam: LdjamService,
+                               twitter: TwitterService,
+                               youtube: YoutubeService,
+                               twitch: TwitchService,
+                               searchIndex: SearchIndex,
+                               implicit val ec: ExecutionContext,
+                               components: ControllerComponents) extends AbstractController(components) {
 
     val PostPerPage = 5
 
@@ -39,7 +39,7 @@ class BlogController @Inject()(cached: Cached,
 
             if (posts.isEmpty) Redirect(routes.BlogController.firstBlogPage())
             else {
-                val slice = posts//.take(PostPerPage)
+                val slice = posts //.take(PostPerPage)
 
                 val snippets: Seq[Html] = slice.map {
                     case post: TumblrPost =>

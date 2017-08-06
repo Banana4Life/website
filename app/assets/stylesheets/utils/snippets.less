@@ -1,21 +1,21 @@
 #snippets {
-  margin: -2.5px;
+    margin: -2.5px;
 
-  .item {
-    & > div {
-      margin: 2.5px;
+    .item {
+        & > div {
+            margin: 2.5px;
+        }
+
+        & > * {
+            margin: 5px;
+        }
     }
 
-    & > * {
-      margin: 5px;
+    .item, .grid-sizer {
+        width: 33.33%;
     }
-  }
 
-  .item, .grid-sizer {
-    width: 33.33%;
-  }
-
-  .item.x2 {
-    width: 66.66%;
-  }
+    .item.x2 {
+        width: 66.66%;
+    }
 }

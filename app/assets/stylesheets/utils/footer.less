@@ -1,89 +1,89 @@
 @import "values";
 
 body > footer {
-  background-color: @footer-background;
-  overflow: hidden;
+    background-color: @footer-background;
+    overflow: hidden;
 }
 
 #footer-content {
 
-  height: @footer-height;
-  border-bottom-right-radius: 3px;
-  border-bottom-left-radius: 3px;
-  color: #fff;
-  background-color: #595959;
+    height: @footer-height;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    color: #fff;
+    background-color: #595959;
 
-  & > #footer-logo {
-    height: 100%;
-  }
+    & > #footer-logo {
+        height: 100%;
+    }
 
-  a {
-    text-decoration: none;
-    font-weight: 500;
-  }
+    a {
+        text-decoration: none;
+        font-weight: 500;
+    }
 }
 
 #footer-email, #footer-logo, #footer-social {
-  width: 30%;
+    width: 30%;
 }
 
 #footer-email, #footer-social {
-  font-size: 12px;
-  padding: 10px;
+    font-size: 12px;
+    padding: 10px;
 
-  .head {
-    width: 20%;
-    margin-top: auto;
-    margin-bottom: auto;
-  }
+    .head {
+        width: 20%;
+        margin-top: auto;
+        margin-bottom: auto;
+    }
 }
 
 #footer-email {
-  color: #bbbbbb;
+    color: #bbbbbb;
 
-  b {
-    color: white;
-  }
+    b {
+        color: white;
+    }
 }
 
 #footer-social {
-  text-align: right;
+    text-align: right;
 
-  .logo {
-    width: 12px;
-    margin-left: 5px;
-    font-size: 12px;
-  }
+    .logo {
+        width: 12px;
+        margin-left: 5px;
+        font-size: 12px;
+    }
 }
 
 #footer-logo {
-  margin: 0 auto;
+    margin: 0 auto;
 
-  img {
-    display: block;
-    width: @footer-height;
-    height: @footer-height;
-    margin: auto;
-  }
+    img {
+        display: block;
+        width: @footer-height;
+        height: @footer-height;
+        margin: auto;
+    }
 }
 
 #copyright {
-  padding-top: 5px;
-  padding-bottom: 5px;
-  font-size: 10px;
-  color: rgb(146, 146, 146);
-  text-align: center;
-  clear: left;
-  float: none;
-  width: 100%;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-size: 10px;
+    color: rgb(146, 146, 146);
+    text-align: center;
+    clear: left;
+    float: none;
+    width: 100%;
 
-  & > span:hover {
-    & > span {
-      text-decoration: line-through;
-    }
+    & > span:hover {
+        & > span {
+            text-decoration: line-through;
+        }
 
-    &:after {
-      content: " Idiot";
+        &:after {
+            content: " Idiot";
+        }
     }
-  }
 }

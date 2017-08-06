@@ -15,52 +15,52 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 object DummyInitializer extends HttpRequestInitializer {
-  override def initialize(request: HttpRequest): Unit = {}
+    override def initialize(request: HttpRequest): Unit = {}
 }
 
 case class YtVideo(id: String, channelName: String, name: String, description: String, thumbnail: URL, publishedAt: ZonedDateTime) {
-  lazy val url = new URL(s"https://www.youtube.com/watch?v=$id")
+    lazy val url = new URL(s"https://www.youtube.com/watch?v=$id")
 }
 
-class YoutubeService @Inject() (conf: Configuration, implicit val ec: ExecutionContext) {
+class YoutubeService @Inject()(conf: Configuration, implicit val ec: ExecutionContext) {
 
-  private val youtube = {
-    val builder = new YouTube.Builder(new NetHttpTransport, new JacksonFactory, DummyInitializer)
-      .setApplicationName("banana4.life")
+    private val youtube = {
+        val builder = new YouTube.Builder(new NetHttpTransport, new JacksonFactory, DummyInitializer)
+            .setApplicationName("banana4.life")
 
-    builder.setYouTubeRequestInitializer(new YouTubeRequestInitializer(conf.get[String]("youtube.apikey")))
-    builder.build()
-  }
-
-  private lazy val uploadsPlaylistId: Future[String] = Future {
-    val res = youtube.channels()
-      .list("contentDetails")
-      .setId(conf.get[String]("youtube.channelId"))
-      .execute()
-    val items = res.getItems
-    if (items.size() > 0) {
-      items.get(0).getContentDetails.getRelatedPlaylists.getUploads
-    } else {
-      throw new Exception("No uploads found, correct user?")
+        builder.setYouTubeRequestInitializer(new YouTubeRequestInitializer(conf.get[String]("youtube.apikey")))
+        builder.build()
     }
-  }
 
-  def getVideos: Future[Seq[YtVideo]] = {
-    this.uploadsPlaylistId.map(getVideosOfPlaylist)
-  }
-
-  def getBestThumbnailURL(id: String, thumbs: ThumbnailDetails): URL = {
-    val p = Seq(thumbs.getMaxres, thumbs.getHigh, thumbs.getMedium, thumbs.getStandard, thumbs.getDefault)
-    new URL(p.filter(_ != null).head.getUrl)
-  }
-
-  def getVideosOfPlaylist(id: String): Seq[YtVideo] = {
-    val res = youtube.playlistItems().list("snippet").setMaxResults(20.toLong).setPlaylistId(id).execute()
-    for (item <- res.getItems.asScala) yield {
-      val s = item.getSnippet
-      val id = s.getResourceId.getVideoId
-      YtVideo(id, s.getChannelTitle, s.getTitle, s.getDescription, getBestThumbnailURL(id, s.getThumbnails), ZonedDateTime.ofInstant(Instant.ofEpochMilli(s.getPublishedAt.getValue), ZoneId.systemDefault()))
+    private lazy val uploadsPlaylistId: Future[String] = Future {
+        val res = youtube.channels()
+            .list("contentDetails")
+            .setId(conf.get[String]("youtube.channelId"))
+            .execute()
+        val items = res.getItems
+        if (items.size() > 0) {
+            items.get(0).getContentDetails.getRelatedPlaylists.getUploads
+        } else {
+            throw new Exception("No uploads found, correct user?")
+        }
     }
-  }
+
+    def getVideos: Future[Seq[YtVideo]] = {
+        this.uploadsPlaylistId.map(getVideosOfPlaylist)
+    }
+
+    def getBestThumbnailURL(id: String, thumbs: ThumbnailDetails): URL = {
+        val p = Seq(thumbs.getMaxres, thumbs.getHigh, thumbs.getMedium, thumbs.getStandard, thumbs.getDefault)
+        new URL(p.filter(_ != null).head.getUrl)
+    }
+
+    def getVideosOfPlaylist(id: String): Seq[YtVideo] = {
+        val res = youtube.playlistItems().list("snippet").setMaxResults(20.toLong).setPlaylistId(id).execute()
+        for (item <- res.getItems.asScala) yield {
+            val s = item.getSnippet
+            val id = s.getResourceId.getVideoId
+            YtVideo(id, s.getChannelTitle, s.getTitle, s.getDescription, getBestThumbnailURL(id, s.getThumbnails), ZonedDateTime.ofInstant(Instant.ofEpochMilli(s.getPublishedAt.getValue), ZoneId.systemDefault()))
+        }
+    }
 
 }

@@ -5,9 +5,11 @@ import java.time.format.DateTimeFormatter
 
 trait BlogPost {
     def anchor: String
+
     def createdAt: ZonedDateTime
 
     def formattedDate: String = createdAt.format(BlogPost.format)
+
     def truncatedBody(paragraphs: Int): String
 }
 

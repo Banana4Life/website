@@ -37,18 +37,18 @@ class SearchIndex {
             .map(doc => (doc, queryTerms))
             .map({
                 case (doc, terms) => (doc, terms.map(queryTerm =>
-                bm25TermScore(idf(queryTerm), doc.termFrequency.getOrElse(queryTerm, 0), doc.termCount, avgDocLen, 2.0, 0.75)).sum)
+                    bm25TermScore(idf(queryTerm), doc.termFrequency.getOrElse(queryTerm, 0), doc.termCount, avgDocLen, 2.0, 0.75)).sum)
             })
             .filter({ case (_, score) => score > 0 })
             .sortBy({ case (_, score) => -score })
         for ((doc, score) <- sortedDocs) {
             Logger.debug(s"Search score: ${doc.cacheKey}=$score")
         }
-        sortedDocs.map({case (doc, _) => doc}).take(5)
+        sortedDocs.map({ case (doc, _) => doc }).take(5)
     }
 
     def fillIDF(docs: Seq[Doc]): Map[String, Int] = {
-        docs.flatMap(_.termFrequency.keys).groupBy(identity).map({case (term, list) => (term, list.length)})
+        docs.flatMap(_.termFrequency.keys).groupBy(identity).map({ case (term, list) => (term, list.length) })
     }
 
     def avgDocLength(docs: Seq[Doc]): Int = {
@@ -62,7 +62,7 @@ class SearchIndex {
 
 object SearchIndex {
     def normalizeString(text: String): Seq[String] = {
-        text.toLowerCase().split("[^\\w]+").map{ term =>
+        text.toLowerCase().split("[^\\w]+").map { term =>
             val stemmer = new Stemmer()
             term.foreach(stemmer.add)
             stemmer.stem()
@@ -71,6 +71,6 @@ object SearchIndex {
     }
 
     def termFrequency(terms: Seq[String]): Map[String, Int] = {
-        terms.groupBy(identity).map({case (term, list) => (term, list.length)})
+        terms.groupBy(identity).map({ case (term, list) => (term, list.length) })
     }
 }

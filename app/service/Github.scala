@@ -5,7 +5,6 @@ import java.time.temporal.ChronoUnit
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import javax.inject.Inject
 
-import Formats._
 import com.fasterxml.jackson.core.JsonParseException
 import play.api.Logger
 import play.api.cache.SyncCacheApi
@@ -64,7 +63,7 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec
     }
 
     def getCurrent: Future[Option[Project]] = {
-        getProjects.map(l => l.headOption.flatMap{
+        getProjects.map(l => l.headOption.flatMap {
             p => if (p.createdAt.isAfter(ZonedDateTime.now().minus(24, ChronoUnit.DAYS))) Some(p) else None
         })
     }

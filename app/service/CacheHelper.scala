@@ -1,7 +1,6 @@
 package service
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.{Duration, DurationInt}
 
 object CacheHelper {
     val CacheDuration: Duration = 2.hours
@@ -13,7 +12,9 @@ object CacheHelper {
     val TwitterCacheKeyPrefix = s"$BaseCacheKey.twitter.page"
 
     def jamNode(id: Int) = s"$BaseCacheKey.ldjam.node.$id"
+
     def jamUserFeed(id: Int) = s"$BaseCacheKey.ldjam.feed.$id"
+
     def jamEntry(repo: String) = s"$BaseCacheKey.ldjam.feed.$repo"
 
 }

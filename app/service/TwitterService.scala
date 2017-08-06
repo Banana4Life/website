@@ -3,7 +3,6 @@ package service
 import java.text.SimpleDateFormat
 import javax.inject.Inject
 
-import scala.collection.JavaConverters._
 import play.api.Logger
 import play.api.cache.SyncCacheApi
 import play.twirl.api.Html
@@ -11,6 +10,7 @@ import play.twirl.api.HtmlFormat._
 import service.CacheHelper.{CacheDuration, TwitterCacheKeyPrefix}
 import twitter4j.{Status, TwitterFactory}
 
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class TwitterService @Inject()(cache: SyncCacheApi, implicit val ec: ExecutionContext) {
