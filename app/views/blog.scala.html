@@ -1,22 +1,16 @@
-@(posts: Seq[Html], prev: Boolean, next: Boolean, page: Int)
+@(posts: Seq[Html])
 
 @main("Blog", "blog") {
     @for(post <- posts) {
         @post
     }
-    @if(prev || next) {
-        <footer id="main-footer" class="round">
-            @if(prev) {
-                <a class="newer" href="@routes.Application.blog(page - 1)">
-                    << newer
-                </a>
-            }
-            @if(next) {
-                <a class="older" href="@routes.Application.blog(page + 1)">
-                    older >>
-                </a>
-            }
-            <div class="clear"></div>
-        </footer>
-    }
+    <footer id="main-footer" class="round">
+        <a class="newer" href="@routes.MainController.index()">
+                &lt;&lt; Home
+        </a>
+        <a class="older" href="@routes.MainController.projects()">
+            Projects &gt;&gt;
+        </a>
+        <div class="clear"></div>
+    </footer>
 }

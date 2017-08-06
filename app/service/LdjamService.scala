@@ -48,10 +48,6 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
       .withHttpHeaders("User-Agent" -> "Banana4Life")
       .withRequestTimeout(5.seconds)
 
-  def getPosts(page: Int): Future[Seq[LdjamPost]] = {
-    getPosts.map(list => list.slice(page * maxPosts, page * maxPosts + maxPosts))
-  }
-
   private def findPostNodeIdsForUser(userid: Int): Future[Seq[Int]] = {
     cache.get[Seq[Int]](CacheHelper.jamUserFeed(userid)) flatMap {
       case Some(nodes) => Future.successful(nodes)
@@ -67,40 +63,49 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
   }
 
   private def loadNodes(ids: Seq[Int]): Future[Seq[LdjamNode]] = {
-    val cachedNodes = Future.sequence(ids.map(i => cache.get[LdjamNode](CacheHelper.jamNode(i)))).map(_.flatten)
+    if (ids.isEmpty) Future.successful(Nil)
+    else {
+      val cachedNodes = Future.sequence(ids.map(i => cache.get[LdjamNode](CacheHelper.jamNode(i)))).map(_.flatten)
 
-    cachedNodes.flatMap { knownNodes =>
-      val knownIds = knownNodes.map(_.id).toSet
-      val leftOver = ids.filterNot(knownIds.contains)
-      if (leftOver.isEmpty) Future.successful(knownNodes)
-      else {
-        val urlSection = leftOver.mkString("+")
-        Logger.info(s"Cache missed for $urlSection, loading...")
-        val res = request(s"$apiBaseUrl/vx/node/get/$urlSection").get()
-        res.flatMap {
-          case r if r.status == 200 =>
-            r.json \ "node" match {
-              case JsDefined(JsArray(nodes)) =>
-                val newNodes = nodes.map(_.as[LdjamNode])
-                Future.sequence(newNodes.map(n => cache.set(CacheHelper.jamNode(n.id), n, CacheDuration)))
-                    .map(_ => newNodes)
-              case _ => Future.successful(knownNodes)
-            }
-          case _ => Future.successful(knownNodes)
+      cachedNodes.flatMap { knownNodes =>
+        val knownIds = knownNodes.map(_.id).toSet
+        val leftOver = ids.filterNot(knownIds.contains)
+        if (leftOver.isEmpty) Future.successful(knownNodes)
+        else {
+          val urlSection = leftOver.mkString("+")
+          Logger.info(s"Cache missed for $urlSection, loading...")
+          val res = request(s"$apiBaseUrl/vx/node/get/$urlSection").get()
+          res.flatMap {
+            case r if r.status == 200 =>
+              r.json \ "node" match {
+                case JsDefined(JsArray(nodes)) =>
+                  val newNodes = nodes.map(_.as[LdjamNode])
+                  Future.sequence(newNodes.map(n => cache.set(CacheHelper.jamNode(n.id), n, CacheDuration)))
+                      .map(_ => newNodes)
+                case _ => Future.successful(knownNodes)
+              }
+            case _ => Future.successful(knownNodes)
+          }
         }
       }
     }
   }
 
   private def nodesToPosts(nodes: Seq[LdjamNode]) = {
-    val (users, posts) = nodes.partition(_.`type` == "user")
-    val authors = users.map(n => n.id -> n).toMap
+    if (nodes.isEmpty) Nil
+    else {
+      val (users, posts) = nodes.partition(_.`type` == "user")
+      val authors = users.map(n => n.id -> n).toMap
 
-    posts.map {n =>
-        val author = authors(n.author)
-        val avatar = author.meta.left.toOption.flatMap(_.avatar).map(avatar => cdnBaseUrl + avatar.substring(2) + ".32x32.fit.jpg")
-        val body = compileMarkdown(n.body)
-        LdjamPost(n.id, n.name, author, body, n.created, s"$pageBaseUrl${author.path}", avatar)
+      posts.map {n =>
+          val author: LdjamNode = authors.getOrElse(n.author, {
+              Logger.warn(s"Unknown user ID in found in post ${n.id}: ${n.author}. Known authors: ${users.map(_.id).mkString(",")}")
+              LdjamNode(-1, "Unknown", -1, "", ZonedDateTime.now(), "user", "", Right(1))
+          })
+          val avatar = author.meta.left.toOption.flatMap(_.avatar).map(avatar => cdnBaseUrl + avatar.substring(2) + ".32x32.fit.jpg")
+          val body = compileMarkdown(n.body)
+          LdjamPost(n.id, n.name, author, body, n.created, s"$pageBaseUrl${author.path}", avatar)
+      }
     }
   }
 
@@ -115,11 +120,31 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
     LdJamEntry(node.id, node.name, body)
   }
 
-  def getPosts: Future[Seq[LdjamPost]] = {
+  def getPost(id: Int): Future[Option[LdjamPost]] = {
+    getPosts(_ => Seq(id)).map(_.headOption)
+  }
+
+  def getPosts(amount: Int): Future[Seq[LdjamPost]] = {
+
+    getPosts(_.take(amount))
+  }
+
+  def allPosts: Future[Seq[LdjamPost]] = {
+    getPosts(ids => ids)
+  }
+
+  private def getPosts(selector: Seq[Int] => Seq[Int]): Future[Seq[LdjamPost]] = {
+
+    def select(nodes: Seq[Seq[Int]]) = {
+      val selection = selector(nodes.flatten.sortBy(-_))
+      if (selection.isEmpty) Nil
+      else selection ++ accountIds
+    }
+
     Future.sequence(accountIds.map(findPostNodeIdsForUser))
-          .map(_.flatten.sortBy(-_).take(20) ++ accountIds)
-          .flatMap(loadNodes)
-          .map(nodesToPosts)
+        .map(select)
+        .flatMap(loadNodes)
+        .map(nodesToPosts)
   }
 
   def findEntry(project: Project): Future[Option[LdJamEntry]] = {

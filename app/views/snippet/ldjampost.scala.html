@@ -3,14 +3,14 @@
 
 <article id="ldjam_@post.id" class="round blog-post">
     <header>
-        <a href="@routes.Application.index()"><img src="@post.avatarLink.getOrElse(routes.Assets.at("images/Banana4Life-Logo.png"))"></a>
-        <a href="@routes.Application.blog(0)#@post.id"><h1> @post.name</h1></a>
+        <a href="@routes.MainController.index()"><img src="@post.avatarLink.getOrElse(routes.Assets.at("images/Banana4Life-Logo.png"))"></a>
+        <h1><a href="@routes.BlogController.showPost("ldjam", post.id)#@post.anchor">@post.name</a></h1>
         <div>posted by <a href="@post.authorLink">@post.author.name</a> | <span title="@post.createdAt">@post.formattedDate</span></div>
     </header>
     @if(trunc) {
         @Html(post.body)
         <p>
-            <a href="@routes.Application.blog(0)#ldjam_@post.id">...</a>
+            <a href="@routes.BlogController.showPost("ldjam", post.id)#@post.anchor">...</a>
         </p>
     } else {
         @Html(post.body)

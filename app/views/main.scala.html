@@ -13,11 +13,11 @@
         <header>
             <div class="main-column">
                 <span class="clear"></span>
-                <a href="@routes.Application.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo-Header.png")"></a>
-                <form method="GET" action="@routes.Application.search("")">
+                <a href="@routes.MainController.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo-Header.png")"></a>
+                <form method="GET" action="@routes.MainController.search("")">
                     <div id="searchBoxWrapper">
-                        <span class="fa fa-search" aria-hidden="true"></span>
-                        <input name="query" type="text" id="searchBox" placeholder="Search">
+                        <span class="fa fa-search"></span>
+                        <input name="query" id="searchBox" placeholder="Search">
                     </div>
                 </form>
             </div>
@@ -25,10 +25,10 @@
         <nav>
             <div class="main-column">
                 <ul>
-                    <li><a href="@routes.Application.index()" class="@(if(title == "Home") "current")">Home</a></li>
-                    <li><a href="@routes.Application.blog(0)" class="@(if(title == "Blog") "current")">Blog</a></li>
-                    <li><a href="@routes.Application.projects()" class="@(if(title == "Projects") "current")">Projects</a></li>
-                    <li><a href="@routes.Application.about()" class="@(if(title == "About") "current")">About</a></li>
+                    <li><a href="@routes.MainController.index()" class="@(if(title == "Home") "current")">Home</a></li>
+                    <li><a href="@routes.BlogController.firstBlogPage" class="@(if(title == "Blog") "current")">Blog</a></li>
+                    <li><a href="@routes.MainController.projects()" class="@(if(title == "Projects") "current")">Projects</a></li>
+                    <li><a href="@routes.MainController.about()" class="@(if(title == "About") "current")">About</a></li>
                 </ul>
             </div>
             <div class="clear"></div>
@@ -48,17 +48,17 @@
                 </div>
                 <div id="footer-social" class="right">
                     <b>Connect</b><br>
-                    <span class="logo fa fa-twitter twitter" aria-hidden="true"></span>
+                    <span class="logo fa fa-twitter twitter"></span>
                     <a class="twitter" href="https://twitter.com/bananafourlife">@@bananafourlife</a>
                     <br>
                     <img class="logo" src="@routes.Assets.at("images/youtube_icon.svg")">
                     <a class="youtube" href="https://www.youtube.com/channel/UCktbmYa9DDuKflH2okA1FjA">Jonas Dann</a>
                     <br>
-                    <span class="logo fa fa-github github" aria-hidden="true"></span>
+                    <span class="logo fa fa-github github"></span>
                     <a class="github" href="https://github.com/Banana4Life">Banana4Life</a>
                 </div>
                 <div id="footer-logo">
-                    <a href="@routes.Application.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a>
+                    <a href="@routes.MainController.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a>
                 </div>
             </div>
             <div id="copyright">© Banana4Life, all rights reserved | Designed by <span><span>Jonas Dann</span></span></div>

@@ -3,15 +3,15 @@
 # ~~~~
 
 # Home page
-GET        /                    controllers.Application.index
-GET        /blog                controllers.Application.blog(page: Int = 1)
-GET        /blog/:page          controllers.Application.blog(page: Int)
-GET        /projects            controllers.Application.projects
-GET        /project/:jam/:slug  controllers.Application.project(jam: String, slug: String)
-GET        /about               controllers.Application.about
-GET        /search              controllers.Application.search(query: String)
+GET        /                                 controllers.MainController.index
+GET        /blog                             controllers.BlogController.firstBlogPage
+GET        /blog/:service/:id                controllers.BlogController.showPost(service: String, id: Long)
+GET        /projects                         controllers.MainController.projects
+GET        /project/:jam/:slug               controllers.MainController.project(jam: String, slug: String)
+GET        /about                            controllers.MainController.about
+GET        /search                           controllers.MainController.search(query: String)
 
 # Map static resources from the /public folder to the /assets URL path
-GET        /assets/*file        controllers.Assets.at(path="/public", file)
+GET        /assets/*file                     controllers.Assets.at(path="/public", file)
 
-GET        /dev                 controllers.Application.dev
+GET        /dev                              controllers.MainController.dev

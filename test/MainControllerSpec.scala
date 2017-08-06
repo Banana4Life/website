@@ -11,7 +11,7 @@ import play.api.test.Helpers._
  * For more information, consult the wiki.
  */
 @RunWith(classOf[JUnitRunner])
-class ApplicationSpec extends Specification {
+class MainControllerSpec extends Specification {
 
   "Application" should {
 
