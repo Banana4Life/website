@@ -13,6 +13,7 @@ import play.api.cache.AsyncCacheApi
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSRequest}
 import play.api.{Configuration, Logger}
+import play.mvc.Http.Status
 import service.CacheHelper.CacheDuration
 import service.Formats._
 
@@ -53,7 +54,7 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
             case Some(nodes) => Future.successful(nodes)
             case _ =>
                 request(s"$apiBaseUrl/vx/node/feed/$userid/author/post").get().map {
-                    case r if r.status == 200 =>
+                    case r if r.status == Status.OK =>
                         val nodes = (r.json \ "feed" \\ "id").collect { case JsNumber(v) => v.toInt }
                         cache.set(CacheHelper.jamUserFeed(userid), nodes, CacheDuration)
                         nodes
@@ -76,7 +77,7 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
                     Logger.info(s"Cache missed for $urlSection, loading...")
                     val res = request(s"$apiBaseUrl/vx/node/get/$urlSection").get()
                     res.flatMap {
-                        case r if r.status == 200 =>
+                        case r if r.status == Status.OK =>
                             r.json \ "node" match {
                                 case JsDefined(JsArray(nodes)) =>
                                     val newNodes = nodes.map(_.as[LdjamNode])
@@ -157,7 +158,7 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
                     case _ =>
                         Logger.info(s"Cache missed for $cacheKey, loading...")
                         request(s"$apiBaseUrl/vx/node/walk/1${jam.site.getPath}").get().map {
-                            case r if r.status == 200 =>
+                            case r if r.status == Status.OK =>
                                 r.json \ "node" match {
                                     case JsDefined(JsNumber(n)) =>
                                         val id = n.toInt
