@@ -14,6 +14,7 @@ import service.CacheHelper.{CacheDuration, ProjectsCacheKey}
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
+import Formats._
 
 case class ProjectBasics(name: String, html_url: String, full_name: String, created_at: ZonedDateTime) {
     def file(path: String, branch: String = "master") = s"https://raw.githubusercontent.com/$full_name/$branch/$path"
@@ -21,28 +22,12 @@ case class ProjectBasics(name: String, html_url: String, full_name: String, crea
     lazy val latestRelease = new URL(s"https://github.com/$full_name/releases/latest")
 }
 
-object ProjectBasics {
-    implicit val format: Format[ProjectBasics] = Json.format
-}
-
 case class JamInfo(name: String, number: Int, theme: String, site: URL, comments: Seq[String])
-
-object JamInfo {
-    implicit val format: Format[JamInfo] = Json.format
-}
 
 case class WebCheat(label: String, gameObject: String, message: String)
 
-object WebCheat {
-    implicit val format: Format[WebCheat] = Json.format
-}
-
 case class ProjectMeta(name: String, description: String, jam: Option[JamInfo], authors: Seq[String],
                        download: Option[URL], soundtrack: Option[URL], date: Option[LocalDate], web: Option[URL], cheats: Option[Seq[WebCheat]])
-
-object ProjectMeta {
-    implicit val format: Format[ProjectMeta] = Json.format
-}
 
 case class Project(repoName: String, displayName: String, url: URL, description: String,
                    jam: Option[JamInfo], authors: Seq[String], imageUrl: URL,
@@ -52,6 +37,7 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec
 
     private val orga = "Banana4Life"
     private val reposUrl = s"https://api.github.com/orgs/$orga/repos"
+    implicit val localDateOrdering: Ordering[ZonedDateTime] = Ordering.by(_.toEpochSecond)
 
     def getProjects: Future[Seq[Project]] = {
         cache.getOrElseUpdate(ProjectsCacheKey, CacheDuration) {
@@ -68,7 +54,6 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec
         })
     }
 
-    implicit val localDateOrdering: Ordering[ZonedDateTime] = Ordering.by(_.toEpochSecond)
 
     def complete(projectBasics: Seq[ProjectBasics]): Future[Seq[Project]] = {
         val futures = projectBasics map { basics =>

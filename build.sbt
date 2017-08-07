@@ -12,6 +12,7 @@ libraryDependencies ++= Seq(
   ehcache,
   ws,
   guice,
+  specs2 % Test,
   "com.tumblr"           %  "jumblr"                      % "0.0.11",
   "org.twitter4j"        %  "twitter4j-core"              % "4.0.6",
   "com.google.apis"      %  "google-api-services-youtube" % "v3-rev183-1.22.0",
