@@ -3,7 +3,7 @@ package service
 import java.net.URL
 import java.time.temporal.ChronoUnit
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 
 import com.fasterxml.jackson.core.JsonParseException
 import play.api.Logger
@@ -33,6 +33,7 @@ case class Project(repoName: String, displayName: String, url: URL, description:
                    jam: Option[JamInfo], authors: Seq[String], imageUrl: URL,
                    createdAt: ZonedDateTime, download: URL, soundtrack: Option[URL], web: Option[URL], cheats: Seq[WebCheat])
 
+@Singleton
 class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, implicit val ec: ExecutionContext) {
 
     private val orga = "Banana4Life"

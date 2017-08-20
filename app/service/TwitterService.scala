@@ -1,21 +1,34 @@
 package service
 
 import java.text.SimpleDateFormat
-import javax.inject.Inject
+import java.util.Properties
+import javax.inject.{Inject, Singleton}
 
-import play.api.Logger
+import play.api.Mode.Dev
+import play.api.{Configuration, Environment, Logger, Mode}
 import play.api.cache.SyncCacheApi
 import play.twirl.api.Html
 import play.twirl.api.HtmlFormat._
 import service.CacheHelper.{CacheDuration, TwitterCacheKeyPrefix}
+import twitter4j.conf.PropertyConfiguration
 import twitter4j.{Status, TwitterFactory}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-class TwitterService @Inject()(cache: SyncCacheApi, implicit val ec: ExecutionContext) {
+@Singleton
+class TwitterService @Inject()(cache: SyncCacheApi, conf: Configuration, env: Environment, implicit val ec: ExecutionContext) {
 
-    private val twitter = TwitterFactory.getSingleton
+    private val twitter = {
+        val props = new Properties()
+        props.put("debug", if (env.mode == Dev) "true" else "false")
+
+        for (prop <- Seq("consumerKey", "consumerSecret", "accessToken", "accessTokenSecret")) {
+            props.put(s"oauth.$prop", conf.get[String](s"twitter.$prop"))
+        }
+
+        new TwitterFactory(new PropertyConfiguration(props)).getInstance()
+    }
     val dateFormat = new SimpleDateFormat("dd MMMMM yyyy")
 
     val TypePhoto = "photo"

@@ -3,7 +3,7 @@ package service
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 
 import com.tumblr.jumblr.JumblrClient
 import com.tumblr.jumblr.types.{Post, TextPost}
@@ -31,11 +31,12 @@ case class TumblrPost(id: Long, createdAt: ZonedDateTime, title: String, body: S
     }
 }
 
+@Singleton
 class TumblrService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit val ec: ExecutionContext) {
     private val tumblrDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z")
 
     private val client =
-        new JumblrClient(conf.get[String]("tumblr.customerkey"), conf.get[String]("tumblr.customersecret"))
+        new JumblrClient(conf.get[String]("tumblr.consumerKey"), conf.get[String]("tumblr.consumerSecret"))
 
     def getPost(id: Long): Future[Option[TumblrPost]] = {
         allPosts.map(_.find(_.id == id))

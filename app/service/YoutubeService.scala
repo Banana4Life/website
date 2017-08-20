@@ -28,7 +28,7 @@ class YoutubeService @Inject()(conf: Configuration, implicit val ec: ExecutionCo
         val builder = new YouTube.Builder(new NetHttpTransport, new JacksonFactory, DummyInitializer)
             .setApplicationName("banana4.life")
 
-        builder.setYouTubeRequestInitializer(new YouTubeRequestInitializer(conf.get[String]("youtube.apikey")))
+        builder.setYouTubeRequestInitializer(new YouTubeRequestInitializer(conf.get[String]("youtube.apiKey")))
         builder.build()
     }
 

@@ -2,7 +2,7 @@ package service
 
 import java.time.ZonedDateTime
 import java.util.Arrays.asList
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension
 import com.vladsch.flexmark.ext.emoji.EmojiExtension
@@ -20,6 +20,7 @@ import service.Formats._
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 
+@Singleton
 class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit val ec: ExecutionContext, ws: WSClient) {
 
     val maxPosts = 5

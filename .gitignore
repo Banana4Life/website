@@ -15,8 +15,6 @@ projectFilesBackup/.idea
 /RUNNING_PID
 /.settings
 
-conf/tumblr.conf
-twitter4j.properties
-conf/youtube.conf
+/conf/local.conf
 
 Thumbs.db

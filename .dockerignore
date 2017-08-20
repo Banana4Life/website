@@ -1,0 +1,7 @@
+target/
+project/target/
+.idea/
+.git/
+.banana4life/
+conf/local.conf
+Dockerfile
