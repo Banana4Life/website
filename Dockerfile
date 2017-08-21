@@ -22,4 +22,4 @@ RUN unzip /app.zip && \
     adduser -D -H -h /app banana4life && \
     chown -R banana4life:banana4life /app
 USER banana4life
-ENTRYPOINT ["/app/bin/website"]
+ENTRYPOINT ["bin/website"]
