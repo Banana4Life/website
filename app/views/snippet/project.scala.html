@@ -21,10 +21,13 @@
             Authors:
             <ul>
             @for(author <- project.coreUsers){
-                <li>@author.name</li>
+                <li><a href="https://github.com/@author.login">@author.name</a></li>
             }
             @for(author <- project.guests){
-                <li>@author.name (non-member)</li>
+                <li><a href="https://github.com/@author.login">@author.name (guest)</a></li>
+            }
+            @for(author <- project.authors){
+                <li>@author (non-member)</li>
             }
             </ul>
         </div>

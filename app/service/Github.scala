@@ -94,9 +94,9 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, config: Configu
                     .getOrElse(basics.created_at)
                 val (core, guests) = memberLookuqp.getOrElse(basics.name, (Seq.empty, Seq.empty))
                 Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.jam,
-                    meta.authors, new URL(basics.file(".banana4life/main.png")), date,
+                    meta.authors.sorted, new URL(basics.file(".banana4life/main.png")), date,
                     meta.download.getOrElse(basics.latestRelease), meta.soundtrack, meta.web, meta.cheats.getOrElse(Nil),
-                    core, guests)
+                    core.sortBy(_.name), guests.sortBy(_.name))
             }.recover({
                 case _: JsonParseException =>
                     Logger.warn(s"Failed to parse $fileName for project ${basics.full_name}!")
