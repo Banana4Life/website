@@ -24,10 +24,10 @@
                 <li><a href="https://github.com/@author.login">@author.name</a></li>
             }
             @for(author <- project.guests){
-                <li><a href="https://github.com/@author.login">@author.name (guest)</a></li>
+                <li><a href="https://github.com/@author.login">@author.name</a> (Guest)</li>
             }
             @for(author <- project.authors){
-                <li>@author (non-member)</li>
+                <li>@author (Guest)</li>
             }
             </ul>
         </div>
