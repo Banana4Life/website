@@ -37,6 +37,7 @@ object Formats {
     implicit val projectMeta: Format[ProjectMeta] = Json.format
 
     implicit val team: Format[Team] = Json.format
+    implicit val member: Format[Member] = Json.format
     implicit val user: Format[User] = Json.format
 
 }

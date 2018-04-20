@@ -20,12 +20,11 @@
         <div>
             Authors:
             <ul>
-            @for(author <- project.authors){
-                @if(author(0) == '-') {
-                    <li>@(author.drop(1)) (non-member)</li>
-                } else {
-                    <li>@author</li>
-                }
+            @for(author <- project.coreUsers){
+                <li>@author.name</li>
+            }
+            @for(author <- project.guests){
+                <li>@author.name (non-member)</li>
             }
             </ul>
         </div>
