@@ -1,3 +1,23 @@
+.profiles {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  & > section {
+    flex: 1;
+    min-width: 49%;
+    display: flex;
+
+  }
+
+  & > section:nth-child(even) {
+    margin-left: 10px;
+  }
+  & > section:nth-child(odd) {
+    margin-right: 10px;
+  }
+
+}
+
 .profile {
     overflow: hidden;
     .imagecolumn {
@@ -8,6 +28,10 @@
         -webkit-box-shadow: inset -5px 0px 5px -5px rgba(0, 0, 0, 0.3);
         -moz-box-shadow: inset -5px 0px 5px -5px rgba(0, 0, 0, 0.3);
         box-shadow: inset -5px 0px 5px -5px rgba(0, 0, 0, 0.3);
+
+        ul {
+          list-style-type: none;
+        }
     }
     img {
         width: 100%;
@@ -25,13 +49,14 @@
 }
 
 .profile section {
-    float: right;
+  hyphens: auto;
     width: 75%;
     header {
         text-align: left;
 
         h1 {
             margin-top: 0;
+            margin-bottom: 0;
         }
 
         div {
@@ -54,19 +79,6 @@
     p {
         margin-bottom: 0;
     }
-}
-
-.leftaboutcolumn, .rightaboutcolumn {
-    width: 50%;
-    float: left;
-}
-
-.leftaboutcolumn .profile {
-    margin-right: 10px;
-}
-
-.rightaboutcolumn .profile {
-    margin-left: 10px;
 }
 
 main.about {

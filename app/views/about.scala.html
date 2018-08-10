@@ -10,72 +10,20 @@
             competitor we wish you the best of luck.
         </p>
     </section>
-    <div class="leftaboutcolumn">
-        <section class="profile round">
-            <div class="imagecolumn"><img src="@routes.Assets.at("images/Katha.png")"></div>
-            <section>
-                <div>
-                    <header>
-                        <h1>Katharina <div>Student of Economic Computer Science in Mannheim, Germany</div></h1>
-                    </header>
-                    <p>
-                        Not even writing something about herself. :P
-                    </p>
-                </div>
-            </section>
-            <div class="clear"></div>
-        </section>
+    <div class="profiles">
+        @views.html.abouts.profile("Katharina", "Student of Economic Computer Science in Mannheim, Germany", "Katha.png", Seq(("https://ldjam.com/users/rahtainka", Html("ldjam")), ("https://github.com/Rahtainka", Html("GitHub")))) {
+            Not even writing something about herself. :P
+        }
+        @views.html.abouts.profile("Faithcaio", "A Tree, Germany", "Baum.png", Seq(("https://ldjam.com/users/faithcaio", Html("ldjam")), ("https://github.com/Faithcaio", Html("GitHub")))) {
+            Growing steadily.
+        }
+        @views.html.abouts.profile("Phillip", "Student of Applied Computer Science in Karlsruhe, Germany", "Phillip.png", Seq(("https://ldjam.com/users/pschichtel", Html("ldjam")), ("https://github.com/pschichtel", Html("GitHub")))) {
+            Nobody knows what he is doing.
+        }
+        @views.html.abouts.profile("Jonas", "Student of Applied Computer Science in Karlsruhe, Germany", "Jonas.png", Seq(("https://ldjam.com/users/jqnas", Html("ldjam")), ("https://github.com/JonasDann", Html("GitHub")))) {
+            Jonas is the graphics designer of the team. He produces beautiful experiences, but the rest of the team wants another
+            designer. Thus, he is always really sad. :,( Besides being sad he has a Bachelor of Science in Applied Computer Science
+            and studies for the Masters degree at the Karlsruhe Institute Technology.
+        }
     </div>
-    <div class="rightaboutcolumn">
-        <section class="profile round">
-            <div class="imagecolumn"><img src="@routes.Assets.at("images/Baum.png")"></div>
-            <section>
-                <div>
-                    <header>
-                        <h1>Faithcaio <div>A Tree, Germany</div></h1>
-                    </header>
-                    <p>
-                        Growing steadily.
-                    </p>
-                </div>
-            </section>
-            <div class="clear"></div>
-        </section>
-    </div>
-    <div class="clear"></div>
-    <div class="leftaboutcolumn">
-        <section class="profile round">
-            <div class="imagecolumn"><img src="@routes.Assets.at("images/Phillip.png")"></div>
-            <section>
-                <div>
-                    <header>
-                        <h1>Phillip <div>Student of Applied Computer Science in Karlsruhe, Germany</div></h1>
-                    </header>
-                    <p>
-                        Nobody knows what he is doing.
-                    </p>
-                </div>
-            </section>
-            <div class="clear"></div>
-        </section>
-    </div>
-    <div class="rightaboutcolumn">
-        <section class="profile round">
-            <div class="imagecolumn"><img src="@routes.Assets.at("images/Jonas.png")"></div>
-            <section>
-                <div>
-                    <header>
-                        <h1>Jonas <div>Student of Applied Computer Science in Karlsruhe, Germany</div></h1>
-                    </header>
-                    <p>
-                        Jonas is the graphics designer of the team. He produces beautiful experiences, but the rest of the team wants another
-                        designer. Thus, he is always really sad. :,( Besides being sad he has a Bachelor of Science in Applied Computer Science
-                        and studies for the Masters degree at the Karlsruhe Institute Technology.
-                    </p>
-                </div>
-            </section>
-            <div class="clear"></div>
-        </section>
-    </div>
-    <div class="clear"></div>
 }

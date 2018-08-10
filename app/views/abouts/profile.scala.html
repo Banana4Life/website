@@ -1,0 +1,22 @@
+@(name: String, title: String, image: String, links: Seq[(String, Html)])(desc: Html)
+<section class="profile round">
+    <div class="imagecolumn">
+        <img src="@routes.Assets.at(s"images/$image")">
+        <ul>
+        @for((link, linkName) <- links) {
+            <li><a href="@link">@linkName</a></li>
+        }
+        </ul>
+    </div>
+    <section>
+        <div>
+            <header>
+                <h1>@name</h1>
+                <div>@title</div>
+            </header>
+            <p lang="en">
+                @desc
+            </p>
+        </div>
+    </section>
+</section>
