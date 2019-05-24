@@ -29,6 +29,8 @@ case class ProjectDoc(project: Project)
 @Singleton
 class SearchIndex {
 
+    private val logger = Logger(classOf[SearchIndex])
+
     def query(docs: Seq[Doc], query: String): Seq[Doc] = {
         val idf = fillIDF(docs).getOrElse(_: String, 0)
         val avgDocLen = avgDocLength(docs)
@@ -42,7 +44,7 @@ class SearchIndex {
             .filter({ case (_, score) => score > 0 })
             .sortBy({ case (_, score) => -score })
         for ((doc, score) <- sortedDocs) {
-            Logger.debug(s"Search score: ${doc.cacheKey}=$score")
+            logger.debug(s"Search score: ${doc.cacheKey}=$score")
         }
         sortedDocs.map({ case (doc, _) => doc }).take(5)
     }

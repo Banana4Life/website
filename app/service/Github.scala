@@ -42,6 +42,8 @@ case class User(login: String, name: String, core: Boolean = false)
 @Singleton
 class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, config: Configuration, implicit val ec: ExecutionContext) {
 
+    private val logger = Logger(classOf[GithubService])
+
     private val orga = "Banana4Life"
     private val apiBase = "https://api.github.com"
     private val apiOrgBase = apiBase + "/orgs/"
@@ -99,10 +101,10 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, config: Configu
                     core.sortBy(_.name), guests.sortBy(_.name))
             }.recover({
                 case _: JsonParseException =>
-                    Logger.warn(s"Failed to parse $fileName for project ${basics.full_name}!")
+                    logger.warn(s"Failed to parse $fileName for project ${basics.full_name}!")
                     null
                 case e: Exception =>
-                    Logger.error(s"Failed to complete project info for ${basics.full_name}!", e)
+                    logger.error(s"Failed to complete project info for ${basics.full_name}!", e)
                     null
             })
         }

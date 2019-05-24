@@ -2,11 +2,11 @@ package service
 
 import java.text.SimpleDateFormat
 import java.util.Properties
-import javax.inject.{Inject, Singleton}
 
+import javax.inject.{Inject, Singleton}
 import play.api.Mode.Dev
-import play.api.{Configuration, Environment, Logger, Mode}
 import play.api.cache.SyncCacheApi
+import play.api.{Configuration, Environment, Logger}
 import play.twirl.api.Html
 import play.twirl.api.HtmlFormat._
 import service.CacheHelper.{CacheDuration, TwitterCacheKeyPrefix}
@@ -18,6 +18,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class TwitterService @Inject()(cache: SyncCacheApi, conf: Configuration, env: Environment, implicit val ec: ExecutionContext) {
+
+    private val logger = Logger(classOf[TwitterService])
 
     private val twitter = {
         val props = new Properties()
@@ -86,7 +88,7 @@ class TwitterService @Inject()(cache: SyncCacheApi, conf: Configuration, env: En
                     twitter.getUserTimeline(user).asScala
                 } catch {
                     case e: Exception =>
-                        Logger.error("Failed to get the tweets!", e)
+                        logger.error("Failed to get the tweets!", e)
                         Nil
                 }
             }

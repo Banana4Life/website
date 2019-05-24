@@ -33,6 +33,9 @@ case class TumblrPost(id: Long, createdAt: ZonedDateTime, title: String, body: S
 
 @Singleton
 class TumblrService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit val ec: ExecutionContext) {
+
+    private val logger = Logger(classOf[TumblrService])
+
     private val tumblrDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z")
 
     private val client =
@@ -60,7 +63,7 @@ class TumblrService @Inject()(conf: Configuration, cache: AsyncCacheApi, implici
             case p: TextPost =>
                 TumblrPost(p.getId, date, p.getTitle, p.getBody, p.getTags.asScala, p.getBlogName)
             case p =>
-                Logger.warn(s"Incompatible Tumblr post type: ${p.getClass.getName}")
+                logger.warn(s"Incompatible Tumblr post type: ${p.getClass.getName}")
                 TumblrPost(p.getId, date, p.getSourceTitle, "Can't handle this", p.getTags.asScala, p.getBlogName)
         }
     }
@@ -74,7 +77,7 @@ class TumblrService @Inject()(conf: Configuration, cache: AsyncCacheApi, implici
                 val postCount = client.blogInfo(blogName).getPostCount
                 val pageCount = math.ceil(postCount / pageSize.toFloat).toInt
 
-                Logger.info(s"Tumblr has $postCount posts resulting in $pageCount requests!")
+                logger.info(s"Tumblr has $postCount posts resulting in $pageCount requests!")
 
                 val options = new util.HashMap[String, Int]()
                 options.put("limit", pageSize)

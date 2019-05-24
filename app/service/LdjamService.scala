@@ -23,6 +23,8 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit val ec: ExecutionContext, ws: WSClient) {
 
+    private val logger = Logger(classOf[LdjamService])
+
     val maxPosts = 5
     var postCount = 0
 
@@ -75,7 +77,7 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
                 if (leftOver.isEmpty) Future.successful(knownNodes)
                 else {
                     val urlSection = leftOver.mkString("+")
-                    Logger.info(s"Cache missed for $urlSection, loading...")
+                    logger.info(s"Cache missed for $urlSection, loading...")
                     val res = request(s"$apiBaseUrl/vx/node/get/$urlSection").get()
                     res.flatMap {
                         case r if r.status == Status.OK =>
@@ -101,7 +103,7 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
 
             posts.map { n =>
                 val author: LdjamNode = authors.getOrElse(n.author, {
-                    Logger.warn(s"Unknown user ID in found in post ${n.id}: ${n.author}. Known authors: ${users.map(_.id).mkString(",")}")
+                    logger.warn(s"Unknown user ID in found in post ${n.id}: ${n.author}. Known authors: ${users.map(_.id).mkString(",")}")
                     LdjamNode(-1, "Unknown", -1, "", ZonedDateTime.now(), "user", "", Right(1))
                 })
                 val avatar = author.meta.left.toOption.flatMap(_.avatar).map(avatar => cdnBaseUrl + avatar.substring(2) + ".32x32.fit.jpg")
@@ -157,7 +159,7 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
                 cache.get[Int](cacheKey) flatMap {
                     case Some(node) => Future.successful(Some(node))
                     case _ =>
-                        Logger.info(s"Cache missed for $cacheKey, loading...")
+                        logger.info(s"Cache missed for $cacheKey, loading...")
                         request(s"$apiBaseUrl/vx/node/walk/1${jam.site.getPath}").get().map {
                             case r if r.status == Status.OK =>
                                 r.json \ "node" match {

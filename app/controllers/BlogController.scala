@@ -21,6 +21,8 @@ class BlogController @Inject()(cached: Cached,
                                implicit val ec: ExecutionContext,
                                components: ControllerComponents) extends AbstractController(components) {
 
+    private val logger = Logger(classOf[BlogController])
+
     val PostPerPage = 5
 
     private def orderedPosts(ldjam: Future[Seq[LdjamPost]], tumblr: Future[Seq[TumblrPost]]): Future[Seq[BlogPost]] = {
@@ -28,7 +30,7 @@ class BlogController @Inject()(cached: Cached,
             ld <- ldjam
             t <- tumblr
         } yield {
-            Logger.info(s"LDJam posts found: ${ld.size}, Tumblr: ${t.size}")
+            logger.info(s"LDJam posts found: ${ld.size}, Tumblr: ${t.size}")
             (ld ++ t).sortBy(-_.createdAt.toEpochSecond)
         }
     }
