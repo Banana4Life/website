@@ -6,7 +6,7 @@ node {
     }
 
     stage('Build image') {
-        app = docker.build("docker.cubyte.org/banana4life/website")
+        app = docker.build("banana4life/website")
     }
 
     stage('Push image') {
@@ -16,7 +16,7 @@ node {
             tag = env.BRANCH_NAME
         }
 
-        docker.withRegistry('https://docker.cubyte.org', 'deployment-account') {
+        docker.withRegistry('https://docker.io', 'dockerhub') {
             app.push("${env.BUILD_NUMBER}")
             app.push(tag)
         }
