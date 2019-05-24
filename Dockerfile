@@ -1,25 +1,28 @@
-FROM openjdk:8-jdk-alpine as build
-RUN apk update && \
-    apk upgrade && \
-    apk add sbt --update-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted
-RUN mkdir /build
-WORKDIR /build
-COPY . /build
-RUN sbt dist
+FROM mozilla/sbt:latest AS build
 
-FROM openjdk:8-jre-alpine
-RUN apk update && \
-    apk upgrade && \
-    apk add unzip bash
-RUN mkdir /app
+RUN mkdir /build
+
+WORKDIR /build
+
+ADD . /build/
+
+RUN sbt dist \
+ && unzip target/universal/website-*.zip
+
+FROM openjdk:12
+
+RUN useradd -r play \
+ && mkdir /app \
+ && chown play /app
+
+USER play
+
 WORKDIR /app
-COPY --from=build /build/target/universal/website-*.zip /app.zip
-RUN unzip /app.zip && \
-    rm /app.zip && \
-    mv website-*/* . && \
-    rmdir website-* && \
-    rm -R share && \
-    adduser -D -H -h /app banana4life && \
-    chown -R banana4life:banana4life /app
-USER banana4life
-ENTRYPOINT ["bin/website"]
+
+COPY --from=build "/build/website-*/bin" /app/bin/
+COPY --from=build "/build/website-*/lib" /app/lib/
+COPY --from=build "/build/website-*/conf" /app/conf/
+
+EXPOSE 9000/tcp
+
+ENTRYPOINT ["./bin/mailmanager", "-Dplay.server.pidfile.path=/dev/null"]
