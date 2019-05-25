@@ -152,7 +152,7 @@ class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, config: Configu
         ws.url("https://api.github.com/graphql").withAuth(config.get[String]("github.tokenUser"), config.get[String]("github.token"), BASIC).post(
             Json.obj("query" -> "query { organization(login:\"Banana4Life\") { members(last:100) { nodes { login, name } } } }")
           ).map(_.json).map { v =>
-            Logger.info(v.toString())
+            logger.info(v.toString())
             v \ "data" \ "organization" \ "members" \ "nodes"
         } collect {
             case JsDefined(JsArray(nodes)) => nodes.map { value =>
