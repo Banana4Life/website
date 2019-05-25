@@ -16,7 +16,7 @@ node {
             tag = env.BRANCH_NAME
         }
 
-        docker.withRegistry('https://docker.io', 'dockerhub') {
+        docker.withRegistry('index.docker.io', 'dockerhub') {
             app.push("${env.BUILD_NUMBER}")
             app.push(tag)
         }
