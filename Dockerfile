@@ -4,9 +4,14 @@ RUN mkdir /build
 
 WORKDIR /build
 
+COPY build.sbt /build/
+COPY project /build/project/
+
+RUN sbt -no-colors update
+
 ADD . /build/
 
-RUN sbt dist \
+RUN sbt -no-colors dist \
  && unzip target/universal/website-*.zip
 
 FROM openjdk:12
