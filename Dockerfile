@@ -30,7 +30,7 @@ COPY --from=build "/build/website-*/conf" /app/conf/
 
 EXPOSE 9000/tcp
 
-HEALTHCHECK --interval=5m --timeout=3s \
+HEALTHCHECK --interval=5m --timeout=3s --start-period=15s --retries=3 \
   CMD curl -f http://localhost:9000/ || exit 1
 
 ENTRYPOINT ["./bin/mailmanager", "-Dplay.server.pidfile.path=/dev/null"]
