@@ -10,3 +10,5 @@ Dockerfile
 Jenkinsfile
 .git
 .gitignore
+README
+LICENSE
