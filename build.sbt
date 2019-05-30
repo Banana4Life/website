@@ -22,3 +22,7 @@ libraryDependencies ++= Seq(
   "org.webjars"          %  "jquery"                      % "3.1.1",
   "org.webjars"          % "font-awesome"                 % "4.7.0"
 )
+
+sources in (Compile, doc) := Seq.empty
+
+publishArtifact in (Compile, packageDoc) := false
