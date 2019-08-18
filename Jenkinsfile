@@ -6,7 +6,7 @@ node {
     }
 
     stage('Build image') {
-        app = docker.build("docker.cubyte.org/banana4life/website")
+        app = docker.build("docker.cubyte.org/banana4life/website", "--pull .")
     }
 
     stage('Push image') {
