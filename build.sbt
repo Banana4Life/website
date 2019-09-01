@@ -2,7 +2,9 @@ name := """website"""
 
 version := "1.0-SNAPSHOT"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file("."))
+    .enablePlugins(PlayScala)
+    .enablePlugins(AshScriptPlugin)
 
 scalaVersion := "2.12.3"
 
@@ -23,6 +25,10 @@ libraryDependencies ++= Seq(
   "org.webjars"          % "font-awesome"                 % "4.7.0"
 )
 
+scalacOptions ++= Seq("unchecked", "-deprecation")
+
 sources in (Compile, doc) := Seq.empty
 
 publishArtifact in (Compile, packageDoc) := false
+
+bashScriptTemplateLocation := root.base / "conf" / "launch-script.sh"
