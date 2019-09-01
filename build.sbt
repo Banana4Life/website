@@ -6,7 +6,7 @@ lazy val root = (project in file("."))
     .enablePlugins(PlayScala)
     .enablePlugins(AshScriptPlugin)
 
-scalaVersion := "2.12.3"
+scalaVersion := "2.13.0"
 
 routesGenerator := InjectedRoutesGenerator
 
@@ -20,7 +20,7 @@ libraryDependencies ++= Seq(
   "com.google.apis"      %  "google-api-services-youtube" % "v3-rev183-1.22.0",
   "gov.sandia.foundry"   %  "porter-stemmer"              % "1.4",
   "com.vladsch.flexmark" % "flexmark-all"                 % "0.22.16",
-  "org.webjars"          %% "webjars-play"                % "2.6.1",
+  "org.webjars"          %% "webjars-play"                % "2.7.3",
   "org.webjars"          %  "jquery"                      % "3.1.1",
   "org.webjars"          % "font-awesome"                 % "4.7.0"
 )

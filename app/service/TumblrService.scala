@@ -3,15 +3,16 @@ package service
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util
-import javax.inject.{Inject, Singleton}
 
+import javax.inject.{Inject, Singleton}
 import com.tumblr.jumblr.JumblrClient
 import com.tumblr.jumblr.types.{Post, TextPost}
 import play.api.cache.AsyncCacheApi
 import play.api.{Configuration, Logger}
 import service.CacheHelper.BlogCacheKey
 
-import scala.collection.JavaConverters._
+import scala.collection.immutable.ArraySeq
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -20,7 +21,7 @@ case class TumblrPost(id: Long, createdAt: ZonedDateTime, title: String, body: S
 
     private val paragraphSeparator = "</p>"
 
-    lazy val paragraphs: Seq[String] = body.split(paragraphSeparator)
+    lazy val paragraphs: Seq[String] = ArraySeq.unsafeWrapArray(body.split(paragraphSeparator))
 
     override def truncatedBody(firstN: Int): String = {
         if (this.paragraphs.length < firstN) {
@@ -61,10 +62,10 @@ class TumblrService @Inject()(conf: Configuration, cache: AsyncCacheApi, implici
         val date = ZonedDateTime.parse(post.getDateGMT, tumblrDateFormat)
         post match {
             case p: TextPost =>
-                TumblrPost(p.getId, date, p.getTitle, p.getBody, p.getTags.asScala, p.getBlogName)
+                TumblrPost(p.getId, date, p.getTitle, p.getBody, p.getTags.asScala.toSeq, p.getBlogName)
             case p =>
                 logger.warn(s"Incompatible Tumblr post type: ${p.getClass.getName}")
-                TumblrPost(p.getId, date, p.getSourceTitle, "Can't handle this", p.getTags.asScala, p.getBlogName)
+                TumblrPost(p.getId, date, p.getSourceTitle, "Can't handle this", p.getTags.asScala.toSeq, p.getBlogName)
         }
     }
 

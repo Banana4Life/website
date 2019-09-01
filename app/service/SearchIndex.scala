@@ -2,10 +2,11 @@ package service
 
 
 import javax.inject.Singleton
-
 import org.tartarus.martin.Stemmer
 import play.api.Logger
 import play.twirl.api.Html
+
+import scala.collection.immutable.ArraySeq
 
 abstract class Doc(val cacheKey: String, val text: String) {
     private val normalizedTerms = SearchIndex.normalizeString(text)
@@ -42,7 +43,7 @@ class SearchIndex {
                     bm25TermScore(idf(queryTerm), doc.termFrequency.getOrElse(queryTerm, 0), doc.termCount, avgDocLen, 2.0, 0.75)).sum)
             })
             .filter({ case (_, score) => score > 0 })
-            .sortBy({ case (_, score) => -score })
+            .sortBy({ case (_, score) => -score })(Ordering.Double.TotalOrdering)
         for ((doc, score) <- sortedDocs) {
             logger.debug(s"Search score: ${doc.cacheKey}=$score")
         }
@@ -64,7 +65,7 @@ class SearchIndex {
 
 object SearchIndex {
     def normalizeString(text: String): Seq[String] = {
-        text.toLowerCase().split("[^\\w]+").map { term =>
+        ArraySeq.unsafeWrapArray(text.toLowerCase().split("[^\\w]+")).map { term =>
             val stemmer = new Stemmer()
             term.foreach(stemmer.add)
             stemmer.stem()

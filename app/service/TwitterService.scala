@@ -13,7 +13,7 @@ import service.CacheHelper.{CacheDuration, TwitterCacheKeyPrefix}
 import twitter4j.conf.PropertyConfiguration
 import twitter4j.{Status, TwitterFactory}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -85,7 +85,7 @@ class TwitterService @Inject()(cache: SyncCacheApi, conf: Configuration, env: En
         Future {
             cache.getOrElseUpdate(s"$TwitterCacheKeyPrefix." + user, CacheDuration) {
                 try {
-                    twitter.getUserTimeline(user).asScala
+                    twitter.getUserTimeline(user).asScala.toSeq
                 } catch {
                     case e: Exception =>
                         logger.error("Failed to get the tweets!", e)

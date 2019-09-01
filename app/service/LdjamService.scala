@@ -60,7 +60,7 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
                     case r if r.status == Status.OK =>
                         val nodes = (r.json \ "feed" \\ "id").collect { case JsNumber(v) => v.toInt }
                         cache.set(CacheHelper.jamUserFeed(userid), nodes, CacheDuration)
-                        nodes
+                        nodes.toSeq
                     case _ => Nil
                 }
         }
@@ -83,7 +83,7 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
                         case r if r.status == Status.OK =>
                             r.json \ "node" match {
                                 case JsDefined(JsArray(nodes)) =>
-                                    val newNodes = nodes.map(_.as[LdjamNode])
+                                    val newNodes = nodes.map(_.as[LdjamNode]).toSeq
                                     Future.sequence(newNodes.map(n => cache.set(CacheHelper.jamNode(n.id), n, CacheDuration)))
                                         .map(_ => newNodes)
                                 case _ => Future.successful(knownNodes)

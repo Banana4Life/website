@@ -11,7 +11,7 @@ import com.google.api.services.youtube.model.ThumbnailDetails
 import com.google.api.services.youtube.{YouTube, YouTubeRequestInitializer}
 import play.api.Configuration
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 object DummyInitializer extends HttpRequestInitializer {
@@ -56,7 +56,7 @@ class YoutubeService @Inject()(conf: Configuration, implicit val ec: ExecutionCo
 
     def getVideosOfPlaylist(id: String): Seq[YtVideo] = {
         val res = youtube.playlistItems().list("snippet").setMaxResults(20.toLong).setPlaylistId(id).execute()
-        for (item <- res.getItems.asScala) yield {
+        for (item <- res.getItems.asScala.toSeq) yield {
             val s = item.getSnippet
             val id = s.getResourceId.getVideoId
             YtVideo(id, s.getChannelTitle, s.getTitle, s.getDescription, getBestThumbnailURL(id, s.getThumbnails), ZonedDateTime.ofInstant(Instant.ofEpochMilli(s.getPublishedAt.getValue), ZoneId.systemDefault()))
