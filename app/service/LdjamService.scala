@@ -2,13 +2,13 @@ package service
 
 import java.time.ZonedDateTime
 import java.util.Arrays.asList
-import javax.inject.{Inject, Singleton}
 
+import javax.inject.{Inject, Singleton}
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension
-import com.vladsch.flexmark.ext.emoji.EmojiExtension
+import com.vladsch.flexmark.ext.emoji.{EmojiExtension, EmojiImageType}
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
-import com.vladsch.flexmark.util.options.MutableDataSet
+import com.vladsch.flexmark.util.data.MutableDataSet
 import play.api.cache.AsyncCacheApi
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSRequest}
@@ -40,7 +40,7 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
 
     private val compileMarkdown: String => String = {
         val options = new MutableDataSet()
-        options.set(EmojiExtension.USE_IMAGE_URLS, java.lang.Boolean.TRUE)
+        options.set(EmojiExtension.USE_IMAGE_TYPE, EmojiImageType.IMAGE_ONLY)
         val mdParser = Parser.builder(options).extensions(extensions).build()
         val mdRenderer = HtmlRenderer.builder(options).extensions(extensions).build()
 
