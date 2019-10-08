@@ -17,8 +17,8 @@ import service.Formats._
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 
-case class Repo(name: String, html_url: String, full_name: String, created_at: ZonedDateTime) {
-    def file(path: String, branch: String = "master") = s"https://raw.githubusercontent.com/$full_name/$branch/$path"
+case class Repo(name: String, html_url: String, full_name: String, created_at: ZonedDateTime, default_branch: String) {
+    def file(path: String, branch: String = default_branch) = s"https://raw.githubusercontent.com/$full_name/$branch/$path"
 
     lazy val latestRelease = new URL(s"https://github.com/$full_name/releases/latest")
 }
