@@ -1,7 +1,6 @@
 @(imgURL: String, tweetId: Long, user: String, userHandle: String, content: Html, date: String)
 
 @userURL = @{s"https://twitter.com/$userHandle"}
-@tweetURL = @{s"$userURL/status/$tweetId"}
 
 <div class="twitterItem">
     <article>
@@ -11,7 +10,7 @@
             <div>
                 <div class="twitterTitle"><a href="@userURL">@user<span>@@@userHandle</span></a></div>
                 <p>@content</p>
-                <div class="twitterDate">@date<a href="@tweetURL" class="fas fa-external-link-alt"></a></div>
+                <div class="twitterDate">@date<a href="@{s"$userURL/status/$tweetId"}" class="fas fa-external-link-alt"></a></div>
             </div>
         </div>
         <div class="clear"></div>
