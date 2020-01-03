@@ -40,7 +40,7 @@ class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit
 
     private val compileMarkdown: String => String = {
         val options = new MutableDataSet()
-        options.set(EmojiExtension.USE_IMAGE_TYPE, EmojiImageType.IMAGE_ONLY)
+        options.set(EmojiExtension.USE_IMAGE_TYPE, EmojiImageType.UNICODE_ONLY)
         val mdParser = Parser.builder(options).extensions(extensions).build()
         val mdRenderer = HtmlRenderer.builder(options).extensions(extensions).build()
 

@@ -14,7 +14,7 @@ ADD . /build/
 RUN sbt -no-colors dist \
  && unzip target/universal/website-*.zip
 
-FROM adoptopenjdk/openjdk12:alpine-slim
+FROM adoptopenjdk/openjdk13:alpine-slim
 
 RUN adduser -S play \
  && mkdir /app \

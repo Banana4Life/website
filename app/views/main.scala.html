@@ -5,18 +5,17 @@
         <title>Banana4Life - @title</title>
         <meta charset="UTF-8">
         <link rel="shortcut icon" type="image/x-icon" href="@routes.Assets.at("images/favicon.png")">
-        <link rel="stylesheet" href="@routes.Assets.at("lib/font-awesome/css/font-awesome.css")">
+        <link rel="stylesheet" href="@routes.Assets.at("lib/font-awesome/css/all.css")">
         <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
-        <script type="text/javascript" src="@routes.Assets.at("lib/jquery/jquery.min.js")"></script>
     </head>
     <body>
         <header>
             <div class="main-column">
                 <span class="clear"></span>
-                <a href="@routes.MainController.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo-Header.png")"></a>
+                <a href="@routes.MainController.index()"><img alt="Header image" src="@routes.Assets.at("images/Banana4Life-Logo-Header.png")"></a>
                 <form method="GET" action="@routes.MainController.search("")">
                     <div id="searchBoxWrapper">
-                        <span class="fa fa-search"></span>
+                        <span class="fas fa-search"></span>
                         <input name="query" id="searchBox" placeholder="Search">
                     </div>
                 </form>
@@ -48,13 +47,13 @@
                 </div>
                 <div id="footer-social" class="right">
                     <b>Connect</b><br>
-                    <span class="logo fa fa-twitter twitter"></span>
+                    <span class="logo fab fa-twitter twitter"></span>
                     <a class="twitter" href="https://twitter.com/bananafourlife">@@bananafourlife</a>
                     <br>
                     <img class="logo" src="@routes.Assets.at("images/youtube_icon.svg")">
                     <a class="youtube" href="https://www.youtube.com/channel/UCktbmYa9DDuKflH2okA1FjA">Jonas Dann</a>
                     <br>
-                    <span class="logo fa fa-github github"></span>
+                    <span class="logo fab fa-github github"></span>
                     <a class="github" href="https://github.com/Banana4Life">Banana4Life</a>
                 </div>
                 <div id="footer-logo">
