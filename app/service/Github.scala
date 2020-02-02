@@ -5,7 +5,6 @@ import java.time.temporal.ChronoUnit
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
 
 import com.fasterxml.jackson.core.JsonParseException
-import javax.inject.{Inject, Singleton}
 import play.api.cache.SyncCacheApi
 import play.api.libs.json._
 import play.api.libs.ws.WSAuthScheme.BASIC
@@ -39,8 +38,7 @@ case class Team(name: String, id: Int, slug: String, description: String)
 case class Member(login: String, id: Int)
 case class User(login: String, name: String, core: Boolean = false)
 
-@Singleton
-class GithubService @Inject()(ws: WSClient, cache: SyncCacheApi, config: Configuration, implicit val ec: ExecutionContext) {
+class GithubService(ws: WSClient, cache: SyncCacheApi, config: Configuration, implicit val ec: ExecutionContext) {
 
     private val logger = Logger(classOf[GithubService])
 

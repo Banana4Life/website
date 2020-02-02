@@ -3,7 +3,6 @@ package service
 import java.time.ZonedDateTime
 import java.util.Arrays.asList
 
-import javax.inject.{Inject, Singleton}
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension
 import com.vladsch.flexmark.ext.emoji.{EmojiExtension, EmojiImageType}
 import com.vladsch.flexmark.html.HtmlRenderer
@@ -20,8 +19,7 @@ import service.Formats._
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 
-@Singleton
-class LdjamService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit val ec: ExecutionContext, ws: WSClient) {
+class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: ExecutionContext, ws: WSClient) {
 
     private val logger = Logger(classOf[LdjamService])
 

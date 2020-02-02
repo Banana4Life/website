@@ -1,7 +1,5 @@
 package controllers
 
-import javax.inject.Inject
-
 import play.api.Logger
 import play.api.cache.Cached
 import play.api.mvc.{AbstractController, ControllerComponents}
@@ -10,16 +8,16 @@ import service._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class BlogController @Inject()(cached: Cached,
-                               github: GithubService,
-                               tumblr: TumblrService,
-                               ldjam: LdjamService,
-                               twitter: TwitterService,
-                               youtube: YoutubeService,
-                               twitch: TwitchService,
-                               searchIndex: SearchIndex,
-                               implicit val ec: ExecutionContext,
-                               components: ControllerComponents) extends AbstractController(components) {
+class BlogController(cached: Cached,
+                     github: GithubService,
+                     tumblr: TumblrService,
+                     ldjam: LdjamService,
+                     twitter: TwitterService,
+                     youtube: YoutubeService,
+                     twitch: TwitchService,
+                     searchIndex: SearchIndex,
+                     implicit val ec: ExecutionContext,
+                     components: ControllerComponents) extends AbstractController(components) {
 
     private val logger = Logger(classOf[BlogController])
 

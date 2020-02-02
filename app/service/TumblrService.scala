@@ -4,7 +4,6 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util
 
-import javax.inject.{Inject, Singleton}
 import com.tumblr.jumblr.JumblrClient
 import com.tumblr.jumblr.types.{Post, TextPost}
 import play.api.cache.AsyncCacheApi
@@ -32,8 +31,7 @@ case class TumblrPost(id: Long, createdAt: ZonedDateTime, title: String, body: S
     }
 }
 
-@Singleton
-class TumblrService @Inject()(conf: Configuration, cache: AsyncCacheApi, implicit val ec: ExecutionContext) {
+class TumblrService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: ExecutionContext) {
 
     private val logger = Logger(classOf[TumblrService])
 

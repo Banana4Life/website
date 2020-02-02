@@ -1,23 +1,21 @@
 package controllers
 
-import javax.inject.Inject
-
 import play.api.cache.Cached
 import play.api.mvc._
 import service._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class MainController @Inject()(cached: Cached,
-                               github: GithubService,
-                               tumblr: TumblrService,
-                               ldjam: LdjamService,
-                               twitter: TwitterService,
-                               youtube: YoutubeService,
-                               twitch: TwitchService,
-                               searchIndex: SearchIndex,
-                               implicit val ec: ExecutionContext,
-                               components: ControllerComponents) extends AbstractController(components) {
+class MainController(cached: Cached,
+                     github: GithubService,
+                     tumblr: TumblrService,
+                     ldjam: LdjamService,
+                     twitter: TwitterService,
+                     youtube: YoutubeService,
+                     twitch: TwitchService,
+                     searchIndex: SearchIndex,
+                     implicit val ec: ExecutionContext,
+                     components: ControllerComponents) extends AbstractController(components) {
 
     def index = Action.async {
         val future = for {

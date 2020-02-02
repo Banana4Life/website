@@ -3,7 +3,6 @@ package service
 import java.text.SimpleDateFormat
 import java.util.Properties
 
-import javax.inject.{Inject, Singleton}
 import play.api.Mode.Dev
 import play.api.cache.SyncCacheApi
 import play.api.{Configuration, Environment, Logger}
@@ -16,8 +15,7 @@ import twitter4j.{Status, TwitterFactory}
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-@Singleton
-class TwitterService @Inject()(cache: SyncCacheApi, conf: Configuration, env: Environment, implicit val ec: ExecutionContext) {
+class TwitterService(cache: SyncCacheApi, conf: Configuration, env: Environment, implicit val ec: ExecutionContext) {
 
     private val logger = Logger(classOf[TwitterService])
 

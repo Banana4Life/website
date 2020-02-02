@@ -2,7 +2,6 @@ package service
 
 import java.net.URL
 import java.time.{Instant, ZoneId, ZonedDateTime}
-import javax.inject.Inject
 
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.http.{HttpRequest, HttpRequestInitializer}
@@ -22,7 +21,7 @@ case class YtVideo(id: String, channelName: String, name: String, description: S
     lazy val url = new URL(s"https://www.youtube.com/watch?v=$id")
 }
 
-class YoutubeService @Inject()(conf: Configuration, implicit val ec: ExecutionContext) {
+class YoutubeService(conf: Configuration, implicit val ec: ExecutionContext) {
 
     private val youtube = {
         val builder = new YouTube.Builder(new NetHttpTransport, new JacksonFactory, DummyInitializer)

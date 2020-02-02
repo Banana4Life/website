@@ -1,7 +1,6 @@
 package service
 
 
-import javax.inject.Singleton
 import org.tartarus.martin.Stemmer
 import play.api.Logger
 import play.twirl.api.Html
@@ -27,7 +26,6 @@ case class ProjectDoc(project: Project)
     override def toHtml: Html = views.html.snippet.project(project)
 }
 
-@Singleton
 class SearchIndex {
 
     private val logger = Logger(classOf[SearchIndex])
