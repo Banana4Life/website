@@ -24,7 +24,8 @@ node {
             app.push(tag)
         }
 
-        def curlTrigger = "curl -X POST -F token=f0aaa32c49b9061a262d3ee1375277 -F 'ref=${branch}' -F 'variables[IMAGE_NAME]=${imageName}:${tag}' https://git.cubyte.org/api/v4/projects/230/trigger/pipeline"
+        def token = credentials('trigger-token')
+        def curlTrigger = "curl -X POST -F 'token=${token}' -F 'ref=${branch}' -F 'variables[IMAGE_NAME]=${imageName}:${tag}' https://git.cubyte.org/api/v4/projects/230/trigger/pipeline"
 
         sh curlTrigger
     }
