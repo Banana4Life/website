@@ -8,10 +8,10 @@ import com.google.api.client.http.{HttpRequest, HttpRequestInitializer}
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.model.ThumbnailDetails
 import com.google.api.services.youtube.{YouTube, YouTubeRequestInitializer}
-import play.api.Configuration
+import play.api.{Configuration, Logging}
 
-import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 object DummyInitializer extends HttpRequestInitializer {
     override def initialize(request: HttpRequest): Unit = {}
@@ -21,7 +21,7 @@ case class YtVideo(id: String, channelName: String, name: String, description: S
     lazy val url = new URL(s"https://www.youtube.com/watch?v=$id")
 }
 
-class YoutubeService(conf: Configuration, implicit val ec: ExecutionContext) {
+class YoutubeService(conf: Configuration, implicit val ec: ExecutionContext) extends Logging{
 
     private val youtube = {
         val builder = new YouTube.Builder(new NetHttpTransport, new JacksonFactory, DummyInitializer)
@@ -46,6 +46,10 @@ class YoutubeService(conf: Configuration, implicit val ec: ExecutionContext) {
 
     def getVideos: Future[Seq[YtVideo]] = {
         this.uploadsPlaylistId.map(getVideosOfPlaylist)
+          .recover { e =>
+              logger.error("Failed to get videos!", e)
+              Nil
+          }
     }
 
     def getBestThumbnailURL(id: String, thumbs: ThumbnailDetails): URL = {
