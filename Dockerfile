@@ -14,7 +14,7 @@ ADD . /build/
 RUN sbt -no-colors dist \
  && unzip target/universal/website-*.zip
 
-FROM adoptopenjdk/openjdk13:alpine-slim
+FROM adoptopenjdk/openjdk14:alpine-slim
 
 RUN apk update && apk add --no-cache curl
 
