@@ -16,10 +16,10 @@ libraryDependencies ++= Seq(
   specs2 % Test,
   "com.tumblr"           %  "jumblr"                      % "0.0.13",
   "org.twitter4j"        %  "twitter4j-core"              % "4.0.7",
-  "com.google.apis"      %  "google-api-services-youtube" % "v3-rev20190827-1.30.1",
+  "com.google.apis"      %  "google-api-services-youtube" % "v3-rev20200618-1.30.9",
   "gov.sandia.foundry"   %  "porter-stemmer"              % "1.4",
-  "com.vladsch.flexmark" % "flexmark-all"                 % "0.50.50",
-  "org.webjars"          % "font-awesome"                 % "5.12.0"
+  "com.vladsch.flexmark" % "flexmark-all"                 % "0.62.2",
+  "org.webjars"          % "font-awesome"                 % "5.15.0"
 )
 
 scalacOptions ++= Seq("-unchecked", "-deprecation")
