@@ -108,7 +108,7 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
                 })
                 val avatar = author.meta.left.toOption.flatMap(_.avatar).map(avatar => cdnBaseUrl + avatar.substring(2) + ".32x32.fit.jpg")
                 val body = compileMarkdown(n.body)
-                LdjamPost(n.id, n.name, author, body, n.created, s"$pageBaseUrl${author.path}", avatar)
+                LdjamPost(n.id, n.name, author, fixupNodeBody(body), n.created, s"$pageBaseUrl${author.path}", avatar)
             }
         }
     }
@@ -116,12 +116,16 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
     private def nodeToJamEntry(node: LdjamNode) = {
         // TODO get authors \ "link" \ "author" - list
         // TODO cleanup body
+        LdJamEntry(node.id, node.name, fixupNodeBody(node.body))
+    }
+
+    private def fixupNodeBody(rawBody: String): String = {
         val r = "//(/raw/[^\\.].\\w+)".r
         val r2 = "<p>(<img[^>]+>)</p>".r
-        var body = r.replaceAllIn(node.body, cdnBaseUrl + _.group(1))
+        var body = r.replaceAllIn(rawBody, cdnBaseUrl + _.group(1))
         body = compileMarkdown(body)
         body = r2.replaceAllIn(body, "<div class=\"image-container\">" + _.group(1) + "</div>")
-        LdJamEntry(node.id, node.name, body)
+        body
     }
 
     def getPost(id: Int): Future[Option[LdjamPost]] = {

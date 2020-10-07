@@ -1,6 +1,6 @@
 @import service.TumblrPost
 @(post: TumblrPost, trunc: Boolean)
-<article id="@post.anchor" class="round blog-post">
+<article id="@post.anchor" class="tumblr round blog-post">
     <header>
         <a href="@routes.MainController.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a>
         <h1><a href="@routes.BlogController.showPost("tumblr", post.id)#@post.anchor">@post.title</a></h1>
