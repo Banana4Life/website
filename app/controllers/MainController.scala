@@ -17,7 +17,7 @@ class MainController(cached: Cached,
                      implicit val ec: ExecutionContext,
                      components: ControllerComponents) extends AbstractController(components) {
 
-    def index = Action.async {
+    def index() = Action.async {
         val future = for {
             curProject <- github.getCurrent
             projects <- github.getProjects
@@ -42,7 +42,7 @@ class MainController(cached: Cached,
         future.flatten
     }
 
-    def projects = cached((x: RequestHeader) => "page.projects", 60 * 60 * 2) {
+    def projects() = cached((x: RequestHeader) => "page.projects", 60 * 60 * 2) {
         Action.async {
             github.getProjects map { projects =>
                 Ok(views.html.projects(projects))
@@ -50,7 +50,7 @@ class MainController(cached: Cached,
         }
     }
 
-    def about = Action {
+    def about() = Action {
         Ok(views.html.about())
     }
 

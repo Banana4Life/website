@@ -33,8 +33,8 @@ class YoutubeService(conf: Configuration, implicit val ec: ExecutionContext) ext
 
     private lazy val uploadsPlaylistId: Future[String] = Future {
         val res = youtube.channels()
-            .list("contentDetails")
-            .setId(conf.get[String]("youtube.channelId"))
+            .list(List("contentDetails").asJava)
+            .setId(List(conf.get[String]("youtube.channelId")).asJava)
             .execute()
         val items = res.getItems
         if (items.size() > 0) {
@@ -58,11 +58,11 @@ class YoutubeService(conf: Configuration, implicit val ec: ExecutionContext) ext
     }
 
     def getVideosOfPlaylist(id: String): Seq[YtVideo] = {
-        val res = youtube.playlistItems().list("snippet").setMaxResults(20.toLong).setPlaylistId(id).execute()
+        val res = youtube.playlistItems().list(List("snippet").asJava).setMaxResults(20.toLong).setPlaylistId(id).execute()
         for (item <- res.getItems.asScala.toSeq) yield {
             val s = item.getSnippet
             val id = s.getResourceId.getVideoId
-            YtVideo(id, s.getChannelTitle, s.getTitle, s.getDescription, getBestThumbnailURL(id, s.getThumbnails), ZonedDateTime.ofInstant(Instant.ofEpochMilli(s.getPublishedAt.getValue), ZoneId.systemDefault()))
+            YtVideo(id, s.getChannelTitle, s.getTitle, s.getDescription, getBestThumbnailURL(id, s.getThumbnails), ZonedDateTime.parse(s.getPublishedAt))
         }
     }
 

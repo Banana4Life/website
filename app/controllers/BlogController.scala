@@ -55,7 +55,7 @@ class BlogController(cached: Cached,
         }
     }
 
-    def firstBlogPage = Action.async {
+    def firstBlogPage() = Action.async {
 
         val ldjamPosts = ldjam.allPosts
         val tumblrPosts = tumblr.allPosts
@@ -67,7 +67,7 @@ class BlogController(cached: Cached,
         service.toLowerCase match {
             case "ldjam" => showLdjamPost(id.toInt)
             case "tumblr" => showTumblrPost(id)
-            case _ => firstBlogPage
+            case _ => firstBlogPage()
         }
     }
 
