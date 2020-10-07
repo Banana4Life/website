@@ -51,14 +51,16 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
             .withRequestTimeout(5.seconds)
 
     private def findPostNodeIdsForUser(userid: Int): Future[Seq[Int]] = {
-        cache.get[Seq[Int]](CacheHelper.jamUserFeed(userid)) flatMap {
+        val key = CacheHelper.jamUserFeed(userid)
+        cache.get[Seq[Int]](key) flatMap {
             case Some(nodes) => Future.successful(nodes)
             case _ =>
                 request(s"$apiBaseUrl/vx/node/feed/$userid/author/post").get().map {
                     case r if r.status == Status.OK =>
                         val nodes = (r.json \ "feed" \\ "id").collect { case JsNumber(v) => v.toInt }
-                        cache.set(CacheHelper.jamUserFeed(userid), nodes, CacheDuration)
-                        nodes.toSeq
+                          .toList
+                        cache.set(key, nodes, CacheDuration)
+                        nodes
                     case _ => Nil
                 }
         }
