@@ -1,5 +1,6 @@
-@(project: service.Project)
+@import views.html.snippet._
 
+@(project: service.Project)
 <div class="project round">
     <div>
         <header>
@@ -17,20 +18,7 @@
         @for(sound <- project.soundtrack){
             <div>Get the soundtrack <a target="_blank" href="@sound">here</a>!</div>
         }
-        <div>
-            Authors:
-            <ul>
-            @for(author <- project.coreUsers){
-                <li><a href="https://github.com/@author.login">@author.name</a></li>
-            }
-            @for(author <- project.guests){
-                <li><a href="https://github.com/@author.login">@author.name</a> (Guest)</li>
-            }
-            @for(author <- project.authors){
-                <li>@author (Guest)</li>
-            }
-            </ul>
-        </div>
+        @authorlist(project)
         @for(jam <- project.jam) {
             <div>
                         Developed for <a href="@jam.site">@jam.name #@jam.number with the theme "@jam.theme"</a>

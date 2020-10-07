@@ -20,18 +20,7 @@
             @* TODO VOTE HERE link *@
         </header>
         <div>@Html(ldjamEntry.body)</div>
-        <div>
-            Authors:
-            <ul>
-            @for(author <- project.authors){
-                @if(author(0) == '-') {
-                    <li>@(author.drop(1)) (non-member)</li>
-                } else {
-                    <li>@author</li>
-                }
-            }
-            </ul>
-        </div>
+        @snippet.authorlist(project)
     </div>
 </div>
 
