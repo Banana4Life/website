@@ -14,9 +14,9 @@ ADD . /build/
 RUN sbt -no-colors dist \
  && unzip target/universal/website-*.zip
 
-FROM adoptopenjdk/openjdk14:alpine-slim
+FROM adoptopenjdk/openjdk15:x86_64-alpine-jre-15.0.1_9@sha256:de9de89d6dd7324c78efa243038dcd55d5b2d3be326fc3c09068c10bfcf4b573
 
-RUN apk update && apk add --no-cache curl
+RUN apk add --update --no-cache curl
 
 RUN adduser -S play \
  && mkdir /app \

@@ -162,7 +162,7 @@ class GithubService(ws: WSClient, cache: SyncCacheApi, config: Configuration, im
                             case JsString("") => login
                             case _ => n
                         }
-                    case JsUndefined() => login
+                    case _ => login
                 }
 
                 User(login.as[String], name.as[String])
