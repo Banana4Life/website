@@ -4,15 +4,15 @@
     <head>
         <title>Banana4Life - @title</title>
         <meta charset="UTF-8">
-        <link rel="shortcut icon" type="image/x-icon" href="@routes.Assets.at("images/favicon.png")">
-        <link rel="stylesheet" href="@routes.Assets.at("lib/font-awesome/css/all.css")">
-        <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
+        <link rel="shortcut icon" type="image/x-icon" href="@routes.Assets.versioned("images/favicon.png")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("lib/font-awesome/css/all.css")">
+        <link rel="stylesheet" href="@routes.Assets.versioned("stylesheets/main.css")">
     </head>
     <body>
         <header>
             <div class="main-column">
                 <span class="clear"></span>
-                <a href="@routes.MainController.index()"><img alt="Header image" src="@routes.Assets.at("images/Banana4Life-Logo-Header.png")"></a>
+                <a href="@routes.MainController.index()"><img alt="Header image" src="@routes.Assets.versioned("images/Banana4Life-Logo-Header.png")"></a>
                 <form method="GET" action="@routes.MainController.search("")">
                     <div id="searchBoxWrapper">
                         <span class="fas fa-search"></span>
@@ -57,7 +57,7 @@
                     <a class="github" href="https://github.com/Banana4Life">Banana4Life</a>
                 </div>
                 <div id="footer-logo">
-                    <a href="@routes.MainController.index()"><img src="@routes.Assets.at("images/Banana4Life-Logo.png")"></a>
+                    <a href="@routes.MainController.index()"><img src="@routes.Assets.versioned("images/Banana4Life-Logo.png")"></a>
                 </div>
             </div>
             <div id="copyright">© Banana4Life, all rights reserved | Designed by <span><span>Jonas Dann</span></span></div>

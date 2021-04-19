@@ -11,7 +11,7 @@
 
         <script src="@{web.toString}/TemplateData/UnityProgress.js"></script>
         <script src="@{web.toString}/Build/UnityLoader.js"></script>
-        <script src="@routes.Assets.at("javascripts/LoadWebVersion.js")"></script>
+        <script src="@routes.Assets.versioned("javascripts/LoadWebVersion.js")"></script>
     }
 
     <div class="project round">
@@ -55,7 +55,7 @@
             }
         </div>
         <div class="column-2">
-            <img src="@project.imageUrl"/>
+            <img alt="@project.displayName" src="@project.imageUrl"/>
         </div>
     </div>
 }

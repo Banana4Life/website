@@ -1,7 +1,7 @@
 @(name: String, title: String, image: String, links: Seq[(String, Html)])(desc: Html)
 <section class="profile round">
     <div class="imagecolumn">
-        <img src="@routes.Assets.at(s"images/$image")">
+        <img alt="@name" src="@routes.Assets.versioned(s"images/$image")">
         <ul>
         @for((link, linkName) <- links) {
             <li><a href="@link">@linkName</a></li>

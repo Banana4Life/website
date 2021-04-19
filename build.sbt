@@ -29,3 +29,5 @@ Compile / doc / sources := Seq.empty
 Compile / packageDoc / publishArtifact := false
 
 bashScriptTemplateLocation := root.base / "conf" / "launch-script.sh"
+
+pipelineStages := Seq(digest, gzip)
