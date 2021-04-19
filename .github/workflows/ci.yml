@@ -4,7 +4,7 @@ on:
     branches:
       - master
 jobs:
-  test:
+  build-and-publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,6 +16,9 @@ jobs:
       - name: Coursier cache
         uses: coursier/cache-action@v5
       - name: Build and Publish
+        env:
+          JIB_TARGET_IMAGE_USERNAME: ${{ secrets.JIB_TARGET_IMAGE_USERNAME }}
+          JIB_TARGET_IMAGE_PASSWORD: ${{ secrets.JIB_TARGET_IMAGE_PASSWORD }}
         run: |
           sbt -v -Dfile.encoding=UTF-8 jibImageBuild
           rm -rf "$HOME/.ivy2/local" || true
