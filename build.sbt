@@ -34,6 +34,11 @@ Compile / packageDoc / publishArtifact := false
 
 bashScriptTemplateLocation := root.base / "conf" / "launch-script.sh"
 
-pipelineStages := Seq(digest, gzip)
+Assets / pipelineStages := Seq(digest, gzip)
 
 jibBaseImage := "adoptopenjdk/openjdk15:x86_64-alpine-jre-15.0.2_7"
+
+jibMappings := (Assets / mappings).value
+  .map { case (source, target) =>  (source, (Assets / WebKeys.packagePrefix).value + target) }
+
+jibJvmFlags := "-Dplay.server.pidfile.path=/dev/null" :: Nil
