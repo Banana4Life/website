@@ -1,8 +1,5 @@
 package service
 
-import java.net.URL
-import java.time.{Instant, ZoneId, ZonedDateTime}
-
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.http.{HttpRequest, HttpRequestInitializer}
 import com.google.api.client.json.jackson2.JacksonFactory
@@ -10,6 +7,8 @@ import com.google.api.services.youtube.model.ThumbnailDetails
 import com.google.api.services.youtube.{YouTube, YouTubeRequestInitializer}
 import play.api.{Configuration, Logging}
 
+import java.net.URL
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
 
@@ -62,7 +61,10 @@ class YoutubeService(conf: Configuration, implicit val ec: ExecutionContext) ext
         for (item <- res.getItems.asScala.toSeq) yield {
             val s = item.getSnippet
             val id = s.getResourceId.getVideoId
-            YtVideo(id, s.getChannelTitle, s.getTitle, s.getDescription, getBestThumbnailURL(id, s.getThumbnails), ZonedDateTime.parse(s.getPublishedAt))
+            val publishDate = s.getPublishedAt
+            val offset = ZoneOffset.ofTotalSeconds(publishDate.getTimeZoneShift * 60)
+            val publishDateTime = Instant.ofEpochMilli(publishDate.getValue).atOffset(offset).toZonedDateTime
+            YtVideo(id, s.getChannelTitle, s.getTitle, s.getDescription, getBestThumbnailURL(id, s.getThumbnails), publishDateTime)
         }
     }
 

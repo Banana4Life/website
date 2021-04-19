@@ -2,7 +2,7 @@ package controllers
 
 import play.api.Logger
 import play.api.cache.Cached
-import play.api.mvc.{AbstractController, ControllerComponents}
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import play.twirl.api.Html
 import service._
 
@@ -55,7 +55,7 @@ class BlogController(cached: Cached,
         }
     }
 
-    def firstBlogPage() = Action.async {
+    def firstBlogPage(): Action[AnyContent] = Action.async {
 
         val ldjamPosts = ldjam.allPosts
         val tumblrPosts = tumblr.allPosts
@@ -63,7 +63,7 @@ class BlogController(cached: Cached,
         renderPosts(ldjamPosts, tumblrPosts)
     }
 
-    def showPost(service: String, id: Long) = {
+    def showPost(service: String, id: Long): Action[AnyContent] = {
         service.toLowerCase match {
             case "ldjam" => showLdjamPost(id.toInt)
             case "tumblr" => showTumblrPost(id)
@@ -71,7 +71,7 @@ class BlogController(cached: Cached,
         }
     }
 
-    def showLdjamPost(id: Int) = Action.async {
+    def showLdjamPost(id: Int): Action[AnyContent] = Action.async {
 
         val ldjamPosts = ldjam.getPost(id).map(_.toSeq)
 
@@ -79,7 +79,7 @@ class BlogController(cached: Cached,
 
     }
 
-    def showTumblrPost(id: Long) = Action.async {
+    def showTumblrPost(id: Long): Action[AnyContent] = Action.async {
 
         val tumblrPosts = tumblr.getPost(id).map(_.toSeq)
 

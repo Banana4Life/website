@@ -17,7 +17,7 @@ class MainController(cached: Cached,
                      implicit val ec: ExecutionContext,
                      components: ControllerComponents) extends AbstractController(components) {
 
-    def index() = Action.async {
+    def index(): Action[AnyContent] = Action.async {
         val future = for {
             curProject <- github.getCurrent
             projects <- github.getProjects
@@ -42,7 +42,7 @@ class MainController(cached: Cached,
         future.flatten
     }
 
-    def projects() = cached((x: RequestHeader) => "page.projects", 60 * 60 * 2) {
+    def projects(): EssentialAction = cached((_: RequestHeader) => "page.projects", 60 * 60 * 2) {
         Action.async {
             github.getProjects map { projects =>
                 Ok(views.html.projects(projects))
@@ -50,11 +50,11 @@ class MainController(cached: Cached,
         }
     }
 
-    def about() = Action {
+    def about(): Action[AnyContent] = Action {
         Ok(views.html.about())
     }
 
-    def search(query: String) = Action.async {
+    def search(query: String): Action[AnyContent] = Action.async {
         for {
             blogPosts <- tumblr.allPosts
             projects <- github.getProjects
@@ -70,11 +70,11 @@ class MainController(cached: Cached,
     }
 
 
-    def simpleSlug(slug: String) = slug.replaceAll("[^A-Za-z0-9]", "").toLowerCase()
+    private def simpleSlug(slug: String) = slug.replaceAll("[^A-Za-z0-9]", "").toLowerCase()
 
     def compareSlugs(p1: String, p2: String): Boolean = simpleSlug(p1) == simpleSlug(p2)
 
-    def project(jam: String, slug: String) = Action.async {
+    def project(jam: String, slug: String): Action[AnyContent] = Action.async {
         val jamSlug = simpleSlug(jam)
         val slugSlug = simpleSlug(slug)
         if (jam != jamSlug || slug != slugSlug) Future.successful(Redirect(routes.MainController.project(jamSlug, slugSlug)))
@@ -86,7 +86,7 @@ class MainController(cached: Cached,
         }
     }
 
-    def dev() = Action.async {
+    def dev(): Action[AnyContent] = Action.async {
 
         github.getCurrent.flatMap {
             case Some(project) =>
