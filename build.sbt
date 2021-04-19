@@ -1,6 +1,8 @@
 name := """website"""
 
-version := "1.0-SNAPSHOT"
+organization := "banana4life"
+
+version := "1.0"
 
 lazy val root = (project in file("."))
     .enablePlugins(PlayScala)
@@ -26,8 +28,12 @@ scalacOptions ++= Seq("-unchecked", "-deprecation")
 
 Compile / doc / sources := Seq.empty
 
+Compile / unmanagedResources / excludeFilter := new SimpleFileFilter(_.getName == "local.conf")
+
 Compile / packageDoc / publishArtifact := false
 
 bashScriptTemplateLocation := root.base / "conf" / "launch-script.sh"
 
 pipelineStages := Seq(digest, gzip)
+
+jibBaseImage := "adoptopenjdk/openjdk15:x86_64-alpine-jre-15.0.2_7"
