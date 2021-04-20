@@ -37,4 +37,5 @@ jobs:
         with:
           host: "https://git.cubyte.org"
           token: ${{ secrets.DEPLOY_TOKEN }}
+          ref: master
           project_id: 230
