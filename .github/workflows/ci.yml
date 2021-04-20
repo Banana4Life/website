@@ -33,7 +33,7 @@ jobs:
     needs: build
     steps:
       - name: Trigger Deployment
-        uses: appleboy/gitlab-ci-action@master
+        uses: appleboy/gitlab-ci-action@v0.0.2
         with:
           host: "https://git.cubyte.org"
           token: ${{ secrets.DEPLOY_TOKEN }}
