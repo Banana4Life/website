@@ -6,7 +6,6 @@ version := "1.0"
 
 lazy val root = (project in file("."))
     .enablePlugins(PlayScala)
-    .enablePlugins(AshScriptPlugin)
 
 scalaVersion := "2.13.5"
 
@@ -31,8 +30,6 @@ Compile / doc / sources := Seq.empty
 Compile / unmanagedResources / excludeFilter := new SimpleFileFilter(_.getName == "local.conf")
 
 Compile / packageDoc / publishArtifact := false
-
-bashScriptTemplateLocation := root.base / "conf" / "launch-script.sh"
 
 Assets / pipelineStages := Seq(digest, gzip)
 
