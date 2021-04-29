@@ -15,8 +15,8 @@ jobs:
         uses: olafurpg/setup-scala@v10
         with:
           java-version: "adopt@1.15.0-1"
-      - name: Coursier cache
-        uses: coursier/cache-action@v5
+      #- name: Coursier cache
+      #  uses: coursier/cache-action@v5
       - name: Build and Publish
         env:
           JIB_TARGET_IMAGE_USERNAME: ${{ secrets.JIB_TARGET_IMAGE_USERNAME }}
