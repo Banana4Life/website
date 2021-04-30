@@ -10,4 +10,4 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "1.0.2")
 addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.1.3")
 
 // build
-addSbtPlugin("de.gccc.sbt" % "sbt-jib" % "0.9.2-c716f11926be52dcaa56f69477e1d1a0e3af963f")
+addSbtPlugin("de.gccc.sbt" % "sbt-jib" % "0.9.2-e4b3c513c09eed6656246ccea591f93bbe58e83b")
