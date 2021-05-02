@@ -288,6 +288,7 @@ object FuzzyOption {
     }
 
     implicit def fuzzyOptionReads[T](implicit fmt: Reads[T]): Reads[FuzzyOption[T]] = {
+        case JsNull => JsSuccess(FuzzyNone)
         case JsString("") => JsSuccess(FuzzyNone)
         case JsArray(elems) if elems.isEmpty => JsSuccess(FuzzyNone)
         case JsObject(elems) if elems.isEmpty => JsSuccess(FuzzyNone)
