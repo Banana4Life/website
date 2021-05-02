@@ -1,8 +1,7 @@
 package service
 
-import java.time.ZonedDateTime
+import java.time.{Instant, ZoneId, ZonedDateTime}
 import java.util.Arrays.asList
-
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension
 import com.vladsch.flexmark.ext.emoji.{EmojiExtension, EmojiImageType}
 import com.vladsch.flexmark.html.HtmlRenderer
@@ -12,9 +11,7 @@ import play.api.cache.AsyncCacheApi
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSRequest}
 import play.api.{Configuration, Logger}
-import play.mvc.Http.Status
 import service.CacheHelper.CacheDuration
-import service.Formats._
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
@@ -50,26 +47,28 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
             .withHttpHeaders("User-Agent" -> "Banana4Life")
             .withRequestTimeout(5.seconds)
 
+    private def get[T: Reads](url: String): Future[T] =
+        request(url).get().flatMap { response =>
+          if (response.status == 200) Future.successful(response.json.as[T])
+          else Future.failed(new LdJamApiException(response.status, response.body))
+        }
+
     private def findPostNodeIdsForUser(userid: Int): Future[Seq[Int]] = {
         val key = CacheHelper.jamUserFeed(userid)
         cache.get[Seq[Int]](key) flatMap {
             case Some(nodes) => Future.successful(nodes)
             case _ =>
-                request(s"$apiBaseUrl/vx/node/feed/$userid/author/post").get().map {
-                    case r if r.status == Status.OK =>
-                        val nodes = (r.json \ "feed" \\ "id").collect { case JsNumber(v) => v.toInt }
-                          .toList
-                        cache.set(key, nodes, CacheDuration)
-                        nodes
-                    case _ => Nil
-                }
+                getNodeFeed(userid, Seq("author"), "post", None, None, 0, 50) flatMap { response =>
+                    val nodes = response.feed.map(_.id)
+                    cache.set(key, nodes, CacheDuration).map(_ => nodes)
+                } recover { case _: LdJamApiException => Nil }
         }
     }
 
-    private def loadNodes(ids: Seq[Int]): Future[Seq[LdjamNode]] = {
+    private def loadNodes(ids: Seq[Int]): Future[Seq[Node]] = {
         if (ids.isEmpty) Future.successful(Nil)
         else {
-            val cachedNodes = Future.sequence(ids.map(i => cache.get[LdjamNode](CacheHelper.jamNode(i)))).map(_.flatten)
+            val cachedNodes = Future.sequence(ids.map(i => cache.get[Node](CacheHelper.jamNode(i)))).map(_.flatten)
 
             cachedNodes.flatMap { knownNodes =>
                 val knownIds = knownNodes.map(_.id).toSet
@@ -78,49 +77,50 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
                 else {
                     val urlSection = leftOver.mkString("+")
                     logger.info(s"Cache missed for $urlSection, loading...")
-                    val res = request(s"$apiBaseUrl/vx/node/get/$urlSection").get()
-                    res.flatMap {
-                        case r if r.status == Status.OK =>
-                            r.json \ "node" match {
-                                case JsDefined(JsArray(nodes)) =>
-                                    val newNodes = nodes.map(_.as[LdjamNode]).toSeq
-                                    Future.sequence(newNodes.map(n => cache.set(CacheHelper.jamNode(n.id), n, CacheDuration)))
-                                        .map(_ => newNodes)
-                                case _ => Future.successful(knownNodes)
-                            }
-                        case _ => Future.successful(knownNodes)
+                    getNodes(leftOver) flatMap { response =>
+                        val newNodes =  response.node
+                        Future.sequence(newNodes.map(n => cache.set(CacheHelper.jamNode(n.id), n, CacheDuration)))
+                          .map(_ => newNodes)
                     }
                 }
             }
         }
     }
 
-    private def nodesToPosts(nodes: Seq[LdjamNode]) = {
+    private def nodesToPosts(nodes: Seq[Node]) = {
         if (nodes.isEmpty) Nil
         else {
-            val (users, posts) = nodes.partition(_.`type` == "user")
+            val (users, posts) = nodes.foldLeft((Seq.empty[UserNode], Seq.empty[PostNode])) { case (existing @ (users, posts), node) =>
+                node match {
+                    case u: UserNode => (users :+ u, posts)
+                    case p: PostNode => (users, posts :+ p)
+                    case n =>
+                        logger.warn(s"Unknown node: $n")
+                        existing
+                }
+            }
             val authors = users.map(n => n.id -> n).toMap
 
             posts.map { n =>
-                val author: LdjamNode = authors.getOrElse(n.author, {
-                    logger.warn(s"Unknown user ID in found in post ${n.id}: ${n.author}. Known authors: ${users.map(_.id).mkString(",")}")
-                    LdjamNode(-1, "Unknown", -1, "", ZonedDateTime.now(), "user", "", Right(1))
+                val author = authors.getOrElse(n.author, {
+                    logger.warn(s"Unknown user ID found in post ${n.id}: ${n.author}. Known authors: ${users.map(_.id).mkString(",")}")
+                    UserNode(n.author, -1, -1, n.author, "author", FuzzyNone, FuzzyNone, Instant.now(), Instant.now(), Instant.now(), -1, "unknown", "Unknown", "", "", Nil, -1, FuzzyNone, 0, 0, 0)
                 })
-                val avatar = author.meta.left.toOption.flatMap(_.avatar).map(avatar => cdnBaseUrl + avatar.substring(2) + ".32x32.fit.jpg")
+                val avatar = author.meta.flatMap(_.avatar).map(avatar => cdnBaseUrl + avatar.substring(2) + ".32x32.fit.jpg")
                 val body = compileMarkdown(n.body)
-                LdjamPost(n.id, n.name, author, fixupNodeBody(body), n.created, s"$pageBaseUrl${author.path}", avatar)
+                LdjamPost(n.id, n.name, author, fixupNodeBody(body), n.created.atZone(ZoneId.systemDefault()), s"$pageBaseUrl${author.path}", avatar)
             }
         }
     }
 
-    private def nodeToJamEntry(node: LdjamNode) = {
+    private def nodeToJamEntry(node: Node) = {
         // TODO get authors \ "link" \ "author" - list
         // TODO cleanup body
         LdJamEntry(node.id, node.name, fixupNodeBody(node.body))
     }
 
     private def fixupNodeBody(rawBody: String): String = {
-        val r = "//(/raw/[^\\.].\\w+)".r
+        val r = "//(/raw/[^.].\\w+)".r
         val r2 = "<p>(<img[^>]+>)</p>".r
         var body = r.replaceAllIn(rawBody, cdnBaseUrl + _.group(1))
         body = compileMarkdown(body)
@@ -160,40 +160,179 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
             case Some(jam) =>
                 val cacheKey = CacheHelper.jamEntry(project.repoName)
 
-                cache.get[Int](cacheKey) flatMap {
-                    case Some(node) => Future.successful(Some(node))
-                    case _ =>
-                        logger.info(s"Cache missed for $cacheKey, loading...")
-                        request(s"$apiBaseUrl/vx/node/walk/1${jam.site.getPath}").get().map {
-                            case r if r.status == Status.OK =>
-                                r.json \ "node" match {
-                                    case JsDefined(JsNumber(n)) =>
-                                        val id = n.toInt
-                                        cache.set(cacheKey, id, CacheDuration)
-                                        Some(id)
-                                    case _ => None
-                                }
-                            case _ => None
-                        }
-                } flatMap {
+                cache.getOrElseUpdate[Int](cacheKey) {
+                    logger.info(s"Cache missed for $cacheKey, loading...")
+                    walk(1, jam.site.getPath).map { response =>
+                        cache.set(cacheKey, response.node, CacheDuration)
+                        response.node
+                    }
+                }.map(Some.apply).recover(_ => None).flatMap {
                     case Some(node) =>
-                        loadNodes(Seq(node)).map(_.headOption.map(nodeToJamEntry))
+                        loadNodes(Seq(node)).map( a => a.headOption.map(nodeToJamEntry))
                     case None =>
                         Future.successful(None)
                 }
             case None => Future.successful(None)
         }
     }
+
+    def urlList(values: Seq[_]): String = values.map(String.valueOf).mkString("+")
+
+    def getNodeFeed(node: Int, methods: Seq[String], mainType: String, subType: Option[String], subSubType: Option[String], offset: Int, limit: Int): Future[NodeFeedResponse] = {
+        if (limit > 50) {
+            throw new IllegalArgumentException("limit must be <= 50")
+        }
+        val t = (Seq(mainType) ++ subType ++ subSubType).mkString("/")
+
+        val url = s"$apiBaseUrl/vx/node/feed/$node/${urlList(methods)}/$t?offset=$offset&limit=$limit"
+        get[NodeFeedResponse](url)
+    }
+
+    def getNodes(nodes: Seq[Int]): Future[NodeGetResponse] = {
+        val url = s"$apiBaseUrl/vx/node/get/${urlList(nodes)}"
+        get[NodeGetResponse](url)
+    }
+
+    def walk(root: Int, path: String): Future[NodeWalkResponse] = {
+        if (!path.startsWith("/")) {
+            throw new IllegalArgumentException("path must begin with a /")
+        }
+
+        val url = s"$apiBaseUrl/vx/node/walk/$root$path"
+        get[NodeWalkResponse](url)
+    }
 }
 
 case class LdjamMeta(avatar: Option[String])
 
-case class LdjamNode(id: Int, name: String, author: Int, body: String, created: ZonedDateTime, `type`: String, path: String, meta: Either[LdjamMeta, Int])
-
-case class LdjamPost(id: Int, name: String, author: LdjamNode, body: String, createdAt: ZonedDateTime, authorLink: String, avatarLink: Option[String]) extends BlogPost {
+case class LdjamPost(id: Int, name: String, author: UserNode, body: String, createdAt: ZonedDateTime, authorLink: String, avatarLink: Option[String]) extends BlogPost {
     override def anchor: String = s"ldjam_$id"
 
     override def truncatedBody(paragraphs: Int): String = body
 }
 
 case class LdJamEntry(id: Int, name: String, body: String)
+
+case class LdjamEvent(id: Int, name: String, body: String)
+
+class LdJamApiException(status: Int, body: String) extends RuntimeException
+case class NodeGetResponse(status: Int, caller_id: Int, cached: Seq[Int], node: Seq[Node])
+object NodeGetResponse {
+    implicit val format: Format[NodeGetResponse] = Json.format
+}
+case class NodeFeedResponse(status: Int, caller_id: Int, method: Seq[String], types: Seq[String], offset: Int, limit: Int, feed: Seq[NodeFeedEntry])
+object NodeFeedResponse {
+    implicit val format: Format[NodeFeedResponse] = Json.format
+}
+case class NodeFeedEntry(id: Int, modified: Instant)
+object NodeFeedEntry {
+    implicit val format: Format[NodeFeedEntry] = Json.format
+}
+case class NodeWalkResponse(status: Int, caller_id: Int, root: Int, path: Seq[Int], node: Int)
+object NodeWalkResponse {
+    implicit val format: Format[NodeWalkResponse] = Json.format
+}
+
+sealed trait Node {
+    val id: Int
+    val parent: Int
+    val superparent: Int
+    val author: Int
+    val `type`: String
+    val subtype: FuzzyOption[String]
+    val subsubtype: FuzzyOption[String]
+    val published: Instant
+    val created: Instant
+    val modified: Instant
+    val version: Int
+    val slug: String
+    val name: String
+    val body: String
+    val path: String
+    val parents: Seq[Int]
+    val love: Int
+}
+object Node {
+    implicit val format: Format[Node] = new Format[Node] {
+        override def writes(o: Node): JsValue = o match {
+            case e: EventNode => implicitly[Writes[EventNode]].writes(e)
+            case a: UserNode => implicitly[Writes[UserNode]].writes(a)
+            case p: PostNode => implicitly[Writes[PostNode]].writes(p)
+            case p: GameNode => implicitly[Writes[GameNode]].writes(p)
+        }
+
+        override def reads(json: JsValue): JsResult[Node] = (json \ "type", json \ "subtype", json \ "subsubtype") match {
+            case (JsDefined(JsString("event")), _, _) => EventNode.format.reads(json)
+            case (JsDefined(JsString("user")), _, _) => UserNode.format.reads(json)
+            case (JsDefined(JsString("post")), _, _) => PostNode.format.reads(json)
+            case (JsDefined(JsString("item")), JsDefined(JsString("game")), _) => PostNode.format.reads(json)
+            case _ => JsError("unknown node type")
+        }
+    }
+}
+
+sealed trait FuzzyOption[+A] {
+    def get: A
+    def getOrElse[B >: A](default: => B): B
+    def toOption: Option[A]
+    def filter(f: A => Boolean): Option[A] = toOption.filter(f)
+    def map[B](f: A => B): Option[B] = toOption.map(f)
+    def flatMap[B](f: A => Option[B]): Option[B] = toOption.flatMap(f)
+}
+
+object FuzzyOption {
+    def apply[A](value: A): FuzzyOption[A] = if (value == null) FuzzyNone else FuzzySome(value)
+    def apply[A](opt: Option[A]): FuzzyOption[A] = opt match {
+        case Some(value) => FuzzySome(value)
+        case None => FuzzyNone
+    }
+
+    implicit def fuzzyOptionReads[T](implicit fmt: Reads[T]): Reads[FuzzyOption[T]] = {
+        case JsString("") => JsSuccess(FuzzyNone)
+        case JsArray(elems) if elems.isEmpty => JsSuccess(FuzzyNone)
+        case JsObject(elems) if elems.isEmpty => JsSuccess(FuzzyNone)
+        case json => fmt.reads(json).map(FuzzySome.apply)
+    }
+
+    implicit def fuzzyOptionWrites[T](implicit fmt: Writes[T]): Writes[FuzzyOption[T]] = {
+        case FuzzyNone => JsNull
+        case FuzzySome(value) => fmt.writes(value)
+    }
+}
+
+final case class FuzzySome[+A](value: A) extends FuzzyOption[A] {
+    override def get: A = value
+    override def getOrElse[B >: A](default: => B): B = value
+    override def toOption: Option[A] = Some(value)
+}
+case object FuzzyNone extends FuzzyOption[Nothing] {
+    override def get: Nothing = throw new NoSuchElementException("FuzzyNone.get")
+    override def getOrElse[B >: Nothing](default: => B): B = default
+    override def toOption: Option[Nothing] = None
+}
+
+
+
+final case class UserNode(id: Int, parent: Int, superparent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int, meta: FuzzyOption[UserMetadata], games: Int, articles: Int, posts: Int) extends Node
+case class UserMetadata(avatar: Option[String])
+object UserNode {
+    implicit val format: Format[UserNode] = Json.format
+}
+object UserMetadata {
+    implicit val format: Format[UserMetadata] = Json.format
+}
+
+final case class EventNode(id: Int, parent: Int, superparent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node
+object EventNode {
+    implicit val format: Format[EventNode] = Json.format
+}
+
+final case class PostNode(id: Int, parent: Int, superparent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node
+object PostNode {
+    implicit val format: Format[PostNode] = Json.format
+}
+
+final case class GameNode(id: Int, parent: Int, superparent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node
+object GameNode {
+    implicit val format: Format[GameNode] = Json.format
+}

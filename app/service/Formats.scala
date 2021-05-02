@@ -30,7 +30,6 @@ object Formats {
         }
     }
 
-    implicit val ldjamNode: Format[LdjamNode] = Json.format
     implicit val repo: Format[Repo] = Json.format
     implicit val jamInfo: Format[JamInfo] = Json.format
     implicit val webCheat: Format[WebCheat] = Json.format
