@@ -1,0 +1,9 @@
+@(payloads: Seq[String])
+
+@main("LDJam Event", "ldjamevent") {
+    <div id="ldjamevent">
+        @for(payload <- payloads) {
+            <pre>@payload</pre>
+        }
+    </div>
+}

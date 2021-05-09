@@ -1,6 +1,7 @@
 package controllers
 
 import play.api.cache.Cached
+import play.api.libs.json.Json
 import play.api.mvc._
 import service._
 
@@ -92,6 +93,20 @@ class MainController(cached: Cached,
                 }
             case None => Future.successful(NotFound)
 
+        }
+
+    }
+
+    def ldjamIndex(): Action[AnyContent] = Action.async {
+        for {
+            tags <- ldjam.getFeedOfNodes(0, Seq("all"), "tag", Some("platform"), None, 88)
+        } yield {
+            val values = Seq(
+                Json.toJson(tags),
+                Json.toJson(tags.map(_.id).sorted),
+                Json.toJson(tags.map(_.id).distinct.sorted),
+            )
+            Ok(views.html.ldjamevent(values.map(Json.prettyPrint)))
         }
 
     }

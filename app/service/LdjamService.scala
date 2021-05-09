@@ -18,6 +18,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: ExecutionContext, ws: WSClient) {
 
+    val MaxLimit = 250
+
     private val logger = Logger(classOf[LdjamService])
 
     val maxPosts = 5
@@ -47,11 +49,13 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
             .withHttpHeaders("User-Agent" -> "Banana4Life")
             .withRequestTimeout(5.seconds)
 
-    private def get[T <: ApiResponse: Reads](url: String): Future[T] =
+    private def get[T <: ApiResponse: Reads](url: String): Future[T] = {
+        logger.info(url)
         request(url).get().flatMap { response =>
           if (response.status == 200) Future.successful(response.json.as[T])
           else Future.failed(new LdJamApiException(url, response.status, response.body))
         }
+    }
 
     private def findPostNodeIdsForUser(userid: Int): Future[Seq[Int]] = {
         val key = CacheHelper.jamUserFeed(userid)
@@ -179,7 +183,7 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
     def urlList(values: Seq[?]): String = values.map(String.valueOf).mkString("+")
 
     def getNodeFeed(node: Int, methods: Seq[String], mainType: String, subType: Option[String], subSubType: Option[String], offset: Int, limit: Int): Future[NodeFeedResponse] = {
-        if (limit > 50) {
+        if (limit > MaxLimit) {
             throw new IllegalArgumentException("limit must be <= 50")
         }
         val t = (Seq(mainType) ++ subType ++ subSubType).mkString("/")
@@ -188,14 +192,30 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
         get[NodeFeedResponse](url)
     }
 
+    def getFeedOfNodes(node: Int, methods: Seq[String], mainType: String, subType: Option[String], subSubType: Option[String], sliceSize: Int = MaxLimit): Future[Seq[Node]] = {
+
+        def getSlide(offset: Int, nodes: Seq[Node]): Future[Seq[Node]] = {
+            getNodeFeed(node, methods, mainType, subType, subSubType, offset, sliceSize).flatMap { response =>
+                if (response.feed.isEmpty) Future.successful(nodes)
+                else {
+                    getNodes2(response.feed.map(_.id)).flatMap { nodesResponse =>
+                        getSlide(offset + sliceSize, nodes ++ nodesResponse.node)
+                    }
+                }
+            }
+        }
+
+        getSlide(0, Vector.empty)
+    }
+
     def getNodes(nodes: Seq[Int]): Future[NodeGetResponse] = {
         val url = s"$apiBaseUrl/vx/node/get/${urlList(nodes)}"
         get[NodeGetResponse](url)
     }
 
-    def getNodes2(nodes: Seq[Int]): Future[NodeGetResponse] = {
+    def getNodes2(nodes: Seq[Int]): Future[Node2GetResponse] = {
         val url = s"$apiBaseUrl/vx/node2/get/${urlList(nodes)}"
-        get[NodeGetResponse](url)
+        get[Node2GetResponse](url)
     }
 
     def walk(root: Int, path: String): Future[NodeWalkResponse] = {
@@ -234,17 +254,17 @@ sealed trait ApiResponse {
     val caller_id: Int
 }
 
-final case class NodeGetResponse(status: Int, caller_id: Int, cached: Seq[Int], node: Seq[Node]) extends ApiResponse
+final case class NodeGetResponse(status: Int, caller_id: Int, cached: Option[Seq[Int]], node: Seq[Node]) extends ApiResponse
 object NodeGetResponse {
     implicit val format: Format[NodeGetResponse] = Json.format
 }
 
-final case class Node2GetResponse(status: Int, caller_id: Int, cached: Seq[Int], node: Seq[Node]) extends ApiResponse
+final case class Node2GetResponse(status: Int, caller_id: Int, cached: Option[Seq[Int]], node: Seq[Node]) extends ApiResponse
 object Node2GetResponse {
     implicit val format: Format[Node2GetResponse] = Json.format
 }
 
-final case class NodeFeedResponse(status: Int, caller_id: Int, method: Seq[String], types: Seq[String], offset: Int, limit: Int, feed: Seq[NodeFeedEntry]) extends ApiResponse
+final case class NodeFeedResponse(status: Int, caller_id: Int, method: Seq[String], types: Seq[String], subtypes: Seq[String], offset: Int, limit: Int, feed: Seq[NodeFeedEntry], cached: Option[Boolean]) extends ApiResponse
 object NodeFeedResponse {
     implicit val format: Format[NodeFeedResponse] = Json.format
 }
