@@ -7,7 +7,7 @@ version := "1.0"
 lazy val root = (project in file("."))
     .enablePlugins(PlayScala)
 
-scalaVersion := "2.13.5"
+scalaVersion := "2.13.7"
 
 routesGenerator := InjectedRoutesGenerator
 
@@ -20,7 +20,7 @@ libraryDependencies ++= Seq(
   "com.google.apis"      % "google-api-services-youtube"  % "v3-rev20210410-1.31.0",
   "gov.sandia.foundry"   % "porter-stemmer"               % "1.4",
   "com.vladsch.flexmark" % "flexmark-all"                 % "0.62.2",
-  "org.webjars"          % "font-awesome"                 % "5.15.2"
+  "org.webjars"          % "font-awesome"                 % "5.15.3"
 )
 
 scalacOptions ++= Seq("-unchecked", "-deprecation")
