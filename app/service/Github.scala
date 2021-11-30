@@ -76,14 +76,12 @@ class GithubService(ws: WSClient, cache: SyncCacheApi, config: Configuration, im
 
     def complete(projectBasics: Seq[Repo], teams: Seq[(Team, (Seq[User], Seq[User]), Seq[Repo])]): Future[Seq[Project]] = {
 
-        val repoMembers = for {
+        val memberLookup = (for {
             (_, u, r) <- teams
             repo <- r
-        }
-        yield {
+        } yield {
             (repo.name, u)
-        }
-        val memberLookuqp = repoMembers.toMap
+        }).toMap
         val futures = projectBasics map { basics =>
             val fileName = ".banana4life/project.json"
             ws.url(basics.file(fileName)).get().map { response =>
@@ -92,7 +90,7 @@ class GithubService(ws: WSClient, cache: SyncCacheApi, config: Configuration, im
                 val date = meta.date
                     .map(d => d.atStartOfDay(ZoneId.systemDefault()))
                     .getOrElse(basics.created_at)
-                val (core, guests) = memberLookuqp.getOrElse(basics.name, (Seq.empty, Seq.empty))
+                val (core, guests) = memberLookup.getOrElse(basics.name, (Seq.empty, Seq.empty))
                 Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.jam,
                     meta.authors.sorted, new URL(basics.file(".banana4life/main.png")), date,
                     meta.download.getOrElse(basics.latestRelease), meta.soundtrack, meta.web, meta.cheats.getOrElse(Nil),
