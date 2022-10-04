@@ -376,7 +376,7 @@ object GameMetadata {
     implicit val format: Format[GameMetadata] = Json.format
 }
 
-case class GameMagic(cool: Double, feedback: Int, given: Double, grade: Double, smart: Double)
+case class GameMagic(cool: Double, feedback: Int, `given`: Double, grade: Double, smart: Double)
 object GameMagic {
     implicit val format: Format[GameMagic] = Json.format
 }

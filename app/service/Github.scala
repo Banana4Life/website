@@ -121,7 +121,8 @@ class GithubService(ws: WSClient, cache: SyncCacheApi, config: Configuration, im
         }
 
         for {
-            teams <- withAuth(teamsUrl).map(_.json.as[Seq[Team]])
+            response <- withAuth(teamsUrl)
+            teams = if ((200 to 299) contains response.status) response.json.as[Seq[Team]] else Seq()
             members <- Future.sequence(teams.map(team => withAuth(teamsMembersUrl(team.id)).map(_.json.as[Seq[Member]])))
             repos <- Future.sequence(teams.map(team => withAuth(teamsReposUrl(team.id)).map(_.json.as[Seq[Repo]])))
             allUsers <- getMembers
