@@ -366,7 +366,7 @@ object PostNode {
     implicit val format: Format[PostNode] = Json.format
 }
 
-final case class GameNode(id: Int, parent: Int, superparent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int, meta: GameMetadata, grades: Option[Map[String, Int]], notes: Int, `notes-timestamp`: Option[Instant], magic: GameMagic) extends Node
+final case class GameNode(id: Int, parent: Int, superparent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int, meta: GameMetadata, grades: Option[Map[String, Int]], notes: Option[Int], `notes-timestamp`: Option[Instant], magic: GameMagic) extends Node
 object GameNode {
     implicit val format: Format[GameNode] = Json.format
 }
