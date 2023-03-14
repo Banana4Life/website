@@ -2,7 +2,7 @@ package service
 
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.http.{HttpRequest, HttpRequestInitializer}
-import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.youtube.model.ThumbnailDetails
 import com.google.api.services.youtube.{YouTube, YouTubeRequestInitializer}
 import play.api.{Configuration, Logging}
@@ -23,7 +23,7 @@ case class YtVideo(id: String, channelName: String, name: String, description: S
 class YoutubeService(conf: Configuration, implicit val ec: ExecutionContext) extends Logging{
 
     private val youtube = {
-        val builder = new YouTube.Builder(new NetHttpTransport, new JacksonFactory, DummyInitializer)
+        val builder = new YouTube.Builder(new NetHttpTransport, new GsonFactory, DummyInitializer)
             .setApplicationName("banana4.life")
 
         builder.setYouTubeRequestInitializer(new YouTubeRequestInitializer(conf.get[String]("youtube.apiKey")))
