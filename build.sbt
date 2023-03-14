@@ -33,7 +33,10 @@ Compile / packageDoc / publishArtifact := false
 
 Assets / pipelineStages := Seq(digest, gzip)
 
-jibBaseImage := "adoptopenjdk/openjdk15:x86_64-alpine-jre-15.0.2_7"
+jibBaseImage := "docker.io/library/eclipse-temurin:11-jre-alpine"
+jibRegistry := "ghcr.io"
+jibOrganization := "banana4life"
+jibName := "website"
 
 jibMappings := (Assets / mappings).value
   .map { case (source, target) =>  (source, (Assets / WebKeys.packagePrefix).value + target) }
