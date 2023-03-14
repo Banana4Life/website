@@ -19,8 +19,8 @@ jobs:
         uses: coursier/cache-action@v6
       - name: Build and Publish
         env:
-          JIB_TARGET_IMAGE_USERNAME: ${{ secrets.JIB_TARGET_IMAGE_USERNAME }}
-          JIB_TARGET_IMAGE_PASSWORD: ${{ secrets.JIB_TARGET_IMAGE_PASSWORD }}
+          JIB_TARGET_IMAGE_USERNAME: ${{ github.actor }}
+          JIB_TARGET_IMAGE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         run: |
           sbt -v -Dfile.encoding=UTF-8 jibImageBuild
           rm -rf "$HOME/.ivy2/local" || true
