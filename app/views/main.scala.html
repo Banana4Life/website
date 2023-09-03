@@ -1,6 +1,6 @@
 @(title: String, className: String)(content: Html)
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <title>Banana4Life - @title</title>
         <meta charset="UTF-8">
@@ -47,9 +47,6 @@
                 </div>
                 <div id="footer-social" class="right">
                     <b>Connect</b><br>
-                    <span class="logo fab fa-twitter twitter"></span>
-                    <a class="twitter" href="https://twitter.com/bananafourlife">@@bananafourlife</a>
-                    <br>
                     <span class="logo fab fa-youtube youtube"></span>
                     <a class="youtube" href="https://www.youtube.com/channel/UCktbmYa9DDuKflH2okA1FjA">Jonas Dann</a>
                     <br>
@@ -57,7 +54,7 @@
                     <a class="github" href="https://github.com/Banana4Life">Banana4Life</a>
                 </div>
                 <div id="footer-logo">
-                    <a href="@routes.MainController.index()"><img src="@routes.Assets.versioned("images/Banana4Life-Logo.png")"></a>
+                    <a href="@routes.MainController.index()"><img src="@routes.Assets.versioned("images/Banana4Life-Logo.png")" alt="Banana4Life Logo"></a>
                 </div>
             </div>
             <div id="copyright">© Banana4Life, all rights reserved | Designed by <span><span>Jonas Dann</span></span></div>

@@ -10,7 +10,6 @@ class MainController(cached: Cached,
                      github: GithubService,
                      tumblr: TumblrService,
                      ldjam: LdjamService,
-                     twitter: TwitterService,
                      youtube: YoutubeService,
                      twitch: TwitchService,
                      searchIndex: SearchIndex,
@@ -22,7 +21,6 @@ class MainController(cached: Cached,
             curProject <- github.getCurrent
             projects <- github.getProjects
             posts <- tumblr.allPosts
-            tweets <- twitter.compiledTweets("bananafourlife", 9)
             videos <- youtube.getVideos
             twitchPlayer <- twitch.getPlayer
         } yield {
@@ -33,10 +31,10 @@ class MainController(cached: Cached,
             curProject match {
                 case Some(p) =>
                     ldjam.findEntry(p).map {
-                        case Some(node) => Ok(views.html.index(tweets, activities, twitchPlayer, Some(views.html.currentproject(p, node))))
-                        case None => Ok(views.html.index(tweets, activities, twitchPlayer, None))
+                        case Some(node) => Ok(views.html.index(activities, twitchPlayer, Some(views.html.currentproject(p, node))))
+                        case None => Ok(views.html.index(activities, twitchPlayer, None))
                     }
-                case None => Future.successful(Ok(views.html.index(tweets, activities, twitchPlayer, None)))
+                case None => Future.successful(Ok(views.html.index(activities, twitchPlayer, None)))
             }
         }
         future.flatten

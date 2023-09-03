@@ -1,4 +1,4 @@
-@(tweets: Seq[Html], activities: Seq[Html], twitchPlayer: Option[Html], currentProject: Option[Html])
+@(activities: Seq[Html], twitchPlayer: Option[Html], currentProject: Option[Html])
 
 @main("Home", "home") {
     <div id="index-main">
@@ -12,7 +12,7 @@
             @player
             </div>
         }
-        <div class="blog" id="index-left">
+        <div class="blog" id="index-content">
             <header class="round">
                 <h1><span class="far fa-newspaper" aria-hidden="true"></span> Latest Activities</h1>
             </header>
@@ -21,18 +21,6 @@
             }
         </div>
 
-        <div id="index-right">
-            <header class="round">
-                <a href="https://twitter.com"><span class="logo fab fa-twitter twitter twitterLogo" aria-hidden="true"></span> <h1>Twitter</h1></a>
-            </header>
-            <div>
-                @for(tweet <- tweets) {
-                    <div class="twitterItem">
-                        @tweet
-                    </div>
-                }
-            </div>
-        </div>
         <div class="clear"></div>
     </div>
 }

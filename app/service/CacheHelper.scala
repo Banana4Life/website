@@ -9,7 +9,6 @@ object CacheHelper {
     val ProjectsCacheKey = s"$BaseCacheKey.projects"
     val BlogCacheKey = s"$BaseCacheKey.blog.posts"
     val BlogCountCacheKey = s"$BaseCacheKey.blog.count"
-    val TwitterCacheKeyPrefix = s"$BaseCacheKey.twitter.page"
 
     def jamNode(id: Int) = s"$BaseCacheKey.ldjam.node.$id"
 
