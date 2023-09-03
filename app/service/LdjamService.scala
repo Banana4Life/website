@@ -104,7 +104,7 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
             posts.map { n =>
                 val author = authors.getOrElse(n.author, {
                     logger.warn(s"Unknown user ID found in post ${n.id}: ${n.author}. Known authors: ${users.map(_.id).mkString(",")}")
-                    UserNode(n.author, -1, -1, n.author, "author", FuzzyNone, FuzzyNone, Instant.now(), Instant.now(), Instant.now(), -1, "unknown", "Unknown", "", "", Nil, -1, FuzzyNone, 0, 0, 0)
+                    UserNode(n.author, -1, n.author, "author", FuzzyNone, FuzzyNone, Instant.now(), Instant.now(), Instant.now(), -1, "unknown", "Unknown", "", "", Nil, -1, FuzzyNone, 0, 0)
                 })
                 val avatar = author.meta.flatMap(_.avatar).map(avatar => cdnBaseUrl + avatar.substring(2) + ".32x32.fit.jpg")
                 val body = compileMarkdown(n.body)
@@ -265,7 +265,6 @@ object Node2WalkResponse {
 sealed trait Node {
     val id: Int
     val parent: Int
-    val superparent: Int
     val author: Int
     val `type`: String
     val subtype: FuzzyOption[String]
@@ -342,12 +341,12 @@ case object FuzzyNone extends FuzzyOption[Nothing] {
     override def toOption: Option[Nothing] = None
 }
 
-final case class GenericNode(id: Int, parent: Int, superparent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], meta: FuzzyOption[Map[String, String]], love: Int) extends Node
+final case class GenericNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], meta: FuzzyOption[Map[String, String]], love: Int) extends Node
 object GenericNode {
     implicit val format: Format[GenericNode] = Json.format
 }
 
-final case class UserNode(id: Int, parent: Int, superparent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int, meta: FuzzyOption[UserMetadata], games: Int, articles: Int, posts: Int) extends Node
+final case class UserNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int, meta: FuzzyOption[UserMetadata], games: Int, posts: Int) extends Node
 case class UserMetadata(avatar: Option[String])
 object UserNode {
     implicit val format: Format[UserNode] = Json.format
@@ -356,17 +355,17 @@ object UserMetadata {
     implicit val format: Format[UserMetadata] = Json.format
 }
 
-final case class EventNode(id: Int, parent: Int, superparent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node
+final case class EventNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node
 object EventNode {
     implicit val format: Format[EventNode] = Json.format
 }
 
-final case class PostNode(id: Int, parent: Int, superparent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node
+final case class PostNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node
 object PostNode {
     implicit val format: Format[PostNode] = Json.format
 }
 
-final case class GameNode(id: Int, parent: Int, superparent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int, meta: GameMetadata, grades: Option[Map[String, Int]], notes: Option[Int], `notes-timestamp`: Option[Instant], magic: GameMagic) extends Node
+final case class GameNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int, meta: GameMetadata, grades: Option[Map[String, Int]], notes: Option[Int], `notes-timestamp`: Option[Instant], magic: GameMagic) extends Node
 object GameNode {
     implicit val format: Format[GameNode] = Json.format
 }
