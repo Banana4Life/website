@@ -147,10 +147,10 @@ class GithubService(ws: WSClient, cache: SyncCacheApi, config: Configuration, im
 
     def getMembers = {
         ws.url("https://api.github.com/graphql").withAuth(config.get[String]("github.tokenUser"), config.get[String]("github.token"), BASIC).post(
-            Json.obj("query" -> "query { organization(login:\"Banana4Life\") { members(last:100) { nodes { login, name } } } }")
+            Json.obj("query" -> "query { organization(login:\"Banana4Life\") { membersWithRole(last:100) { nodes { login, name } } } }")
           ).map(_.json).map { v =>
             logger.info(v.toString())
-            v \ "data" \ "organization" \ "members" \ "nodes"
+            v \ "data" \ "organization" \ "membersWithRole" \ "nodes"
         } collect {
             case JsDefined(JsArray(nodes)) => nodes.map { value =>
                 val login = (value \ "login").get
@@ -170,8 +170,5 @@ class GithubService(ws: WSClient, cache: SyncCacheApi, config: Configuration, im
         } map { users =>
             users.map(user => (user.login, user)).toMap
         }
-
     }
-
-
 }
