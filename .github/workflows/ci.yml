@@ -36,7 +36,7 @@ jobs:
           curl -X POST \
             --fail \
             -F token=${DEPLOY_TOKEN} \
-            -F ref=REF_NAME \
+            -F ref=main \
             -F "variables[TARGET]=website" \
             -F "variables[IMAGE_VALUES]=$json" \
             https://cubyte.dev/api/v4/projects/373/trigger/pipeline
