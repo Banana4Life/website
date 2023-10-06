@@ -31,12 +31,14 @@ jobs:
       - name: Deploy
         env:
           DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           json="$(jq -c '{"image":{"repository": (.image | split(":")[0]), "tag": (.image | split(":")[1]), digest: .imageDigest}}' < target/jib-image.json)"
           curl -X POST \
             --fail \
-            -F token=${DEPLOY_TOKEN} \
-            -F ref=main \
+            -F "token=$DEPLOY_TOKEN" \
+            -F "ref=main" \
             -F "variables[TARGET]=website" \
             -F "variables[IMAGE_VALUES]=$json" \
+            -F "variables[COMMIT_MESSAGE]=$COMMIT_MESSAGE" \
             https://cubyte.dev/api/v4/projects/373/trigger/pipeline
