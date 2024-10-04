@@ -1,17 +1,17 @@
 package service
 
-import java.net.URL
+import java.net.URI
 import java.time.temporal.ChronoUnit
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
-
 import com.fasterxml.jackson.core.JsonParseException
 import play.api.cache.SyncCacheApi
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.libs.ws.WSAuthScheme.BASIC
 import play.api.libs.ws.WSClient
+import play.api.libs.ws.JsonBodyWritables.*
 import play.api.{Configuration, Logger}
 import service.CacheHelper.{CacheDuration, ProjectsCacheKey}
-import service.Formats._
+import service.Formats.*
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
@@ -19,19 +19,19 @@ import scala.concurrent.{ExecutionContext, Future}
 case class Repo(name: String, html_url: String, full_name: String, created_at: ZonedDateTime, default_branch: String) {
     def file(path: String, branch: String = default_branch) = s"https://raw.githubusercontent.com/$full_name/$branch/$path"
 
-    lazy val latestRelease = new URL(s"https://github.com/$full_name/releases/latest")
+    lazy val latestRelease = URI(s"https://github.com/$full_name/releases/latest")
 }
 
-case class JamInfo(name: String, number: Int, theme: String, site: URL, comments: Seq[String])
+case class JamInfo(name: String, number: Int, theme: String, site: URI, comments: Seq[String])
 
 case class WebCheat(label: String, gameObject: String, message: String)
 
 case class ProjectMeta(name: String, description: String, jam: Option[JamInfo], authors: Seq[String],
-                       download: Option[URL], soundtrack: Option[URL], date: Option[LocalDate], web: Option[URL], cheats: Option[Seq[WebCheat]])
+                       download: Option[URI], soundtrack: Option[URI], date: Option[LocalDate], web: Option[URI], cheats: Option[Seq[WebCheat]])
 
-case class Project(repoName: String, displayName: String, url: URL, description: String,
-                   jam: Option[JamInfo], authors: Seq[String], imageUrl: URL,
-                   createdAt: ZonedDateTime, download: URL, soundtrack: Option[URL], web: Option[URL], cheats: Seq[WebCheat],
+case class Project(repoName: String, displayName: String, url: URI, description: String,
+                   jam: Option[JamInfo], authors: Seq[String], imageUrl: URI,
+                   createdAt: ZonedDateTime, download: URI, soundtrack: Option[URI], web: Option[URI], cheats: Seq[WebCheat],
                    coreUsers: Seq[User], guests: Seq[User])
 
 case class Team(name: String, id: Int, slug: String, description: String)
@@ -91,8 +91,8 @@ class GithubService(ws: WSClient, cache: SyncCacheApi, config: Configuration, im
                     .map(d => d.atStartOfDay(ZoneId.systemDefault()))
                     .getOrElse(basics.created_at)
                 val (core, guests) = memberLookup.getOrElse(basics.name, (Seq.empty, Seq.empty))
-                Project(basics.name, meta.name, new URL(basics.html_url), meta.description, meta.jam,
-                    meta.authors.sorted, new URL(basics.file(".banana4life/main.png")), date,
+                Project(basics.name, meta.name, URI(basics.html_url), meta.description, meta.jam,
+                    meta.authors.sorted, URI(basics.file(".banana4life/main.png")), date,
                     meta.download.getOrElse(basics.latestRelease), meta.soundtrack, meta.web, meta.cheats.getOrElse(Nil),
                     core.sortBy(_.name), guests.sortBy(_.name))
             }.recover({
@@ -130,7 +130,7 @@ class GithubService(ws: WSClient, cache: SyncCacheApi, config: Configuration, im
             val allTeams = teams zip members zip repos map {
                 case ((t, m), r) => (t, m, r)
             }
-            val coreTeam = allTeams.find(_._1.name == CoreTeam).map(_._2).getOrElse(Set.empty).map(_.login).toSet
+            val coreTeam = allTeams.find(_._1.name == CoreTeam).map(_._2).getOrElse(Set.empty[Member]).map(_.login).toSet
 
             def getUser(m: Seq[Member]) = {
                 m.map { mm =>
@@ -146,29 +146,31 @@ class GithubService(ws: WSClient, cache: SyncCacheApi, config: Configuration, im
     }
 
     def getMembers = {
-        ws.url("https://api.github.com/graphql").withAuth(config.get[String]("github.tokenUser"), config.get[String]("github.token"), BASIC).post(
-            Json.obj("query" -> "query { organization(login:\"Banana4Life\") { membersWithRole(last:100) { nodes { login, name } } } }")
-          ).map(_.json).map { v =>
-            logger.info(v.toString())
-            v \ "data" \ "organization" \ "membersWithRole" \ "nodes"
-        } collect {
-            case JsDefined(JsArray(nodes)) => nodes.map { value =>
-                val login = (value \ "login").get
-                val name = value \ "name" match {
-                    case JsDefined(n) =>
-                        n match {
-                            case JsNull => login
-                            case JsString("") => login
-                            case _ => n
-                        }
-                    case _ => login
-                }
+        val query = Json.obj("query" -> "query { organization(login:\"Banana4Life\") { membersWithRole(last:100) { nodes { login, name } } } }")
+        ws.url("https://api.github.com/graphql").withAuth(config.get[String]("github.tokenUser"), config.get[String]("github.token"), BASIC)
+          .post(query)
+          .map(_.json)
+          .map { v =>
+                logger.info(v.toString())
+                v \ "data" \ "organization" \ "membersWithRole" \ "nodes"
+            } collect {
+                case JsDefined(JsArray(nodes)) => nodes.map { value =>
+                    val login = (value \ "login").get
+                    val name = value \ "name" match {
+                        case JsDefined(n) =>
+                            n match {
+                                case JsNull => login
+                                case JsString("") => login
+                                case _ => n
+                            }
+                        case _ => login
+                    }
 
-                User(login.as[String], name.as[String])
-              }
-            case _ => Seq.empty
-        } map { users =>
-            users.map(user => (user.login, user)).toMap
-        }
+                    User(login.as[String], name.as[String])
+                  }
+                case _ => Seq.empty
+            } map { users =>
+                users.map(user => (user.login, user)).toMap
+            }
     }
 }

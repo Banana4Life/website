@@ -57,8 +57,8 @@ class MainController(cached: Cached,
             blogPosts <- tumblr.allPosts
             projects <- github.getProjects
         } yield {
-            val blogDocs = blogPosts.map(TumblrDoc)
-            val projectDocs = projects.map(ProjectDoc)
+            val blogDocs = blogPosts.map(TumblrDoc.apply)
+            val projectDocs = projects.map(ProjectDoc.apply)
 
             val docs: Seq[Doc] = blogDocs ++ projectDocs
 

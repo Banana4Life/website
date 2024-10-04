@@ -1,18 +1,17 @@
 package service
 
-import java.net.URL
-
-import play.api.libs.json._
+import java.net.URI
+import play.api.libs.json.*
 
 object Formats {
 
-    implicit object UrlFormat extends Format[URL] {
-        override def reads(json: JsValue): JsResult[URL] = json match {
-            case JsString(s) => JsSuccess(new URL(s))
+    implicit object UrlFormat extends Format[URI] {
+        override def reads(json: JsValue): JsResult[URI] = json match {
+            case JsString(s) => JsSuccess(URI(s))
             case _ => JsError("Not a URL")
         }
 
-        override def writes(o: URL): JsValue = JsString(o.toString)
+        override def writes(o: URI): JsValue = JsString(o.toString)
     }
 
     implicit val repo: Format[Repo] = Json.format

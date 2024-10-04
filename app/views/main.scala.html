@@ -24,10 +24,10 @@
         <nav>
             <div class="main-column">
                 <ul>
-                    <li><a href="@routes.MainController.index()" class="@(if(title == "Home") "current")">Home</a></li>
-                    <li><a href="@routes.BlogController.firstBlogPage()" class="@(if(title == "Blog") "current")">Blog</a></li>
-                    <li><a href="@routes.MainController.projects()" class="@(if(title == "Projects") "current")">Projects</a></li>
-                    <li><a href="@routes.MainController.about()" class="@(if(title == "About") "current")">About</a></li>
+                    <li><a href="@routes.MainController.index()" class="@(if(title == "Home") "current" else "")">Home</a></li>
+                    <li><a href="@routes.BlogController.firstBlogPage()" class="@(if(title == "Blog") "current" else "")">Blog</a></li>
+                    <li><a href="@routes.MainController.projects()" class="@(if(title == "Projects") "current" else "")">Projects</a></li>
+                    <li><a href="@routes.MainController.about()" class="@(if(title == "About") "current" else "")">About</a></li>
                 </ul>
             </div>
             <div class="clear"></div>

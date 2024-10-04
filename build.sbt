@@ -7,7 +7,7 @@ version := "1.0"
 lazy val root = (project in file("."))
     .enablePlugins(PlayScala)
 
-scalaVersion := "2.13.11"
+scalaVersion := "3.3.3"
 
 routesGenerator := InjectedRoutesGenerator
 
@@ -32,7 +32,7 @@ Compile / packageDoc / publishArtifact := false
 
 Assets / pipelineStages := Seq(digest, gzip)
 
-jibBaseImage := "docker.io/library/eclipse-temurin:11-jre-alpine"
+jibBaseImage := "docker.io/library/eclipse-temurin:21-jre-alpine"
 jibRegistry := "ghcr.io"
 jibOrganization := "banana4life"
 jibName := "website"

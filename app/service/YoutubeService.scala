@@ -7,17 +7,17 @@ import com.google.api.services.youtube.model.ThumbnailDetails
 import com.google.api.services.youtube.{YouTube, YouTubeRequestInitializer}
 import play.api.{Configuration, Logging}
 
-import java.net.URL
+import java.net.URI
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object DummyInitializer extends HttpRequestInitializer {
     override def initialize(request: HttpRequest): Unit = {}
 }
 
-case class YtVideo(id: String, channelName: String, name: String, description: String, thumbnail: URL, publishedAt: ZonedDateTime) {
-    lazy val url = new URL(s"https://www.youtube.com/watch?v=$id")
+case class YtVideo(id: String, channelName: String, name: String, description: String, thumbnail: URI, publishedAt: ZonedDateTime) {
+    lazy val url = URI(s"https://www.youtube.com/watch?v=$id")
 }
 
 class YoutubeService(conf: Configuration, implicit val ec: ExecutionContext) extends Logging{
@@ -51,9 +51,9 @@ class YoutubeService(conf: Configuration, implicit val ec: ExecutionContext) ext
           }
     }
 
-    def getBestThumbnailURL(id: String, thumbs: ThumbnailDetails): URL = {
+    def getBestThumbnailURL(id: String, thumbs: ThumbnailDetails): URI = {
         val p = Seq(thumbs.getMaxres, thumbs.getHigh, thumbs.getMedium, thumbs.getStandard, thumbs.getDefault)
-        new URL(p.filter(_ != null).head.getUrl)
+        URI(p.filter(_ != null).head.getUrl)
     }
 
     def getVideosOfPlaylist(id: String): Seq[YtVideo] = {

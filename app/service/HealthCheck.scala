@@ -1,7 +1,7 @@
 package service
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
 import play.api.libs.ws.ahc.AhcWSClient
 
 import scala.concurrent.Await
@@ -10,7 +10,7 @@ import scala.concurrent.duration.Duration
 object HealthCheck {
     def main(args: Array[String]): Unit = {
         val actorSystem = ActorSystem.create("healthcheck")
-        implicit val materializer = Materializer.matFromSystem(actorSystem)
+        implicit val materializer: Materializer = Materializer.matFromSystem(actorSystem)
         val client = AhcWSClient()
 
         try {
