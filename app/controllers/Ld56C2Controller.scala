@@ -25,6 +25,11 @@ object JoinAcceptMessage {
   implicit val format: Format[JoinAcceptMessage] = Json.format
 }
 
+final case class IceCandidateMessage(sourceId: UUID, destinationId: UUID, m: String, i: Int, name: String) extends HosterMessage with JoinerMessage
+object IceCandidateMessage {
+  implicit val format: Format[IceCandidateMessage] = Json.format
+}
+
 sealed trait HosterMessage
 final case class HostingMessage(playerCount: Int) extends HosterMessage
 final case class HostAcceptsJoinMessage(id: UUID, peerId: Option[Int], answer: String) extends HosterMessage
@@ -89,7 +94,7 @@ class HostHandler(out: ActorRef,
                   id: UUID,
                   remote: InetAddress,
                   private val hosts: ConcurrentMap[UUID, GameHost]) extends SignalActor(out, id, remote, hosters) {
-  override def receiveText(text: String) = {
+  override def receiveText(text: String): Unit = {
     try
       Json.parse(text).as[HosterMessage] match
         case HostingMessage(playerCount) =>
@@ -99,6 +104,8 @@ class HostHandler(out: ActorRef,
           if (joiner != null) {
             joiner ! Json.toJson(JoinAcceptMessage(peerId.getOrElse(2), answer)).toString
           }
+        case candidate @ IceCandidateMessage(_, dest, _, _, _) =>
+          joiners.get(dest) ! Json.toJson(candidate)
     catch
       case e: Exception =>
         logger.error("Kaputt", e)
@@ -116,32 +123,38 @@ class JoinHandler(out: ActorRef,
                   id: UUID,
                   remote: InetAddress,
                   private val hosts: ConcurrentMap[UUID, GameHost]) extends SignalActor(out, id, remote, joiners) {
-  override def receiveText(text: String) = {
+  override def receiveText(text: String): Unit = {
     logger.info(Json.toJson[JoinerMessage](JoinMessage("SOME OFFER")).toString)
-    Json.parse(text).as[JoinerMessage] match
-      case JoinMessage(offer) =>
-        val it = hosts.entrySet().iterator()
-        var latestUpdate = Instant.MIN
-        var latestHost: GameHost = null
-        while (it.hasNext) {
-          val entry = it.next()
-          val host = entry.getValue
-          if (host.lastUpdated < Instant.now().minus(Duration.ofSeconds(1000))) {
-            val actor = hosters.remove(entry.getKey)
+    try
+      Json.parse(text).as[JoinerMessage] match
+        case JoinMessage(offer) =>
+          val it = hosts.entrySet().iterator()
+          var latestUpdate = Instant.MIN
+          var latestHost: GameHost = null
+          while (it.hasNext) {
+            val entry = it.next()
+            val host = entry.getValue
+            if (host.lastUpdated < Instant.now().minus(Duration.ofSeconds(1000))) {
+              val actor = hosters.remove(entry.getKey)
 
-            it.remove()
-            actor ! PoisonPill
-          } else {
-            if (host.lastUpdated > latestUpdate) {
-              latestUpdate = host.lastUpdated
-              latestHost = host
+              it.remove()
+              actor ! PoisonPill
+            } else {
+              if (host.lastUpdated > latestUpdate) {
+                latestUpdate = host.lastUpdated
+                latestHost = host
+              }
             }
           }
-        }
-        if (latestHost != null) {
-          hosters.get(latestHost.id) ! Json.toJson(JoinRequestMessage(id, offer)).toString
-        } else {
-          logger.warn("No host available!")
-        }
+          if (latestHost != null) {
+            hosters.get(latestHost.id) ! Json.toJson(JoinRequestMessage(id, offer)).toString
+          } else {
+            logger.warn("No host available!")
+          }
+        case candidate @ IceCandidateMessage(_, dest, _, _, _) =>
+          hosters.get(dest) ! Json.toJson(candidate)
+    catch
+      case e: Exception =>
+        logger.error("Kaputt", e)
   }
 }
