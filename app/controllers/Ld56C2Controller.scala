@@ -15,12 +15,17 @@ import scala.math.Ordering.Implicits.infixOrderingOps
 
 private val logger = Logger(classOf[Ld56C2Controller])
 
-final case class JoinRequestMessage(id: UUID, offer: String)
-object JoinRequestMessage {
-  implicit val format: Format[JoinRequestMessage] = Json.format
+final case class JoiningMessage(id: UUID)
+object JoiningMessage {
+  implicit val format: Format[JoiningMessage] = Json.format
 }
 
-final case class JoinAcceptMessage(id: UUID, peerId: Int, answer: String)
+final case class OfferingMessage(id: UUID, offer: String)
+object OfferingMessage {
+  implicit val format: Format[OfferingMessage] = Json.format
+}
+
+final case class JoinAcceptMessage(id: UUID, peerId: Int)
 object JoinAcceptMessage {
   implicit val format: Format[JoinAcceptMessage] = Json.format
 }
@@ -30,22 +35,31 @@ object IceCandidateMessage {
   implicit val format: Format[IceCandidateMessage] = Json.format
 }
 
+final case class AnswerMessage(answer: String)
+object AnswerMessage {
+  implicit val format: Format[AnswerMessage] = Json.format
+}
+
 sealed trait HosterMessage
 final case class HostingMessage(playerCount: Int) extends HosterMessage
-final case class HostAcceptsJoinMessage(id: UUID, peerId: Int, answer: String) extends HosterMessage
+final case class HostAcceptsJoinMessage(id: UUID, peerId: Int) extends HosterMessage
+final case class AnsweringMessage(destination: UUID, answer: String) extends HosterMessage
 
 
 object HosterMessage {
   implicit val hostingFormat: Format[HostingMessage] = Json.format
   implicit val hostAcceptsJoinMessageFormat: Format[HostAcceptsJoinMessage] = Json.format
+  implicit val answeringMessageFormat: Format[AnsweringMessage] = Json.format
   implicit val hosterMessageFormat: Format[HosterMessage] = Json.format
 }
 
 sealed trait JoinerMessage
-final case class JoinMessage(offer: String) extends JoinerMessage
+final case class JoinMessage() extends JoinerMessage
+final case class OfferMessage(destination: UUID, offer: String) extends JoinerMessage
 
 object JoinerMessage {
   implicit val joinFormat: Format[JoinMessage] = Json.format
+  implicit val offerFormat: Format[OfferMessage] = Json.format
   implicit val joinerFormat: Format[JoinerMessage] = Json.format
 }
 
@@ -99,13 +113,15 @@ class HostHandler(out: ActorRef,
       Json.parse(text).as[HosterMessage] match
         case HostingMessage(playerCount) =>
           hosts.put(id, GameHost(id, playerCount, Instant.now()))
-        case controllers.HostAcceptsJoinMessage(id, peerId, answer) =>
+        case HostAcceptsJoinMessage(id, peerId) =>
           val joiner = joiners.get(id)
           if (joiner != null) {
-            joiner ! Json.toJson(JoinAcceptMessage(id, peerId, answer)).toString
+            joiner ! Json.toJson(JoinAcceptMessage(id, peerId)).toString
           }
         case candidate @ IceCandidateMessage(_, dest, _, _, _) =>
           joiners.get(dest) ! Json.toJson(candidate)
+        case AnsweringMessage(dest, answer) =>
+          joiners.get(dest) ! Json.toJson(AnswerMessage(answer))
     catch
       case e: Exception =>
         logger.error("Kaputt", e)
@@ -124,10 +140,9 @@ class JoinHandler(out: ActorRef,
                   remote: InetAddress,
                   private val hosts: ConcurrentMap[UUID, GameHost]) extends SignalActor(out, id, remote, joiners) {
   override def receiveText(text: String): Unit = {
-    logger.info(Json.toJson[JoinerMessage](JoinMessage("SOME OFFER")).toString)
     try
       Json.parse(text).as[JoinerMessage] match
-        case JoinMessage(offer) =>
+        case JoinMessage() =>
           val it = hosts.entrySet().iterator()
           var latestUpdate = Instant.MIN
           var latestHost: GameHost = null
@@ -147,10 +162,12 @@ class JoinHandler(out: ActorRef,
             }
           }
           if (latestHost != null) {
-            hosters.get(latestHost.id) ! Json.toJson(JoinRequestMessage(id, offer)).toString
+            hosters.get(latestHost.id) ! Json.toJson(JoiningMessage(id)).toString
           } else {
             logger.warn("No host available!")
           }
+        case OfferMessage(dest, offer) =>
+          hosters.get(dest) ! Json.toJson(OfferingMessage(id, offer))
         case candidate @ IceCandidateMessage(_, dest, _, _, _) =>
           hosters.get(dest) ! Json.toJson(candidate)
     catch
