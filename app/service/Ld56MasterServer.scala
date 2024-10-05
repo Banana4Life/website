@@ -6,12 +6,10 @@ import play.api.libs.json.*
 import java.net.{InetSocketAddress, SocketAddress}
 import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel
-import java.nio.charset.StandardCharsets
 import java.time.{Duration, Instant}
 import java.util.concurrent.ConcurrentHashMap
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.math.Ordering.Implicits.infixOrderingOps
-import scala.util.Random
 
 sealed trait ResponseMessage
 final case class HostResponseMessage(host: String, port: Int) extends ResponseMessage
@@ -63,7 +61,6 @@ class Ld56MasterServer {
   private val channel = DatagramChannel.open()
   channel.bind(InetSocketAddress(39875))
   private val readBuffer = ByteBuffer.allocateDirect(8196)
-  private val writeBuffer = ByteBuffer.allocateDirect(8196)
   private val hostMap = ConcurrentHashMap[String, HostingHost]()
   logger.info("LD56 C2 Server listening!")
 

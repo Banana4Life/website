@@ -15,3 +15,6 @@ GET        /search                           controllers.MainController.search(q
 GET        /assets/*file                     controllers.Assets.versioned(path="/public", file: Asset)
 
 GET        /dev                              controllers.MainController.dev()
+
+GET /ld56/signal/:id/host  controllers.Ld56C2Controller.signalHost(id)
+GET /ld56/signal/:id/join  controllers.Ld56C2Controller.signalJoin(id)

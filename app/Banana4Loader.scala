@@ -32,7 +32,7 @@ class Banana4Components(context: ApplicationLoader.Context)
   private val youtubeService = new YoutubeService(configuration, executionContext)
   private val twitchService = new TwitchService(configuration, wsClient, executionContext)
   private val searchIndexService = new SearchIndex
-  private val ld56MasterServer = new Ld56MasterServer
+  //private val ld56MasterServer = new Ld56MasterServer
 
   // ActionBuilders
   private val cached = new Cached(defaultCacheApi)
@@ -41,12 +41,14 @@ class Banana4Components(context: ApplicationLoader.Context)
   private val errorHandler = new ErrorHandler(environment, configuration, devContext.map(_.sourceMapper), Some(router))
   private val blogController = new BlogController(cached, githubService, tumblrService, ldjamService, youtubeService, twitchService, searchIndexService, executionContext, controllerComponents)
   private val mainController = new MainController(cached, githubService, tumblrService, ldjamService, youtubeService, twitchService, searchIndexService, executionContext, controllerComponents)
+  private val ld56C2Controller = new Ld56C2Controller(controllerComponents)(actorSystem, materializer)
 
   // The router
   override def router: Router = new _root_.router.Routes(
     errorHandler,
     mainController,
     blogController,
-    assets
+    assets,
+    ld56C2Controller,
   )
 }
