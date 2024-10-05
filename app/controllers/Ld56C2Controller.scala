@@ -11,8 +11,6 @@ import java.net.InetAddress
 import java.time.{Duration, Instant}
 import java.util.UUID
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
-import scala.collection.mutable
-import scala.math.Numeric.Implicits.infixNumericOps
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 private val logger = Logger(classOf[Ld56C2Controller])
@@ -22,14 +20,14 @@ object JoinRequestMessage {
   implicit val format: Format[JoinRequestMessage] = Json.format
 }
 
-final case class JoinAcceptMessage(answer: String)
+final case class JoinAcceptMessage(peerId: Int, answer: String)
 object JoinAcceptMessage {
   implicit val format: Format[JoinAcceptMessage] = Json.format
 }
 
 sealed trait HosterMessage
 final case class HostingMessage(playerCount: Int) extends HosterMessage
-final case class HostAcceptsJoinMessage(id: UUID, answer: String) extends HosterMessage
+final case class HostAcceptsJoinMessage(id: UUID, peerId: Option[Int], answer: String) extends HosterMessage
 
 
 object HosterMessage {
@@ -96,10 +94,10 @@ class HostHandler(out: ActorRef,
       Json.parse(text).as[HosterMessage] match
         case HostingMessage(playerCount) =>
           hosts.put(id, GameHost(id, playerCount, Instant.now()))
-        case controllers.HostAcceptsJoinMessage(id, answer) =>
+        case controllers.HostAcceptsJoinMessage(id, peerId, answer) =>
           val joiner = joiners.get(id)
           if (joiner != null) {
-            joiner ! Json.toJson(JoinAcceptMessage(answer)).toString
+            joiner ! Json.toJson(JoinAcceptMessage(peerId.getOrElse(2), answer)).toString
           }
     catch
       case e: Exception =>
