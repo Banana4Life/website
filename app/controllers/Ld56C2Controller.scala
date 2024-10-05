@@ -20,7 +20,7 @@ object JoinRequestMessage {
   implicit val format: Format[JoinRequestMessage] = Json.format
 }
 
-final case class JoinAcceptMessage(peerId: Int, answer: String)
+final case class JoinAcceptMessage(id: UUID, peerId: Int, answer: String)
 object JoinAcceptMessage {
   implicit val format: Format[JoinAcceptMessage] = Json.format
 }
@@ -32,7 +32,7 @@ object IceCandidateMessage {
 
 sealed trait HosterMessage
 final case class HostingMessage(playerCount: Int) extends HosterMessage
-final case class HostAcceptsJoinMessage(id: UUID, peerId: Option[Int], answer: String) extends HosterMessage
+final case class HostAcceptsJoinMessage(id: UUID, peerId: Int, answer: String) extends HosterMessage
 
 
 object HosterMessage {
@@ -102,7 +102,7 @@ class HostHandler(out: ActorRef,
         case controllers.HostAcceptsJoinMessage(id, peerId, answer) =>
           val joiner = joiners.get(id)
           if (joiner != null) {
-            joiner ! Json.toJson(JoinAcceptMessage(peerId.getOrElse(2), answer)).toString
+            joiner ! Json.toJson(JoinAcceptMessage(id, peerId, answer)).toString
           }
         case candidate @ IceCandidateMessage(_, dest, _, _, _) =>
           joiners.get(dest) ! Json.toJson(candidate)
