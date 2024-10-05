@@ -109,7 +109,7 @@ class Ld56MasterServer {
         if hosts.nonEmpty then
           val randomHost = hosts(Random.nextInt(hosts.length))
 
-          sendMessage(PunchRequestMessage(sourceAddr.getAddress.getHostAddress, sourceAddr.getPort), InetSocketAddress.createUnresolved(randomHost.c2Host.addr, randomHost.c2Host.port))
+          sendMessage(PunchRequestMessage(sourceAddr.getAddress.getHostAddress, sourceAddr.getPort), InetSocketAddress(randomHost.c2Host.addr, randomHost.c2Host.port))
           sendMessage(JoinResponseMessage(randomHost.gameHost.addr, randomHost.gameHost.port, randomHost.playerCount), sourceAddr)
   }
 }
