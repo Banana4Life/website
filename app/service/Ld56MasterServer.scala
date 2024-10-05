@@ -107,9 +107,9 @@ class Ld56MasterServer {
         })
         val hosts = hostMap.values().asScala.toVector
         if hosts.nonEmpty then
-          val randomHost = hosts(Random.nextInt(hosts.length))
+          val mostRecent = hosts.maxBy(_.lastHosted)
 
-          sendMessage(PunchRequestMessage(sourceAddr.getAddress.getHostAddress, sourceAddr.getPort), InetSocketAddress(randomHost.c2Host.addr, randomHost.c2Host.port))
-          sendMessage(JoinResponseMessage(randomHost.gameHost.addr, randomHost.gameHost.port, randomHost.playerCount), sourceAddr)
+          sendMessage(PunchRequestMessage(sourceAddr.getAddress.getHostAddress, sourceAddr.getPort), InetSocketAddress(mostRecent.c2Host.addr, mostRecent.c2Host.port))
+          sendMessage(JoinResponseMessage(mostRecent.gameHost.addr, mostRecent.gameHost.port, mostRecent.playerCount), sourceAddr)
   }
 }
