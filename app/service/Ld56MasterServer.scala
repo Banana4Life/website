@@ -101,6 +101,6 @@ class Ld56MasterServer {
         if hosts.nonEmpty then
           val randomHost = hosts(Random.nextInt(hosts.length))
 
-          sendMessage(JoinResponseMessage(randomHost.host, randomHost.port, 0), sourceAddr)
+          sendMessage(JoinResponseMessage(randomHost.host, randomHost.port, randomHost.playerCount), sourceAddr)
   }
 }
