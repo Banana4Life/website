@@ -57,6 +57,7 @@ class Ld56MasterServer {
   private val readBuffer = ByteBuffer.allocateDirect(8196)
   private val writeBuffer = ByteBuffer.allocateDirect(8196)
   private val hostMap = ConcurrentHashMap[String, HostingHost]()
+  logger.info("LD56 C2 Server listening!")
 
   private val ioThread = Thread.ofVirtual().start(() => {
     while (!Thread.interrupted()) {
