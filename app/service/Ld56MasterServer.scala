@@ -9,17 +9,19 @@ import java.nio.channels.DatagramChannel
 import java.nio.charset.StandardCharsets
 import java.time.{Duration, Instant}
 import java.util.concurrent.ConcurrentHashMap
-import scala.jdk.CollectionConverters.{CollectionHasAsScala, EnumerationHasAsScala}
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.math.Ordering.Implicits.infixOrderingOps
 import scala.util.Random
 
 sealed trait ResponseMessage
 final case class HostResponseMessage(host: String, port: Int) extends ResponseMessage
 final case class JoinResponseMessage(host: String, port: Int, playerCount: Int) extends ResponseMessage
+final case class PunchRequestMessage(host: String, port: Int) extends ResponseMessage
 
 object ResponseMessage {
   implicit val hostResponseFormat: Format[HostResponseMessage] = Json.format
   implicit val joinResponseFormat: Format[JoinResponseMessage] = Json.format
+  implicit val punchRequestFormat: Format[PunchRequestMessage] = Json.format
 }
 
 sealed trait Message
@@ -48,7 +50,13 @@ object Message {
   }
 }
 
-final case class HostingHost(host: String, port: Int, playerCount: Int, lastHosted: Instant)
+final case class Host(addr: String, port: Int)
+
+object Host {
+  implicit val format: Format[Host] = Json.format
+}
+
+final case class HostingHost(gameHost: Host, c2Host: Host, playerCount: Int, lastHosted: Instant)
 
 class Ld56MasterServer {
   private val logger = Logger(classOf[Ld56MasterServer])
@@ -92,7 +100,7 @@ class Ld56MasterServer {
         sendMessage(HostResponseMessage(sourceAddr.getAddress.getHostAddress, sourceAddr.getPort), sourceAddr)
       case HostingMessage(host, port, playerCount) =>
         val hostPort = s"$host:$port"
-        hostMap.put(hostPort, HostingHost(host, port, playerCount, now))
+        hostMap.put(hostPort, HostingHost(Host(host, port), Host(sourceAddr.getAddress.getHostAddress, sourceAddr.getPort), playerCount, now))
       case JoinMessage() =>
         hostMap.entrySet().removeIf(entry => {
           entry.getValue.lastHosted < now.minus(Duration.ofSeconds(20))
@@ -101,6 +109,7 @@ class Ld56MasterServer {
         if hosts.nonEmpty then
           val randomHost = hosts(Random.nextInt(hosts.length))
 
-          sendMessage(JoinResponseMessage(randomHost.host, randomHost.port, randomHost.playerCount), sourceAddr)
+          sendMessage(PunchRequestMessage(sourceAddr.getAddress.getHostAddress, sourceAddr.getPort), InetSocketAddress.createUnresolved(randomHost.c2Host.addr, randomHost.c2Host.port))
+          sendMessage(JoinResponseMessage(randomHost.gameHost.addr, randomHost.gameHost.port, randomHost.playerCount), sourceAddr)
   }
 }
