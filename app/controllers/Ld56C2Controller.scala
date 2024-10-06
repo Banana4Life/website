@@ -42,7 +42,7 @@ object AnswerMessage {
 
 sealed trait HosterMessage
 final case class HostingMessage(playerCount: Int) extends HosterMessage
-final case class HostAcceptsJoinMessage(id: UUID, peerId: Int) extends HosterMessage
+final case class  HostAcceptsJoinMessage(id: UUID, peerId: Int) extends HosterMessage
 final case class AnsweringMessage(destination: UUID, answer: String) extends HosterMessage
 
 
@@ -119,9 +119,9 @@ class HostHandler(out: ActorRef,
             joiner ! Json.toJson(JoinAcceptMessage(myId, peerId)).toString
           }
         case candidate @ IceCandidateMessage(_, dest, _, _, _) =>
-          joiners.get(dest) ! Json.toJson(candidate)
+          joiners.get(dest) ! Json.toJson(candidate).toString
         case AnsweringMessage(dest, answer) =>
-          joiners.get(dest) ! Json.toJson(AnswerMessage(answer))
+          joiners.get(dest) ! Json.toJson(AnswerMessage(answer)).toString
     catch
       case e: Exception =>
         logger.error("Kaputt", e)
@@ -167,9 +167,9 @@ class JoinHandler(out: ActorRef,
             logger.warn("No host available!")
           }
         case OfferMessage(dest, offer) =>
-          hosters.get(dest) ! Json.toJson(OfferingMessage(myId, offer))
+          hosters.get(dest) ! Json.toJson(OfferingMessage(myId, offer)).toString
         case candidate @ IceCandidateMessage(_, dest, _, _, _) =>
-          hosters.get(dest) ! Json.toJson(candidate)
+          hosters.get(dest) ! Json.toJson(candidate).toString
     catch
       case e: Exception =>
         logger.error("Kaputt", e)
