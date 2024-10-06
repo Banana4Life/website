@@ -44,11 +44,12 @@ class YoutubeService(conf: Configuration, implicit val ec: ExecutionContext) ext
     }
 
     def getVideos: Future[Seq[YtVideo]] = {
-        this.uploadsPlaylistId.map(getVideosOfPlaylist)
-          .recover { e =>
-              logger.error("Failed to get videos!", e)
-              Nil
-          }
+//        this.uploadsPlaylistId.map(getVideosOfPlaylist)
+//          .recover { e =>
+//              logger.error("Failed to get videos!", e)
+//              Nil
+//          }
+        Future.successful(Seq.empty)
     }
 
     def getBestThumbnailURL(id: String, thumbs: ThumbnailDetails): URI = {
