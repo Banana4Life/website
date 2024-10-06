@@ -11,6 +11,7 @@ import java.net.InetAddress
 import java.time.{Duration, Instant}
 import java.util.UUID
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
+import scala.collection.mutable.ArrayBuffer
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 private val logger = Logger(classOf[Ld56C2Controller])
@@ -144,27 +145,20 @@ class JoinHandler(out: ActorRef,
       Json.parse(text).as[JoinerMessage] match
         case JoinMessage() =>
           val it = hosts.entrySet().iterator()
-          var latestUpdate = Instant.MIN
-          var latestHost: GameHost = null
+          val viableHosts = ArrayBuffer[GameHost]()
           while (it.hasNext) {
             val entry = it.next()
             val host = entry.getValue
             if (host.lastUpdated < Instant.now().minus(Duration.ofSeconds(1000))) {
               val actor = hosters.remove(entry.getKey)
-
               it.remove()
               actor ! PoisonPill
             } else {
-              if (host.lastUpdated > latestUpdate) {
-                latestUpdate = host.lastUpdated
-                latestHost = host
-              }
+                viableHosts.append(host)
             }
           }
-          if (latestHost != null) {
-            hosters.get(latestHost.id) ! Json.toJson(JoiningMessage(myId)).toString
-          } else {
-            logger.warn("No host available!")
+          if (viableHosts.nonEmpty) {
+            hosters.get(pickBestHost(viableHosts.toIndexedSeq).id) ! Json.toJson(JoiningMessage(myId)).toString
           }
         case OfferMessage(dest, offer) =>
           hosters.get(dest) ! Json.toJson(OfferingMessage(myId, offer)).toString
@@ -173,5 +167,9 @@ class JoinHandler(out: ActorRef,
     catch
       case e: Exception =>
         logger.error("Kaputt", e)
+  }
+
+  private def pickBestHost(hosts: IndexedSeq[GameHost]): GameHost = {
+    hosts.maxBy(_.lastUpdated)
   }
 }
