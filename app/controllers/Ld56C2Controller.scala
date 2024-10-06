@@ -64,7 +64,7 @@ object JoinerMessage {
   implicit val joinerFormat: Format[JoinerMessage] = Json.format
 }
 
-final case class GameHost(id: UUID, playerCount: Int, lastUpdated: Instant)
+final case class GameHost(id: UUID, playerCount: Int, lastUpdated: Instant, inceptionTime: Instant)
 
 class Ld56C2Controller(cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer) {
   private val hosterConnections = ConcurrentHashMap[UUID, ActorRef]()
@@ -113,7 +113,11 @@ class HostHandler(out: ActorRef,
     try
       Json.parse(text).as[HosterMessage] match
         case HostingMessage(playerCount) =>
-          hosts.put(myId, GameHost(myId, playerCount, Instant.now()))
+          hosts.compute(myId, { (key, value) =>
+            val now = Instant.now()
+            if (value == null) GameHost(myId, playerCount, now, now)
+            else value.copy(playerCount = playerCount, lastUpdated = now)
+          })
         case HostAcceptsJoinMessage(id, peerId) =>
           val joiner = joiners.get(id)
           if (joiner != null) {
@@ -173,7 +177,8 @@ class JoinHandler(out: ActorRef,
 
   private def pickBestHost(hosts: IndexedSeq[GameHost]): Option[GameHost] = {
     val actuallyViable = hosts.filter(_.playerCount < 30)
-    implicit val ordering: Ordering[GameHost] = Ordering.by(_.playerCount)
-    actuallyViable.sorted(ordering).headOption
+    val playerCountOrdering: Ordering[GameHost] = Ordering.by(_.playerCount)
+    val inceptionTimeOrdering: Ordering[GameHost] = Ordering.by(_.inceptionTime)
+    actuallyViable.sorted(playerCountOrdering.reverse orElse inceptionTimeOrdering).headOption
   }
 }
