@@ -158,7 +158,9 @@ class JoinHandler(out: ActorRef,
             }
           }
           if (viableHosts.nonEmpty) {
-            hosters.get(pickBestHost(viableHosts.toIndexedSeq).id) ! Json.toJson(JoiningMessage(myId)).toString
+            for { host <- pickBestHost(viableHosts.toIndexedSeq) } {
+              hosters.get(host.id) ! Json.toJson(JoiningMessage(myId)).toString
+            }
           }
         case OfferMessage(dest, offer) =>
           hosters.get(dest) ! Json.toJson(OfferingMessage(myId, offer)).toString
@@ -169,7 +171,9 @@ class JoinHandler(out: ActorRef,
         logger.error("Kaputt", e)
   }
 
-  private def pickBestHost(hosts: IndexedSeq[GameHost]): GameHost = {
-    hosts.maxBy(_.lastUpdated)
+  private def pickBestHost(hosts: IndexedSeq[GameHost]): Option[GameHost] = {
+    val actuallyViable = hosts.filter(_.playerCount < 30)
+    implicit val ordering: Ordering[GameHost] = Ordering.by(_.playerCount)
+    actuallyViable.sorted(ordering).headOption
   }
 }
