@@ -105,18 +105,18 @@ abstract class SignalActor(val out: ActorRef, val id: UUID, val remote: InetAddr
 class HostHandler(out: ActorRef,
                   hosters: ConcurrentMap[UUID, ActorRef],
                   private val joiners: ConcurrentMap[UUID, ActorRef],
-                  id: UUID,
+                  myId: UUID,
                   remote: InetAddress,
-                  private val hosts: ConcurrentMap[UUID, GameHost]) extends SignalActor(out, id, remote, hosters) {
+                  private val hosts: ConcurrentMap[UUID, GameHost]) extends SignalActor(out, myId, remote, hosters) {
   override def receiveText(text: String): Unit = {
     try
       Json.parse(text).as[HosterMessage] match
         case HostingMessage(playerCount) =>
-          hosts.put(id, GameHost(id, playerCount, Instant.now()))
+          hosts.put(myId, GameHost(myId, playerCount, Instant.now()))
         case HostAcceptsJoinMessage(id, peerId) =>
           val joiner = joiners.get(id)
           if (joiner != null) {
-            joiner ! Json.toJson(JoinAcceptMessage(id, peerId)).toString
+            joiner ! Json.toJson(JoinAcceptMessage(myId, peerId)).toString
           }
         case candidate @ IceCandidateMessage(_, dest, _, _, _) =>
           joiners.get(dest) ! Json.toJson(candidate)
@@ -129,16 +129,16 @@ class HostHandler(out: ActorRef,
 
   override def postStop(): Unit = {
     super.postStop()
-    hosts.remove(id)
+    hosts.remove(myId)
   }
 }
 
 class JoinHandler(out: ActorRef,
                   private val hosters: ConcurrentMap[UUID, ActorRef],
                   joiners: ConcurrentMap[UUID, ActorRef],
-                  id: UUID,
+                  myId: UUID,
                   remote: InetAddress,
-                  private val hosts: ConcurrentMap[UUID, GameHost]) extends SignalActor(out, id, remote, joiners) {
+                  private val hosts: ConcurrentMap[UUID, GameHost]) extends SignalActor(out, myId, remote, joiners) {
   override def receiveText(text: String): Unit = {
     try
       Json.parse(text).as[JoinerMessage] match
@@ -162,12 +162,12 @@ class JoinHandler(out: ActorRef,
             }
           }
           if (latestHost != null) {
-            hosters.get(latestHost.id) ! Json.toJson(JoiningMessage(id)).toString
+            hosters.get(latestHost.id) ! Json.toJson(JoiningMessage(myId)).toString
           } else {
             logger.warn("No host available!")
           }
         case OfferMessage(dest, offer) =>
-          hosters.get(dest) ! Json.toJson(OfferingMessage(id, offer))
+          hosters.get(dest) ! Json.toJson(OfferingMessage(myId, offer))
         case candidate @ IceCandidateMessage(_, dest, _, _, _) =>
           hosters.get(dest) ! Json.toJson(candidate)
     catch
