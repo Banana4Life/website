@@ -5,13 +5,15 @@ import org.apache.pekko.stream.Materializer
 import play.api.Logger
 import play.api.libs.json.{Format, JsError, JsObject, JsResult, JsString, JsValue, Json}
 import play.api.libs.streams.ActorFlow
-import play.api.mvc.{ControllerComponents, WebSocket}
+import play.api.mvc.{AbstractController, AnyContent, ControllerComponents, WebSocket}
 
 import java.net.InetAddress
 import java.time.{Duration, Instant}
 import java.util.UUID
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
 import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.Future
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 private val logger = Logger(classOf[Ld56C2Controller])
@@ -64,12 +66,27 @@ object JoinerMessage {
   implicit val joinerFormat: Format[JoinerMessage] = Json.format
 }
 
+final case class StatsResponse(servers: Int, latestServer: Option[Instant], players: Int, latestPlayer: Option[Instant])
+object StatsResponse {
+  implicit val format: Format[StatsResponse] = Json.format
+}
+
 final case class GameHost(id: UUID, playerCount: Int, lastUpdated: Instant, inceptionTime: Instant)
 
-class Ld56C2Controller(cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer) {
+class Ld56C2Controller(cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer) extends AbstractController(cc) {
   private val hosterConnections = ConcurrentHashMap[UUID, ActorRef]()
   private val joinerConnections = ConcurrentHashMap[UUID, ActorRef]()
   private val hosts = ConcurrentHashMap[UUID, GameHost]()
+  private var lastJoinTime: Instant = _
+
+  def stats() = Action.async { request =>
+    val gameHosts = hosts.values().asScala.toVector
+    val latestHost =
+      if (hosts.isEmpty) None
+      else Some(gameHosts.map(_.inceptionTime).max)
+      
+    Future.successful(Ok(Json.toJson(StatsResponse(gameHosts.length, latestHost, gameHosts.map(_.playerCount).sum, Option(lastJoinTime)))))
+  }
 
   def signalHost(id: String) = WebSocket.accept[String, String] { request =>
     val clientId = UUID.fromString(id)
@@ -78,6 +95,7 @@ class Ld56C2Controller(cc: ControllerComponents)(implicit system: ActorSystem, m
 
   def signalJoin(id: String) = WebSocket.accept[String, String] { request =>
     val clientId = UUID.fromString(id)
+    lastJoinTime = Instant.now()
     ActorFlow.actorRef { out => Props(JoinHandler(out, hosterConnections, joinerConnections, clientId, request.connection.remoteAddress, hosts)) }
   }
 }
