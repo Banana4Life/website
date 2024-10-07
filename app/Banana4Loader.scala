@@ -32,7 +32,6 @@ class Banana4Components(context: ApplicationLoader.Context)
   private val youtubeService = new YoutubeService(configuration, executionContext)
   private val twitchService = new TwitchService(configuration, wsClient, executionContext)
   private val searchIndexService = new SearchIndex
-  //private val ld56MasterServer = new Ld56MasterServer
 
   // ActionBuilders
   private val cached = new Cached(defaultCacheApi)
