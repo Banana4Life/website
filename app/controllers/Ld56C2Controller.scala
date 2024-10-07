@@ -3,9 +3,9 @@ package controllers
 import org.apache.pekko.actor.{Actor, ActorRef, ActorSystem, PoisonPill, Props}
 import org.apache.pekko.stream.Materializer
 import play.api.Logger
-import play.api.libs.json.{Format, JsError, JsObject, JsResult, JsString, JsValue, Json}
+import play.api.libs.json.*
 import play.api.libs.streams.ActorFlow
-import play.api.mvc.{AbstractController, AnyContent, ControllerComponents, WebSocket}
+import play.api.mvc.{AbstractController, ControllerComponents, WebSocket}
 
 import java.net.InetAddress
 import java.time.{Duration, Instant}
@@ -71,7 +71,10 @@ object StatsResponse {
   implicit val format: Format[StatsResponse] = Json.format
 }
 
-final case class GameHost(id: UUID, playerCount: Int, lastUpdated: Instant, inceptionTime: Instant)
+val HostTimeout = Duration.ofSeconds(30)
+final case class GameHost(id: UUID, playerCount: Int, lastUpdated: Instant, inceptionTime: Instant) {
+  def isStale(asOf: Instant) = lastUpdated < asOf.minus(HostTimeout)
+}
 
 class Ld56C2Controller(cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer) extends AbstractController(cc) {
   private val hosterConnections = ConcurrentHashMap[UUID, ActorRef]()
@@ -80,11 +83,13 @@ class Ld56C2Controller(cc: ControllerComponents)(implicit system: ActorSystem, m
   private var lastJoinTime: Instant = _
 
   def stats() = Action.async { request =>
+    val now = Instant.now()
+    hosts.entrySet().removeIf(entry => entry.getValue.isStale(now))
     val gameHosts = hosts.values().asScala.toVector
     val latestHost =
       if (hosts.isEmpty) None
       else Some(gameHosts.map(_.inceptionTime).max)
-      
+
     Future.successful(Ok(Json.toJson(StatsResponse(gameHosts.length, latestHost, gameHosts.map(_.playerCount).sum, Option(lastJoinTime)))))
   }
 
@@ -168,10 +173,11 @@ class JoinHandler(out: ActorRef,
         case JoinMessage() =>
           val it = hosts.entrySet().iterator()
           val viableHosts = ArrayBuffer[GameHost]()
+          val now = Instant.now()
           while (it.hasNext) {
             val entry = it.next()
             val host = entry.getValue
-            if (host.lastUpdated < Instant.now().minus(Duration.ofSeconds(1000))) {
+            if (host.isStale(now)) {
               val actor = hosters.remove(entry.getKey)
               it.remove()
               actor ! PoisonPill
