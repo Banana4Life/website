@@ -97,7 +97,7 @@ class Ld56C2Controller(cc: ControllerComponents)(implicit system: ActorSystem, m
   }
 
   def stats() = Action.async { request =>
-
+    logger.info(s"${request.connection.remoteAddress} requested stats")
     Future.successful(Ok(Json.toJson(gatherStats())))
   }
 
