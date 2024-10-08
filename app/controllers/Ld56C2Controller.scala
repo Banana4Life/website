@@ -7,10 +7,14 @@ import play.api.libs.json.*
 import play.api.libs.streams.ActorFlow
 import play.api.mvc.{AbstractController, ControllerComponents, WebSocket}
 
+import java.awt.{Color, Graphics2D}
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
 import java.net.InetAddress
 import java.time.{Duration, Instant}
 import java.util.UUID
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
+import javax.imageio.ImageIO
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters.CollectionHasAsScala
@@ -82,15 +86,45 @@ class Ld56C2Controller(cc: ControllerComponents)(implicit system: ActorSystem, m
   private val hosts = ConcurrentHashMap[UUID, GameHost]()
   private var lastJoinTime: Instant = _
 
-  def stats() = Action.async { request =>
+  private def gatherStats(): StatsResponse = {
     val now = Instant.now()
     hosts.entrySet().removeIf(entry => entry.getValue.isStale(now))
     val gameHosts = hosts.values().asScala.toVector
     val latestHost =
       if (hosts.isEmpty) None
       else Some(gameHosts.map(_.inceptionTime).max)
+    StatsResponse(gameHosts.length, latestHost, gameHosts.map(_.playerCount).sum, Option(lastJoinTime))
+  }
 
-    Future.successful(Ok(Json.toJson(StatsResponse(gameHosts.length, latestHost, gameHosts.map(_.playerCount).sum, Option(lastJoinTime)))))
+  def stats() = Action.async { request =>
+
+    Future.successful(Ok(Json.toJson(gatherStats())))
+  }
+
+  def statsPicture() = Action.async { request =>
+    logger.info(s"${request.connection.remoteAddress} requested stats as image")
+    val stats = gatherStats()
+
+    val w = 100
+    val h = 50
+    val image = BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
+    val graphics = image.getGraphics.asInstanceOf[Graphics2D]
+    graphics.setColor(Color.BLACK)
+    graphics.drawString(s"Servers: ${stats.servers}", 5, 15)
+    graphics.drawString(s"Players: ${stats.players}", 5, 35)
+    graphics.dispose()
+    val output = ByteArrayOutputStream()
+    ImageIO.write(image, "png", output)
+
+    val cacheHeaders = Seq(
+      "Pragma-directive" -> "no-cache",
+      "Cache-directive" -> "no-cache",
+      "Cache-control" -> "no-cache",
+      "Pragma" -> "no-cache",
+      "Expires" -> "0",
+    )
+
+    Future.successful(Ok(output.toByteArray).as("image/png").withHeaders(cacheHeaders*))
   }
 
   def signalHost(id: String) = WebSocket.accept[String, String] { request =>
