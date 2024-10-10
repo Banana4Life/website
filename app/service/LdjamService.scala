@@ -176,7 +176,7 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
         }
     }
 
-    def urlList(values: Seq[_]): String = values.map(String.valueOf).mkString("+")
+    def urlList(values: Seq[?]): String = values.map(String.valueOf).mkString("+")
 
     def getNodeFeed(node: Int, methods: Seq[String], mainType: String, subType: Option[String], subSubType: Option[String], offset: Int, limit: Int): Future[NodeFeedResponse] = {
         if (limit > 50) {

@@ -7,7 +7,7 @@ version := "1.0"
 lazy val root = (project in file("."))
     .enablePlugins(PlayScala)
 
-scalaVersion := "3.3.3"
+scalaVersion := "3.5.1"
 
 routesGenerator := InjectedRoutesGenerator
 
@@ -21,8 +21,6 @@ libraryDependencies ++= Seq(
   "com.vladsch.flexmark" % "flexmark-all"                % "0.64.8",
   "org.webjars"          % "font-awesome"                % "5.15.4",
 )
-
-scalacOptions ++= Seq("-unchecked", "-deprecation")
 
 Compile / doc / sources := Seq.empty
 

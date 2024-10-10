@@ -13,6 +13,7 @@ import java.io.ByteArrayOutputStream
 import java.net.InetAddress
 import java.time.{Duration, Instant}
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
 import javax.imageio.ImageIO
 import scala.collection.mutable.ArrayBuffer
@@ -84,7 +85,7 @@ class Ld56C2Controller(cc: ControllerComponents)(implicit system: ActorSystem, m
   private val hosterConnections = ConcurrentHashMap[UUID, ActorRef]()
   private val joinerConnections = ConcurrentHashMap[UUID, ActorRef]()
   private val hosts = ConcurrentHashMap[UUID, GameHost]()
-  private var lastJoinTime: Instant = _
+  private var lastJoinTime = AtomicReference[Instant]()
 
   private def gatherStats(): StatsResponse = {
     val now = Instant.now()
@@ -93,7 +94,7 @@ class Ld56C2Controller(cc: ControllerComponents)(implicit system: ActorSystem, m
     val latestHost =
       if (hosts.isEmpty) None
       else Some(gameHosts.map(_.inceptionTime).max)
-    StatsResponse(gameHosts.length, latestHost, gameHosts.map(_.playerCount).sum, Option(lastJoinTime))
+    StatsResponse(gameHosts.length, latestHost, gameHosts.map(_.playerCount).sum, Option(lastJoinTime.get()))
   }
 
   def stats() = Action.async { request =>
@@ -134,7 +135,7 @@ class Ld56C2Controller(cc: ControllerComponents)(implicit system: ActorSystem, m
 
   def signalJoin(id: String) = WebSocket.accept[String, String] { request =>
     val clientId = UUID.fromString(id)
-    lastJoinTime = Instant.now()
+    lastJoinTime.set(Instant.now())
     ActorFlow.actorRef { out => Props(JoinHandler(out, hosterConnections, joinerConnections, clientId, request.connection.remoteAddress, hosts)) }
   }
 }
