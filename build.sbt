@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
   "com.google.apis"      % "google-api-services-youtube" % "v3-rev20230822-2.0.0",
   "gov.sandia.foundry"   % "porter-stemmer"              % "1.4",
   "com.vladsch.flexmark" % "flexmark-all"                % "0.64.8",
-  "org.webjars"          % "font-awesome"                % "6.6.0",
+  "org.webjars"          % "font-awesome"                % "6.7.1",
 )
 
 Compile / doc / sources := Seq.empty
