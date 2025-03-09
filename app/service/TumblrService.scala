@@ -2,16 +2,15 @@ package service
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.util
-
-import com.tumblr.jumblr.JumblrClient
-import com.tumblr.jumblr.types.{Post, TextPost}
+import io.circe.parser.parse
+import io.circe.{Decoder, Json}
 import play.api.cache.AsyncCacheApi
+import play.api.libs.ws.{BodyReadable, WSClient}
 import play.api.{Configuration, Logger}
 import service.CacheHelper.BlogCacheKey
 
 import scala.collection.immutable.ArraySeq
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -31,14 +30,29 @@ case class TumblrPost(id: Long, createdAt: ZonedDateTime, title: String, body: S
     }
 }
 
-class TumblrService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: ExecutionContext) {
+private implicit def bodyReadable[T: Decoder]: BodyReadable[T] = BodyReadable[T] { response =>
+    parse(response.bodyAsBytes.utf8String) match
+        case Left(value) => throw value
+        case Right(value) => value.as[T] match
+            case Left(value) => throw value
+            case Right(value) => value
+}
+
+private case class TumblrResponse[T](response: T) derives Decoder
+private case class TumblrBlogResponse[T](blog: T) derives Decoder
+private case class TumblrBlogInfo(posts: Int) derives Decoder
+private case class TumblrBlogPosts(posts: Seq[TumblrBlogPost]) derives Decoder
+private case class TumblrBlogPost(id: Long, date: String, title: String, body: String, tags: Vector[String], blog_name: String, source_title: Option[String]) derives Decoder
+
+class TumblrService(conf: Configuration, ws: WSClient, cache: AsyncCacheApi, implicit val ec: ExecutionContext) {
 
     private val logger = Logger(classOf[TumblrService])
 
     private val tumblrDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z")
 
-    private val client =
-        new JumblrClient(conf.get[String]("tumblr.consumerKey"), conf.get[String]("tumblr.consumerSecret"))
+    private val blogName = "bananafourlife"
+    private val consumerKey = conf.get[String]("tumblr.consumerKey")
+    private val tumblrApiBaseUrl = s"https://api.tumblr.com/v2/blog/$blogName.tumblr.com"
 
     def getPost(id: Long): Future[Option[TumblrPost]] = {
         allPosts.map(_.find(_.id == id))
@@ -56,36 +70,54 @@ class TumblrService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: 
         }
     }
 
-    def convertPost(post: Post): TumblrPost = {
-        val date = ZonedDateTime.parse(post.getDateGMT, tumblrDateFormat)
-        post match {
-            case p: TextPost =>
-                TumblrPost(p.getId, date, p.getTitle, p.getBody, p.getTags.asScala.toSeq, p.getBlogName)
-            case p =>
-                logger.warn(s"Incompatible Tumblr post type: ${p.getClass.getName}")
-                TumblrPost(p.getId, date, p.getSourceTitle, "Can't handle this", p.getTags.asScala.toSeq, p.getBlogName)
+    private def convertPost(post: TumblrBlogPost): TumblrPost = {
+        val date = ZonedDateTime.parse(post.date, tumblrDateFormat)
+        TumblrPost(post.id, date, post.title, post.body, post.tags, post.blog_name)
+    }
+
+    private def fetchAllPosts(pageSize: Int): Future[Seq[TumblrBlogPost]] = blogInfo() flatMap { info =>
+        val postCount = info.posts
+        val pageCount = math.ceil(postCount / pageSize.toFloat).toInt
+        logger.info(s"Tumblr has $postCount posts resulting in $pageCount requests!")
+        val pages = (0 until pageCount).map(_ * pageSize).map { offset =>
+            blogPosts(offset, pageSize).map(posts => {
+                println(posts)
+                posts
+            })
         }
+        Future.sequence(pages).map(pages => {
+            pages.flatten
+        })
     }
 
     def allPosts: Future[Seq[TumblrPost]] = {
-        val blogName = "bananafourlife"
-        val pageSize = 20
-
         cache.getOrElseUpdate(BlogCacheKey, Duration.Inf) {
-            Future {
-                val postCount = client.blogInfo(blogName).getPostCount
-                val pageCount = math.ceil(postCount / pageSize.toFloat).toInt
+            fetchAllPosts(pageSize = 20).map(_.map(convertPost))
+        }.recover { t => {
+            logger.error(s"Failed to fetch tumblr posts: ${t.getMessage}", t)
+            Seq.empty
+        }}
+    }
 
-                logger.info(s"Tumblr has $postCount posts resulting in $pageCount requests!")
+    private def blogInfo(): Future[TumblrBlogInfo] = {
+        queryTumblr[TumblrBlogResponse[TumblrBlogInfo]]("/info", Seq.empty).map(_.blog)
+    }
 
-                val options = new util.HashMap[String, Int]()
-                options.put("limit", pageSize)
+    private def blogPosts(offset: Int, limit: Int): Future[Seq[TumblrBlogPost]] = {
+        queryTumblr[TumblrBlogPosts]("/posts", Seq(("offset", offset.toString), ("limit", limit.toString))).map(_.posts)
+    }
 
-                (0 until pageCount).map(_ * pageSize).flatMap { offset =>
-                    options.put("offset", offset)
-                    client.blogPosts(blogName, options).asScala.map(convertPost)
-                }
+    private def queryTumblr[T: Decoder](path: String, queryParams: Seq[(String, String)]): Future[T] = {
+        ws.url(s"$tumblrApiBaseUrl$path")
+          .withQueryStringParameters(queryParams :+ (("api_key", consumerKey)) *)
+          .get()
+          .flatMap { res =>
+            if 200 <= res.status && res.status < 300 then {
+                Future.successful(res.body[TumblrResponse[T]])
+            } else {
+                Future.failed(IllegalStateException(s"Tumblr request failed: ${res.status}: ${res.bodyAsBytes.utf8String}"))
             }
-        }
+          }
+          .map(_.response)
     }
 }

@@ -27,7 +27,7 @@ class Banana4Components(context: ApplicationLoader.Context)
 
   // Services
   private val githubService = new GithubService(wsClient, defaultCacheApi.sync, configuration, executionContext)
-  private val tumblrService = new TumblrService(configuration, defaultCacheApi, executionContext)
+  private val tumblrService = new TumblrService(configuration, wsClient, defaultCacheApi, executionContext)
   private val ldjamService = new LdjamService(configuration, defaultCacheApi, executionContext, wsClient)
   private val youtubeService = new YoutubeService(configuration, executionContext)
   private val twitchService = new TwitchService(configuration, wsClient, executionContext)

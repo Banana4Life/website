@@ -22,7 +22,7 @@ class MainControllerSpec extends Specification {
             val home = route(app, FakeRequest(GET, "/")).get
 
             status(home) must equalTo(OK)
-            contentType(home) must beSome.which(_ == "text/html")
+            contentType(home) must beSome[String].which(_ == "text/html")
             contentAsString(home) must contain("Banana4Life")
         }
     }
