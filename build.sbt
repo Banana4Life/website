@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
   caffeine,
   ws,
   specs2 % Test,
-  "com.google.apis"      % "google-api-services-youtube" % "v3-rev20250224-2.0.0",
+  "com.google.apis"      % "google-api-services-youtube" % "v3-rev20250422-2.0.0",
   "gov.sandia.foundry"   % "porter-stemmer"              % "1.4",
   "com.vladsch.flexmark" % "flexmark-all"                % "0.64.8",
   "org.webjars"          % "font-awesome"                % "6.7.2",
