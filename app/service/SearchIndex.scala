@@ -41,7 +41,7 @@ class SearchIndex {
                     bm25TermScore(idf(queryTerm), doc.termFrequency.getOrElse(queryTerm, 0), doc.termCount, avgDocLen, 2.0, 0.75)).sum)
             })
             .filter({ case (_, score) => score > 0 })
-            .sortBy({ case (_, score) => -score })(Ordering.Double.TotalOrdering)
+            .sortBy({ case (_, score) => -score })(using Ordering.Double.TotalOrdering)
         for ((doc, score) <- sortedDocs) {
             logger.debug(s"Search score: ${doc.cacheKey}=$score")
         }

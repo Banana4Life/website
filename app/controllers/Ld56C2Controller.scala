@@ -238,6 +238,6 @@ class JoinHandler(out: ActorRef,
     val actuallyViable = hosts.filter(_.playerCount < 30)
     val playerCountOrdering: Ordering[GameHost] = Ordering.by(_.playerCount)
     val inceptionTimeOrdering: Ordering[GameHost] = Ordering.by(_.inceptionTime)
-    actuallyViable.sorted(playerCountOrdering.reverse orElse inceptionTimeOrdering.reverse).headOption
+    actuallyViable.sorted(using playerCountOrdering.reverse orElse inceptionTimeOrdering.reverse).headOption
   }
 }

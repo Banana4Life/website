@@ -10,7 +10,7 @@ import scala.concurrent.duration.Duration
 object HealthCheck {
     def main(args: Array[String]): Unit = {
         val actorSystem = ActorSystem.create("healthcheck")
-        implicit val materializer: Materializer = Materializer.matFromSystem(actorSystem)
+        implicit val materializer: Materializer = Materializer.matFromSystem(using actorSystem)
         val client = AhcWSClient()
 
         try {
