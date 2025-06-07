@@ -29,6 +29,7 @@ jobs:
         run: |
           json="$(jq -c '{"image":{"repository": (.image | split(":")[0]), "tag": (.image | split(":")[1]), digest: .imageDigest}}' < target/jib-image.json)"
           curl -X POST \
+            -s \
             --fail \
             -F "token=$DEPLOY_TOKEN" \
             -F "ref=main" \
