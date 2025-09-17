@@ -18,7 +18,7 @@ libraryDependencies ++= Seq(
   "com.google.apis"      % "google-api-services-youtube" % "v3-rev20250714-2.0.0",
   "gov.sandia.foundry"   % "porter-stemmer"              % "1.4",
   "com.vladsch.flexmark" % "flexmark-all"                % "0.64.8",
-  "org.webjars"          % "font-awesome"                % "7.0.0",
+  "org.webjars"          % "font-awesome"                % "7.0.1",
   "com.dripower"        %% "play-circe"                  % "3014.1",
 )
 
