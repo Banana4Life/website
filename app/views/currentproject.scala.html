@@ -16,7 +16,7 @@
 <div class="top-project round">
     <div>
         <header>
-            <h1><a href="@project.jam.map(_.site).getOrElse(project.url)">@project.displayName</a></h1>
+            <h1><a href="@project.jam.map(_.fixedSite()).getOrElse(project.url)">@project.displayName</a></h1>
             @* TODO VOTE HERE link *@
         </header>
         <div>@Html(ldjamEntry.body)</div>

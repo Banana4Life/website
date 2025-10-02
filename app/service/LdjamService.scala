@@ -162,7 +162,7 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
 
                 cache.getOrElseUpdate[Int](cacheKey) {
                     logger.info(s"Cache missed for $cacheKey, loading...")
-                    walk(1, jam.site.getPath).map { response =>
+                    walk(1, jam.fixedSite().getPath).map { response =>
                         cache.set(cacheKey, response.node, CacheDuration)
                         response.node
                     }

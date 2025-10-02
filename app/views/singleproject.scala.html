@@ -42,7 +42,7 @@
             </div>
             @for(jam <- project.jam) {
                 <div>
-                        Developed for <a href="@jam.site">@jam.name #@jam.number with the theme "@jam.theme"</a>
+                        Developed for <a href="@jam.fixedSite()">@jam.name #@jam.number with the theme "@jam.theme"</a>
                     @if(jam.comments.nonEmpty) {
                         <div>
                             A few cool comments:

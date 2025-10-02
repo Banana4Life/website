@@ -22,7 +22,13 @@ case class Repo(name: String, html_url: String, full_name: String, created_at: Z
     lazy val latestRelease = URI(s"https://github.com/$full_name/releases/latest")
 }
 
-case class JamInfo(name: String, number: Int, theme: String, site: URI, comments: Seq[String])
+case class JamInfo(name: String, number: Int, theme: String, site: URI, comments: Seq[String]) {
+  def fixedSite(): URI = {
+      if (site.getHost == "ludumdare.com")
+          URI(s"https://web.archive.org/web/2022/${site.toString}")
+      else site
+  }
+}
 
 case class WebCheat(label: String, gameObject: String, message: String)
 
