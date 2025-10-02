@@ -14,6 +14,7 @@ projectFilesBackup/.idea
 /.project
 /RUNNING_PID
 /.settings
+.bsp
 
 /conf/local.conf
 
