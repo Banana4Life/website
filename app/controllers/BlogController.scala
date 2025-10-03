@@ -8,13 +8,9 @@ import service._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class BlogController(cached: Cached,
-                     github: GithubService,
-                     tumblr: TumblrService,
-                     ldjam: LdjamService,
-                     twitch: TwitchService,
-                     searchIndex: SearchIndex,
-                     implicit val ec: ExecutionContext,
+class BlogController(tumblr: TumblrService, 
+                     ldjam: LdjamService, 
+                     implicit val ec: ExecutionContext, 
                      components: ControllerComponents) extends AbstractController(components) {
 
     private val logger = Logger(classOf[BlogController])

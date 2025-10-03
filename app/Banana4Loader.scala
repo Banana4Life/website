@@ -1,3 +1,4 @@
+import controllers.ld56.Ld56C2Controller
 import controllers._
 import play.api.cache.Cached
 import play.api.cache.caffeine.CaffeineCacheComponents
@@ -7,6 +8,8 @@ import play.api.{Application, ApplicationLoader, BuiltInComponentsFromContext, L
 import play.filters.HttpFiltersComponents
 import play.filters.csrf.CSRFComponents
 import service._
+
+import scala.collection.mutable
 
 class Banana4Loader extends ApplicationLoader {
   override def load(context: ApplicationLoader.Context): Application = {
@@ -35,18 +38,28 @@ class Banana4Components(context: ApplicationLoader.Context)
   // ActionBuilders
   private val cached = new Cached(defaultCacheApi)
 
-  // Controllers
-  private val errorHandler = new ErrorHandler(environment, configuration, devContext.map(_.sourceMapper), Some(router))
-  private val blogController = new BlogController(cached, githubService, tumblrService, ldjamService, twitchService, searchIndexService, executionContext, controllerComponents)
-  private val mainController = new MainController(cached, githubService, tumblrService, ldjamService, twitchService, searchIndexService, executionContext, controllerComponents)
-  private val ld56C2Controller = new Ld56C2Controller(controllerComponents)(using actorSystem, materializer)
+  // Routing
+  private val compositeRoutes = {
+    val routes = mutable.ArrayBuffer[Router]()
+    val errorHandler = new ErrorHandler(environment, configuration, devContext.map(_.sourceMapper), Some(router))
+    if (configuration.get[Boolean]("features.showWebsite")) {
+      val blogController = new BlogController(tumblrService, ldjamService, executionContext, controllerComponents)
+      val mainController = new MainController(cached, githubService, tumblrService, ldjamService, twitchService, searchIndexService, executionContext, controllerComponents)
+
+      val mainRoutes = new _root_.main.Routes(errorHandler, mainController, blogController, assets)
+      routes += mainRoutes
+    }
+
+    val enabledGames = configuration.get[Seq[String]]("features.runGames")
+    if (enabledGames.contains("LD56")) {
+      val ld56C2Controller = new Ld56C2Controller(controllerComponents)(using actorSystem, materializer)
+      val ld56Routes = new _root_.ld56.Routes(errorHandler, ld56C2Controller)
+      routes += ld56Routes
+    }
+
+    routes.map(_.routes).reduce(_.orElse(_))
+  }
 
   // The router
-  override def router: Router = new _root_.router.Routes(
-    errorHandler,
-    mainController,
-    blogController,
-    assets,
-    ld56C2Controller,
-  )
+  override def router: Router = Router.from(compositeRoutes)
 }

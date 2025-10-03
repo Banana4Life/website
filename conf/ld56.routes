@@ -1,0 +1,4 @@
+GET        /ld56/signal/:id/host        controllers.ld56.Ld56C2Controller.signalHost(id)
+GET        /ld56/signal/:id/join        controllers.ld56.Ld56C2Controller.signalJoin(id)
+GET        /ld56/stats                  controllers.ld56.Ld56C2Controller.stats()
+GET        /ld56/stats/image            controllers.ld56.Ld56C2Controller.statsPicture()

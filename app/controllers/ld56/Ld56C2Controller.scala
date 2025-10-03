@@ -1,5 +1,6 @@
-package controllers
+package controllers.ld56
 
+import controllers.*
 import org.apache.pekko.actor.{Actor, ActorRef, ActorSystem, PoisonPill, Props}
 import org.apache.pekko.stream.Materializer
 import play.api.Logger
@@ -7,8 +8,8 @@ import play.api.libs.json.*
 import play.api.libs.streams.ActorFlow
 import play.api.mvc.{AbstractController, ControllerComponents, WebSocket}
 
-import java.awt.{Color, Graphics2D}
 import java.awt.image.BufferedImage
+import java.awt.{Color, Graphics2D}
 import java.io.ByteArrayOutputStream
 import java.net.InetAddress
 import java.time.{Duration, Instant}
