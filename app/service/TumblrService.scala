@@ -51,8 +51,14 @@ class TumblrService(conf: Configuration, ws: WSClient, cache: AsyncCacheApi, imp
     private val tumblrDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z")
 
     private val blogName = "bananafourlife"
-    private val consumerKey = conf.get[String]("tumblr.consumerKey")
+    private val consumerKey = conf.getOptional[String]("tumblr.consumerKey")
     private val tumblrApiBaseUrl = s"https://api.tumblr.com/v2/blog/$blogName.tumblr.com"
+
+    {
+        if (consumerKey.isEmpty) {
+            logger.info("Missing 'tumblr.consumerKey'. TumblrService is disabled!")
+        }
+    }
 
     def getPost(id: Long): Future[Option[TumblrPost]] = {
         allPosts.map(_.find(_.id == id))
@@ -75,19 +81,20 @@ class TumblrService(conf: Configuration, ws: WSClient, cache: AsyncCacheApi, imp
         TumblrPost(post.id, date, post.title, post.body, post.tags, post.blog_name)
     }
 
-    private def fetchAllPosts(pageSize: Int): Future[Seq[TumblrBlogPost]] = blogInfo() flatMap { info =>
-        val postCount = info.posts
-        val pageCount = math.ceil(postCount / pageSize.toFloat).toInt
-        logger.info(s"Tumblr has $postCount posts resulting in $pageCount requests!")
-        val pages = (0 until pageCount).map(_ * pageSize).map { offset =>
-            blogPosts(offset, pageSize).map(posts => {
-                println(posts)
-                posts
+    private def fetchAllPosts(pageSize: Int): Future[Seq[TumblrBlogPost]] = blogInfo() flatMap { optInfo =>
+        optInfo.map(info => {
+            val postCount = info.posts
+            val pageCount = math.ceil(postCount / pageSize.toFloat).toInt
+            logger.info(s"Tumblr has $postCount posts resulting in $pageCount requests!")
+            val pages = (0 until pageCount).map(_ * pageSize).map { offset =>
+                blogPosts(offset, pageSize).map(posts => {
+                    posts
+                })
+            }
+            Future.sequence(pages).map(pages => {
+                pages.flatten
             })
-        }
-        Future.sequence(pages).map(pages => {
-            pages.flatten
-        })
+        }).getOrElse(Future.successful(Seq.empty))
     }
 
     def allPosts: Future[Seq[TumblrPost]] = {
@@ -99,17 +106,22 @@ class TumblrService(conf: Configuration, ws: WSClient, cache: AsyncCacheApi, imp
         }}
     }
 
-    private def blogInfo(): Future[TumblrBlogInfo] = {
-        queryTumblr[TumblrBlogResponse[TumblrBlogInfo]]("/info", Seq.empty).map(_.blog)
+    private def blogInfo(): Future[Option[TumblrBlogInfo]] = {
+        queryTumblr[TumblrBlogResponse[TumblrBlogInfo]]("/info", Seq.empty)
+          .map(_.map(_.blog))
     }
 
     private def blogPosts(offset: Int, limit: Int): Future[Seq[TumblrBlogPost]] = {
-        queryTumblr[TumblrBlogPosts]("/posts", Seq(("offset", offset.toString), ("limit", limit.toString))).map(_.posts)
+        queryTumblr[TumblrBlogPosts]("/posts", Seq(("offset", offset.toString), ("limit", limit.toString)))
+          .map(a => a.map(_.posts).getOrElse(Seq.empty))
     }
 
-    private def queryTumblr[T: Decoder](path: String, queryParams: Seq[(String, String)]): Future[T] = {
+    private def queryTumblr[T: Decoder](path: String, queryParams: Seq[(String, String)]): Future[Option[T]] = {
+        if (consumerKey.isEmpty) {
+            return Future.successful(None)
+        }
         ws.url(s"$tumblrApiBaseUrl$path")
-          .withQueryStringParameters(queryParams :+ (("api_key", consumerKey)) *)
+          .withQueryStringParameters(queryParams :+ (("api_key", consumerKey.get)) *)
           .get()
           .flatMap { res =>
             if 200 <= res.status && res.status < 300 then {
@@ -119,5 +131,6 @@ class TumblrService(conf: Configuration, ws: WSClient, cache: AsyncCacheApi, imp
             }
           }
           .map(_.response)
+          .map(Some.apply)
     }
 }
