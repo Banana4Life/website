@@ -10,7 +10,6 @@ class MainController(cached: Cached,
                      github: GithubService,
                      tumblr: TumblrService,
                      ldjam: LdjamService,
-                     youtube: YoutubeService,
                      twitch: TwitchService,
                      searchIndex: SearchIndex,
                      implicit val ec: ExecutionContext,
@@ -21,13 +20,11 @@ class MainController(cached: Cached,
             curProject <- github.getCurrent
             projects <- github.getProjects
             posts <- tumblr.allPosts
-            videos <- youtube.getVideos
             twitchPlayer <- twitch.getPlayer
         } yield {
             val projectsHtml = projects.map(project => (project.createdAt, views.html.snippet.project(project)))
             val postsHtml = posts.map(post => (post.createdAt, views.html.snippet.blogpost(post, trunc = true)))
-            val videosHtml = videos.map(video => (video.publishedAt, views.html.snippet.youtube(video, video.publishedAt.format(BlogPost.format))))
-            val activities = (postsHtml ++ projectsHtml ++ videosHtml).sortWith((a, b) => a._1.isAfter(b._1)).map(_._2).take(5)
+            val activities = (postsHtml ++ projectsHtml).sortWith((a, b) => a._1.isAfter(b._1)).map(_._2).take(5)
             curProject match {
                 case Some(p) =>
                     ldjam.findEntry(p).map {

@@ -29,7 +29,6 @@ class Banana4Components(context: ApplicationLoader.Context)
   private val githubService = new GithubService(wsClient, defaultCacheApi.sync, configuration, executionContext)
   private val tumblrService = new TumblrService(configuration, wsClient, defaultCacheApi, executionContext)
   private val ldjamService = new LdjamService(configuration, defaultCacheApi, executionContext, wsClient)
-  private val youtubeService = new YoutubeService(configuration, executionContext)
   private val twitchService = new TwitchService(configuration, wsClient, executionContext)
   private val searchIndexService = new SearchIndex
 
@@ -38,8 +37,8 @@ class Banana4Components(context: ApplicationLoader.Context)
 
   // Controllers
   private val errorHandler = new ErrorHandler(environment, configuration, devContext.map(_.sourceMapper), Some(router))
-  private val blogController = new BlogController(cached, githubService, tumblrService, ldjamService, youtubeService, twitchService, searchIndexService, executionContext, controllerComponents)
-  private val mainController = new MainController(cached, githubService, tumblrService, ldjamService, youtubeService, twitchService, searchIndexService, executionContext, controllerComponents)
+  private val blogController = new BlogController(cached, githubService, tumblrService, ldjamService, twitchService, searchIndexService, executionContext, controllerComponents)
+  private val mainController = new MainController(cached, githubService, tumblrService, ldjamService, twitchService, searchIndexService, executionContext, controllerComponents)
   private val ld56C2Controller = new Ld56C2Controller(controllerComponents)(using actorSystem, materializer)
 
   // The router
