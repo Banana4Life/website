@@ -35,7 +35,7 @@ class BlogController(cached: Cached,
 
         orderedPosts(ldjam, tumblr).map { posts =>
 
-            if (posts.isEmpty) Redirect(routes.BlogController.firstBlogPage())
+            if (posts.isEmpty) Redirect(routes.MainController.index())
             else {
                 val slice = posts //.take(PostPerPage)
 
@@ -69,7 +69,7 @@ class BlogController(cached: Cached,
         }
     }
 
-    def showLdjamPost(id: Int): Action[AnyContent] = Action.async {
+    private def showLdjamPost(id: Int): Action[AnyContent] = Action.async {
 
         val ldjamPosts = ldjam.getPost(id).map(_.toSeq)
 
@@ -77,7 +77,7 @@ class BlogController(cached: Cached,
 
     }
 
-    def showTumblrPost(id: Long): Action[AnyContent] = Action.async {
+    private def showTumblrPost(id: Long): Action[AnyContent] = Action.async {
 
         val tumblrPosts = tumblr.getPost(id).map(_.toSeq)
 
