@@ -28,31 +28,34 @@ class Banana4Components(context: ApplicationLoader.Context)
     with CaffeineCacheComponents
     with AhcWSComponents {
 
-  // Services
-  private val githubService = new GithubService(wsClient, defaultCacheApi.sync, configuration, executionContext)
-  private val tumblrService = new TumblrService(configuration, wsClient, defaultCacheApi, executionContext)
-  private val ldjamService = new LdjamService(configuration, defaultCacheApi, executionContext, wsClient)
-  private val twitchService = new TwitchService(configuration, wsClient, executionContext)
-  private val searchIndexService = new SearchIndex
-
   // ActionBuilders
   private val cached = new Cached(defaultCacheApi)
 
-  // Routing
+  // Dynamic Routing
   private val compositeRoutes = {
     val routes = mutable.ArrayBuffer[Router]()
     val errorHandler = new ErrorHandler(environment, configuration, devContext.map(_.sourceMapper), Some(router))
     if (configuration.get[Boolean]("features.showWebsite")) {
+
+      // Services
+      val githubService = new GithubService(wsClient, defaultCacheApi.sync, configuration, executionContext)
+      val tumblrService = new TumblrService(configuration, wsClient, defaultCacheApi, executionContext)
+      val ldjamService = new LdjamService(configuration, defaultCacheApi, executionContext, wsClient)
+      val twitchService = new TwitchService(configuration, wsClient, executionContext)
+      val searchIndexService = new SearchIndex
+      // Controllers
       val blogController = new BlogController(tumblrService, ldjamService, executionContext, controllerComponents)
       val mainController = new MainController(cached, githubService, tumblrService, ldjamService, twitchService, searchIndexService, executionContext, controllerComponents)
-
+      // Routes
       val mainRoutes = new _root_.main.Routes(errorHandler, mainController, blogController, assets)
       routes += mainRoutes
     }
 
     val enabledGames = configuration.get[Seq[String]]("features.runGames")
     if (enabledGames.contains("LD56")) {
+      // Controllers
       val ld56C2Controller = new Ld56C2Controller(controllerComponents)(using actorSystem, materializer)
+      // Routes
       val ld56Routes = new _root_.ld56.Routes(errorHandler, ld56C2Controller)
       routes += ld56Routes
     }
