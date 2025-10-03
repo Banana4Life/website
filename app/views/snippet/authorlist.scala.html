@@ -1,17 +1,19 @@
 @import service.Project
 
 @(project: Project)
-<div>
-    Authors:
-    <ul>
-        @for(author <- project.coreUsers){
-            <li><a href="https://github.com/@author.login">@author.name</a></li>
-        }
-        @for(author <- project.guests){
-            <li><a href="https://github.com/@author.login">@author.name</a> (Guest)</li>
-        }
-        @for(author <- project.authors){
-            <li>@author (Guest)</li>
-        }
-    </ul>
-</div>
+@if(project.coreUsers.nonEmpty) {
+    <div>
+        Authors:
+        <ul>
+            @for(author <- project.coreUsers){
+                <li><a href="https://github.com/@author.login">@author.name</a></li>
+            }
+            @for(author <- project.guests){
+                <li><a href="https://github.com/@author.login">@author.name</a> (Guest)</li>
+            }
+            @for(author <- project.authors){
+                <li>@author (Guest)</li>
+            }
+        </ul>
+    </div>
+}
