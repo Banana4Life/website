@@ -1,11 +1,31 @@
 @import views.html.snippet._
 
-@(project: service.Project)
+@(project: service.Project, single: Boolean = false)
+
+@if(single) {
+    @for(web <- project.web){
+        <div id="load-game-button" class="web-game-button animateOnHover">
+            <span>Load Web Game (this may take a while)</span>
+        </div>
+        <script src="@routes.Assets.versioned("javascripts/LoadIFrameWebGame.js")"></script>
+
+        <div class="content">
+            <div id="gameContainer" data-url="@project.web">
+                <iframe id="gameIFrame" src="" frameborder="0"
+                style="display: none"
+                allow="fullscreen"
+                width="100%" height="700">
+                        </iframe>
+            </div>
+        </div>
+    }
+}
+
 <div class="project round">
     <div>
         <header>
-            <a class="github" href="https://github.com/Banana4Life"><span class="fab fa-github" aria-hidden="true"></span></a>
-            <h1><a href="@project.url">@project.displayName</a></h1>
+            <a class="github" target="_blank" href="@project.url"><span class="fab fa-github" aria-hidden="true"></span></a>
+            <h1><a href="@routes.MainController.project(project.jam.map(_.name).getOrElse("unknown"), project.repoName)">@project.displayName</a></h1>
             @for(jam <- project.jam) {
                 <div>@jam.name #@jam.number | Theme "@jam.theme"</div>
             }
@@ -32,8 +52,40 @@
                 }
                     </div>
         }
+        @if(project.videos.nonEmpty && !single) {
+            <div>Videos:</div>
+            <ul>
+            @for(video <- project.videos) {
+                <li>
+                    <a target="_blank" href="@video.url">@video.displayTitle()</a>
+                </li>
+            }
+            </ul>
+        }
+
     </div>
+
     <div class="column-2">
-        <img src="@project.imageUrl"/>
+        <img alt="@project.displayName" src="@project.imageUrl"/>
     </div>
+
+    @if(project.videos.nonEmpty && single) {
+    <div class="videos-below">
+        <h3>Videos</h3>
+        @for(video <- project.videos) {
+            <div>
+                @if(video.title.nonEmpty) {
+                    <h4>@video.title</h4>
+                }
+            <iframe width="560" height="315"
+            src="@("https://www.youtube.com/embed/" + video.url.split("v=").last)"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+                        </iframe>
+            </div>
+        }
+    </div>
+    }
+
 </div>

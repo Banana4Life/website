@@ -6,6 +6,30 @@
     padding: 5px;
     background-color: gray;
     color: white;
+    cursor: pointer;
+}
+
+.web-game-button:hover {
+    animation: vibrate 0.3s ease-in-out infinite alternate;
+}
+
+@keyframes vibrate {
+    0% {
+        transform: translateX(0);
+    }
+    40% {
+        transform: translateX(-2px);
+    }
+    80% {
+        transform: translateX(2px);
+    }
+    100% {
+        transform: translateX(0);
+    }
+}
+
+ul {
+    margin: 0;
 }
 
 #load-game-button.started {
@@ -18,6 +42,4 @@
     &.started {
         display: block;
     }
-
 }
-
