@@ -1,5 +1,6 @@
 @import views.html.snippet._
 
+@import java.time.format.DateTimeFormatter
 @(project: service.Project, single: Boolean = false)
 
 @if(single) {
@@ -22,14 +23,19 @@
 }
 
 <div class="project round">
+    <div class="jam-date">@(project.createdAtMonth())</div>
     <div>
         <header>
             <a class="github" target="_blank" href="@project.url"><span class="fab fa-github" aria-hidden="true"></span></a>
             <h1><a href="@routes.MainController.project(project.jam.map(_.name).getOrElse("unknown"), project.repoName)">@project.displayName</a></h1>
             @for(jam <- project.jam) {
-                <div>@jam.name #@jam.number | Theme "@jam.theme"</div>
+                <div>
+                    <span>@jam.name #@jam.number</span> |
+                    <span>Theme "@jam.theme"</span>
+                </div>
             }
         </header>
+
         <div>@project.description</div>
         <div>Download <a target="_blank" href="@project.download">here</a>!</div>
         @for(web <- project.web){

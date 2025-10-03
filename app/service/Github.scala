@@ -12,6 +12,7 @@ import play.api.{Configuration, Logger}
 import service.CacheHelper.{CacheDuration, ProjectsCacheKey}
 
 import java.net.URI
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import scala.concurrent.duration.DurationInt
@@ -52,6 +53,8 @@ case class ProjectMeta(name: String,
                        videos: Option[Seq[Video]]
                       ) derives Decoder
 
+val MONTH_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM")
+
 case class Project(repoName: String,
                    displayName: String,
                    url: URI,
@@ -66,7 +69,11 @@ case class Project(repoName: String,
                    cheats: Seq[WebCheat],
                    coreUsers: Seq[User],
                    guests: Seq[User],
-                   videos: Seq[Video])
+                   videos: Seq[Video]) {
+    def createdAtMonth(): String = {
+        createdAt.format(MONTH_FORMATTER)        
+    }    
+}
 
 case class Team(name: String, id: Int, slug: String, description: String) derives ConfiguredDecoder
 case class Member(login: String, id: Int) derives ConfiguredDecoder
