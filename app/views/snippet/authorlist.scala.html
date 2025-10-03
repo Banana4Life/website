@@ -4,15 +4,27 @@
 @if(project.coreUsers.nonEmpty) {
     <div>
         Authors:
-        <ul>
+        <ul class="author-list">
             @for(author <- project.coreUsers){
-                <li><a href="https://github.com/@author.login">@author.name</a></li>
+                <li>
+                    <div>
+                        <span><a href="https://github.com/@author.login">@author.name</a></span>
+                    </div>
+                </li>
             }
             @for(author <- project.guests){
-                <li><a href="https://github.com/@author.login">@author.name</a> (Guest)</li>
+                <li>
+                    <div>
+                        <span><a href="https://github.com/@author.login">@author.name</a></span><span class="guest">Guest</span>
+                    </div>
+                </li>
             }
             @for(author <- project.authors){
-                <li>@author (Guest)</li>
+                <li>
+                    <div>
+                        <span>@author</span><span class="guest">Guest</span>
+                    </div>
+                </li>
             }
         </ul>
     </div>

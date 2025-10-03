@@ -24,6 +24,15 @@
 
 <div class="project round">
     <div class="jam-date">@(project.createdAtMonth())</div>
+    <div class="project-actions">
+        <a target="_blank" title="Download" href="@project.download"><span class="fa-solid fa-lg fa-download"></span></a>
+        @for(web <- project.web){
+            <a target="_blank" href="@web"><span title="Play the game in your browser" class="fa-solid fa-lg fa-gamepad"></span></a>
+        }
+        @for(sound <- project.soundtrack){
+            <a title="Get the soundtrack!" target="_blank" href="@sound"><span class="fa-solid fa-lg fa-music"></span></a>
+        }
+    </div>
     <div>
         <header>
             <a class="github" target="_blank" href="@project.url"><span class="fab fa-github" aria-hidden="true"></span></a>
@@ -35,16 +44,10 @@
                 </div>
             }
         </header>
-
         <div>@project.description</div>
-        <div>Download <a target="_blank" href="@project.download">here</a>!</div>
-        @for(web <- project.web){
-            <div>Play the game in your browser <a target="_blank" href="@web">here</a>!</div>
-        }
-        @for(sound <- project.soundtrack){
-            <div>Get the soundtrack <a target="_blank" href="@sound">here</a>!</div>
-        }
+        <br/>
         @authorlist(project)
+        <br/>
         @for(jam <- project.jam) {
             <div>
                         Developed for <a href="@jam.fixedSite()">@jam.name #@jam.number with the theme "@jam.theme"</a>
@@ -58,6 +61,7 @@
                 }
                     </div>
         }
+        <br/>
         @if(project.videos.nonEmpty && !single) {
             <div>Videos:</div>
             <ul>

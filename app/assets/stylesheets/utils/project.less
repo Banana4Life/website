@@ -48,6 +48,26 @@ ul {
 .project {
     position: relative;
 
+
+    .project-actions {
+        position: absolute;
+        left: 12px;
+        top: 185px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        a {
+            width: 24px;
+            height: 24px;
+            border: 1px solid lightgray;
+            background: lightblue;
+            border-radius: 8px;
+            color: black;
+            line-height: 24px;
+            padding: 2px;
+        }
+    }
+
     .jam-date {
         font-family: 'Courier New', Courier, monospace;
         font-weight: bold;
@@ -55,8 +75,24 @@ ul {
         font-size: 18px;
         position: absolute;
         left: 21px;
-        top: 105px;
+        top: 95px;
         transform: rotate(180deg);
         color: rgba(0, 128, 0, 0.5);
+    }
+}
+
+.author-list {
+    li > div {
+        display: flex;
+        align-items: center;
+    }
+    .guest {
+        border-radius: 10px;
+        background: rgba(100, 149, 237, 0.50);
+        color: black;
+        font-size: 11px;
+        padding: 1px 4px;
+        margin-left: 4px;
+        height: 13px;
     }
 }
