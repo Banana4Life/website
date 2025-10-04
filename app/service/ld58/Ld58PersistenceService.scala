@@ -4,6 +4,7 @@ import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder, parser}
 import io.valkey.params.SetParams
 import io.valkey.{JedisPool, JedisPoolConfig}
+import org.apache.pekko.japi.Option.scala2JavaOption
 import play.api.{Configuration, Logger}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -31,6 +32,23 @@ class Ld58PersistenceService(configuration: Configuration, implicit val ec: Exec
       }
     }
     value
+  }
+
+
+  def hSetInt(key: String, field: String, value: Int): Future[Int] = Future {
+    Using(pool.getResource) {
+      jedis => {
+        jedis.hset(key, field, value.toString)
+      }
+    }
+    value
+  }
+
+  def hGetAllInt(key: String): Future[Map[String, Int]] = Future {
+    import scala.jdk.CollectionConverters.*
+    Using(pool.getResource) {
+      jedis => jedis.hgetAll(key).asScala.view.mapValues(_.toInt).toMap
+    }.toOption.getOrElse(Map.empty)
   }
 
   def get[T: Decoder](key: String): Future[Option[T]] = Future {

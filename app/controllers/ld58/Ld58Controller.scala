@@ -50,4 +50,21 @@ class Ld58Controller(cc: ControllerComponents,
     }
   }
 
+
+  def gamesHexGrid(jam: String): Action[AnyContent] = Action.async {
+    for (
+      hexgrid <- ld58.hexGridFromJam(jam)
+    ) yield {
+      Ok(hexgrid.asJson)
+    }
+  }
+  
+  def persistGameOnGrid(q: Int, r: Int, gameId: Int): Action[AnyContent] = Action.async {
+    for (
+      ret <- ld58.persistGameOnGrid(q, r, gameId)
+    ) yield {
+      Ok("")
+    }
+  }
+
 }

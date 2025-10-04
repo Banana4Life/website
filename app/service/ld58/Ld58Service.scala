@@ -17,7 +17,6 @@ case class GameInfo(id: Int, jamId: Int, name: String, cover: Option[String], we
 
 case class User(id: Int)
 
-
 class Ld58Service(ldjam: LdjamService,
                   persistence: Ld58PersistenceService,
                   cache: AsyncCacheApi,
@@ -27,11 +26,11 @@ class Ld58Service(ldjam: LdjamService,
   private def memCached[T: ClassTag](key: String)(future: => Future[T], duration: Duration = 1.minutes): Future[T] = {
     cache.get[T](key) flatMap {
       case Some(v) => {
-//        println("cache hit " + key)
+        //        println("cache hit " + key)
         Future.successful(v)
       }
       case None => {
-//        println("cache miss " + key)
+        //        println("cache miss " + key)
         future.flatMap(v => cache.set(key, v, duration).map(_ => v))
       }
     }
@@ -106,5 +105,18 @@ class Ld58Service(ldjam: LdjamService,
       val currentGame = userGames.find(_.jamId == jamState.id)
       (currentGame, userGames)
     }
+  }
+
+  def hexGridFromJam(jam: String): Future[Map[String, Int]] = {
+    for {
+      hexGrid <- persistence.hGetAllInt("hexgrid")
+    } yield {
+      hexGrid
+    }
+  }
+
+  def persistGameOnGrid(q: Int, r: Int, gameId: Int): Future[Boolean] = {
+    // TODO check if allowed
+    persistence.hSetInt("hexgrid", s"$q:$r", gameId).map(_ => true)
   }
 }
