@@ -240,6 +240,10 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
         val url = s"$apiBaseUrl/vx/node2/walk/$root$path"
         get[Node2WalkResponse](url)
     }
+
+    def cdnUrl(path: String): String = {
+        s"$cdnBaseUrl$path"
+    }
 }
 
 case class LdjamPost(id: Int, name: String, author: UserNode, body: String, createdAt: ZonedDateTime, authorLink: String, avatarLink: Option[String]) extends BlogPost {
@@ -380,7 +384,10 @@ object UserMetadata {
     implicit val format: Format[UserMetadata] = Json.format
 }
 
-final case class EventNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node
+final case class EventNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String],
+                           subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant,
+                           meta: FuzzyOption[Map[String, String]],
+                           version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node
 object EventNode {
     implicit val format: Format[EventNode] = Json.format
 }
@@ -395,7 +402,9 @@ object GameNode {
     implicit val format: Format[GameNode] = Json.format
 }
 
-case class GameMetadata(author: Seq[Int], `allow-anonymous-comments`: Option[JsValue], cover: Option[String], `link-01`: Option[String], `link-01-tag`: Option[JsValue])
+case class GameMetadata(author: Seq[Int], `allow-anonymous-comments`: Option[JsValue], cover: Option[String],
+                        `link-01`: Option[String], `link-01-tag`: Option[JsValue],
+                        `link-02`: Option[String], `link-02-tag`: Option[JsValue])
 object GameMetadata {
     implicit val format: Format[GameMetadata] = Json.format
 }
