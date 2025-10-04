@@ -1,4 +1,5 @@
-GET        /ld58/stats                  controllers.ld58.Ld58Controller.stats()
+GET        /ld58/stats           controllers.ld58.Ld58Controller.stats()
 
 
-GET /ldjamevent controllers.ld58.Ld58Controller.ldjamIndex()
+GET        /ld58/userGame        controllers.ld58.Ld58Controller.gameFromUser(jam: String = "56", username: String)
+GET        /ld58/games           controllers.ld58.Ld58Controller.gamesFromJam(jam: String)
