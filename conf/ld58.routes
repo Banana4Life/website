@@ -1,0 +1,1 @@
+GET        /ld58/stats                  controllers.ld58.Ld58Controller.stats()

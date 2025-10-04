@@ -1,5 +1,6 @@
 import controllers.ld56.Ld56C2Controller
-import controllers._
+import controllers.*
+import controllers.ld58.Ld58Controller
 import play.api.cache.Cached
 import play.api.cache.caffeine.CaffeineCacheComponents
 import play.api.libs.ws.ahc.AhcWSComponents
@@ -7,7 +8,7 @@ import play.api.routing.Router
 import play.api.{Application, ApplicationLoader, BuiltInComponentsFromContext, LoggerConfigurator}
 import play.filters.HttpFiltersComponents
 import play.filters.csrf.CSRFComponents
-import service._
+import service.*
 
 import scala.collection.mutable
 
@@ -58,6 +59,14 @@ class Banana4Components(context: ApplicationLoader.Context)
       // Routes
       val ld56Routes = new _root_.ld56.Routes(errorHandler, ld56C2Controller)
       routes += ld56Routes
+    }
+    
+    if (enabledGames.contains("LD58")) {
+      // Controllers
+      val ld58Controller = new Ld58Controller(controllerComponents)(using actorSystem, materializer)
+      // Routes
+      val ld58Routes = new _root_.ld58.Routes(errorHandler, ld58Controller)
+      routes += ld58Routes
     }
 
     routes.map(_.routes).reduce(_.orElse(_))
