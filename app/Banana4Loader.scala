@@ -4,9 +4,11 @@ import controllers.ld58.Ld58Controller
 import play.api.cache.Cached
 import play.api.cache.caffeine.CaffeineCacheComponents
 import play.api.libs.ws.ahc.AhcWSComponents
+import play.api.mvc.EssentialFilter
 import play.api.routing.Router
 import play.api.{Application, ApplicationLoader, BuiltInComponentsFromContext, LoggerConfigurator}
 import play.filters.HttpFiltersComponents
+import play.filters.cors.{CORSConfig, CORSFilter}
 import play.filters.csrf.CSRFComponents
 import service.*
 
@@ -21,6 +23,11 @@ class Banana4Loader extends ApplicationLoader {
   }
 }
 
+private val corsConfig = CORSConfig(
+  allowedOrigins = CORSConfig.Origins.All,
+  supportsCredentials = false,
+)
+
 class Banana4Components(context: ApplicationLoader.Context)
   extends BuiltInComponentsFromContext(context)
     with HttpFiltersComponents
@@ -28,6 +35,9 @@ class Banana4Components(context: ApplicationLoader.Context)
     with CSRFComponents
     with CaffeineCacheComponents
     with AhcWSComponents {
+  private val corsFilter = CORSFilter(corsConfig, httpErrorHandler, Seq("/ld"))
+
+  override def httpFilters: Seq[EssentialFilter] = super.httpFilters :+ corsFilter
 
   // ActionBuilders
   private val cached = new Cached(defaultCacheApi)
