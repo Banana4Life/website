@@ -13,7 +13,7 @@ given derivation.Configuration = derivation.Configuration.default
 
 case class JamState(id: Int, canGrade: Boolean)
 
-case class GameInfo(id: Int, name: String, cover: Option[String], web: Option[String], cool: Double) derives ConfiguredCodec
+case class GameInfo(id: Int, jamId: Int, name: String, cover: Option[String], web: Option[String], cool: Double) derives ConfiguredCodec
 
 case class User(id: Int)
 
@@ -65,26 +65,13 @@ class Ld58Service(ldjam: LdjamService,
       .map(_.flatMap { case gn: GameNode => Some(gn); case _ => None })
   }
 
-
-  def gameFromUser(jam: String, username: String): Future[Seq[GameInfo]] = {
-    for {
-      jamState <- jamState(jam)
-      user <- fetchUser(username)
-      userGames <- fetchGamesOfUser(user.id)
-    } yield {
-      userGames.map(mapGameNodeToInfo).filter(_ != null)
-    }
-  }
-
-
-  private def mapGameNodeToInfo(node: GameNode): GameInfo = {
+  private def mapGameNodeToInfo(jamId: Int, node: GameNode): GameInfo = {
     val web = if (node.meta.`link-01-tag`.map(_.as[Seq[Int]]).getOrElse(Seq.empty).contains(LINK_TAG_WEB)) node.meta.`link-01`
     else if (node.meta.`link-02-tag`.map(_.as[Seq[Int]]).getOrElse(Seq.empty).contains(LINK_TAG_WEB)) node.meta.`link-02` else None
     val coverUrl = node.meta.cover.map(cover => ldjam.cdnUrl(cover.replace("///", "/") + ".480x384.fit.jpg"))
 
-    GameInfo(node.id, node.name, coverUrl, web, node.magic.cool)
+    GameInfo(node.id, node.parent, node.name, coverUrl, web, node.magic.cool)
   }
-
 
   private def fetchGamesFromJam(jamId: Int): Future[List[GameInfo]] = {
     for {
@@ -95,7 +82,7 @@ class Ld58Service(ldjam: LdjamService,
         //        case gn: GameNode => Some(gn)
         case gn: GameNode if gn.meta.cover.nonEmpty => Some(gn)
         case _ => None
-      }.map(mapGameNodeToInfo).toList
+      }.map(mapGameNodeToInfo(jamId, _)).toList
     }
   }
 
@@ -106,6 +93,18 @@ class Ld58Service(ldjam: LdjamService,
       gamesCached <- persistence.cached[List[GameInfo]]("games", fetchGamesFromJam(jamState.id))
     } yield {
       (jamState, gamesCached)
+    }
+  }
+
+  def gameFromUser(jam: String, username: String): Future[(Option[GameInfo], Seq[GameInfo])] = {
+    for {
+      jamState <- jamState(jam)
+      user <- fetchUser(username)
+      userGameNodes <- fetchGamesOfUser(user.id)
+    } yield {
+      val userGames = userGameNodes.map(mapGameNodeToInfo(jamState.id, _)).filter(_ != null)
+      val currentGame = userGames.find(_.jamId == jamState.id)
+      (currentGame, userGames)
     }
   }
 }

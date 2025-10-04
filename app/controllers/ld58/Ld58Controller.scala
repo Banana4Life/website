@@ -39,12 +39,15 @@ class Ld58Controller(cc: ControllerComponents,
     }
   }
 
-
-  def gameFromUser(jam: String, username: String): Action[AnyContent] = Action.async {
+  def gamesFromUser(jam: String, username: String): Action[AnyContent] = Action.async {
     for (
-      games <- ld58.gameFromUser(jam, username)
+      (currentGame, games) <- ld58.gameFromUser(jam, username)
     ) yield {
-      Ok(games.asJson)
+      Ok(Json.obj(
+        "current" -> currentGame.asJson,
+        "games" -> games.asJson
+      ))
     }
   }
+
 }
