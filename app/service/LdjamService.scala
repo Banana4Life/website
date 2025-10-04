@@ -195,7 +195,7 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
     }
 
     def getFeedOfNodes(node: Int, methods: Seq[String], mainType: String, subType: Option[String], subSubType: Option[String], sliceSize: Int = MaxLimit, maxLimit: Int): Future[Seq[Node]] = {
-
+        
         def getSlide(offset: Int, nodes: Seq[Node]): Future[Seq[Node]] = {
             if (nodes.size >= maxLimit) {
                 return Future.successful(nodes)

@@ -4,7 +4,7 @@ import io.circe.derivation.{ConfiguredCodec, ConfiguredEncoder}
 import io.circe.{Encoder, derivation}
 import play.api.cache.AsyncCacheApi
 import play.api.mvc.{Request, RequestHeader}
-import service.{EventNode, GameNode, LdjamService, Node2WalkResponse}
+import service.{EventNode, GameNode, LdjamService, Node, Node2WalkResponse}
 
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{ExecutionContext, Future}
@@ -74,16 +74,52 @@ class Ld58Service(ldjam: LdjamService,
     GameInfo(node.id, node.parent, node.name, coverUrl.map(urlSigner.proxiedUrl), web, node.magic.cool)
   }
 
-  private def fetchGamesFromJam(jamId: Int)(implicit req: RequestHeader): Future[List[GameInfo]] = {
+  private def fetchGameNodes(jamId: Int,
+                             knownGames: Seq[Int],
+                             methods: Seq[String],
+                             sliceSize: Int,
+                             maxLimit: Int): Future[Seq[GameNode]] = {
+
+    def getSlide(offset: Int, nodes: Seq[Node]): Future[Seq[Node]] = {
+      if (nodes.size >= maxLimit) {
+        return Future.successful(nodes)
+      }
+
+      ldjam.getNodeFeed(jamId, methods, "item", Some("game"), Some("compo+jam+extra"), offset, sliceSize).flatMap { response =>
+        if (response.feed.isEmpty) Future.successful(nodes)
+        else {
+          val nodesToFetch = response.feed.map(_.id).filterNot(knownGames.contains)
+          ldjam.getNodes2(nodesToFetch).flatMap { nodesResponse =>
+            getSlide(offset + sliceSize, nodes ++ nodesResponse.node)
+          }
+        }
+      }
+    }
+
+    getSlide(0, Vector.empty).map(_ flatMap {
+      case gn: GameNode if gn.meta.cover.nonEmpty => Some(gn)
+      case _ => None
+    })
+  }
+
+  private def fetchGameNodes(nodeIds: Seq[Int]): Future[Seq[GameNode]] = {
+    val chunks = nodeIds.grouped(200).toSeq
+    val nodesFutures = Future.sequence(chunks.map(ids => ldjam.getNodes2(ids)))
+    nodesFutures.map(_.flatMap(_.node)).map(_ flatMap {
+      case gn: GameNode if gn.meta.cover.nonEmpty => Some(gn)
+      case _ => None
+    })
+  }
+
+  private def fetchGamesFromJam(jamId: Int)(implicit req: RequestHeader): Future[List[GameInfo]] = memCached("games") {
     for {
-      games <- ldjam.getFeedOfNodes(jamId, Seq("parent"), "item", Some("game"), Some("compo+jam+extra"), 200, 200)
+      hexGrid <- persistence.hGetAllInt("hexgrid")
+      knownGames <- fetchGameNodes(hexGrid.values.toSeq)
+      games <- fetchGameNodes(jamId, knownGames.map(_.id), Seq("cool"), 200, 50)
     }
     yield {
-      games.flatMap {
-        //        case gn: GameNode => Some(gn)
-        case gn: GameNode if gn.meta.cover.nonEmpty => Some(gn)
-        case _ => None
-      }.map(mapGameNodeToInfo(jamId, _)).toList
+      val allGames = knownGames ++ games.filter(gn => gn.meta.cover.nonEmpty)
+      allGames.map(mapGameNodeToInfo(jamId, _)).toList
     }
   }
 
@@ -91,7 +127,7 @@ class Ld58Service(ldjam: LdjamService,
   def gamesFromJam(jam: String)(implicit req: RequestHeader): Future[(JamState, Seq[GameInfo])] = {
     for {
       jamState <- jamState(jam)
-      gamesCached <- persistence.cached[List[GameInfo]]("games", fetchGamesFromJam(jamState.id))
+      gamesCached <- fetchGamesFromJam(jamState.id)
     } yield {
       (jamState, gamesCached)
     }
@@ -121,7 +157,7 @@ class Ld58Service(ldjam: LdjamService,
     val coord = s"$q:$r"
     for {
       existing <- persistence.hGetInt("hexgrid", coord)
-      set <- existing.map(Future.successful).getOrElse(persistence.hSetInt("hexgrid", coord, gameId)) 
+      set <- existing.map(Future.successful).getOrElse(persistence.hSetInt("hexgrid", coord, gameId))
     } yield {
       set
     }
