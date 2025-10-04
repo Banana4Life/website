@@ -6,12 +6,10 @@ import io.circe.Json
 import io.circe.syntax.*
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.Materializer
-import org.apache.pekko.util.ByteString
 import play.api.Logger
-import play.api.http.Writeable
 import play.api.libs.circe.Circe
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
-import service.ld58.Ld58Service
+import service.ld58.{GameInfo, Ld58Service}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
@@ -19,7 +17,9 @@ import scala.language.postfixOps
 private val logger = Logger(classOf[Ld58Controller])
 
 
-class Ld58Controller(cc: ControllerComponents, ld58: Ld58Service, implicit val ec: ExecutionContext)
+class Ld58Controller(cc: ControllerComponents,
+                     ld58: Ld58Service,
+                     implicit val ec: ExecutionContext)
                     (implicit system: ActorSystem, mat: Materializer) extends AbstractController(cc) with Circe {
 
 

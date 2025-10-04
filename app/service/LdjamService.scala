@@ -50,9 +50,10 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
             .withRequestTimeout(5.seconds)
 
     private def get[T <: ApiResponse: Reads](url: String): Future[T] = {
-        logger.info(url)
+        logger.info("GET " + url)
         request(url).get().flatMap { response =>
-          logger.info(response.body)
+          logger.info(response.status.toString)
+//          logger.info(response.body)
           if (response.status == 200) Future.successful(response.json.as[T])
           else Future.failed(new LdJamApiException(url, response.status, response.body))
         }

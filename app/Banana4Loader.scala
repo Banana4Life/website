@@ -11,7 +11,7 @@ import play.filters.HttpFiltersComponents
 import play.filters.cors.{CORSConfig, CORSFilter}
 import play.filters.csrf.CSRFComponents
 import service.*
-import service.ld58.Ld58Service
+import service.ld58.{Ld58PersistenceService, Ld58Service}
 
 import scala.collection.mutable
 
@@ -75,7 +75,8 @@ class Banana4Components(context: ApplicationLoader.Context)
     if (enabledGames.contains("LD58")) {
       // Controllers
       val ldjamService = new LdjamService(configuration, defaultCacheApi, executionContext, wsClient)
-      val ld58Service = new Ld58Service(ldjamService, executionContext)
+      val ld58PersistenceService = new Ld58PersistenceService(configuration, executionContext)
+      val ld58Service = new Ld58Service(ldjamService, ld58PersistenceService, defaultCacheApi, executionContext)
       val ld58Controller = new Ld58Controller(controllerComponents, ld58Service, executionContext)(using actorSystem, materializer)
       // Routes
       val ld58Routes = new _root_.ld58.Routes(errorHandler, ld58Controller)
