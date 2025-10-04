@@ -405,7 +405,11 @@ object GameNode {
 
 case class GameMetadata(author: Seq[Int], `allow-anonymous-comments`: Option[JsValue], cover: Option[String],
                         `link-01`: Option[String], `link-01-tag`: Option[JsValue],
-                        `link-02`: Option[String], `link-02-tag`: Option[JsValue])
+                        `link-02`: Option[String], `link-02-tag`: Option[JsValue],
+                        `link-03`: Option[String], `link-03-tag`: Option[JsValue],
+                        `link-04`: Option[String], `link-04-tag`: Option[JsValue],
+                        `link-05`: Option[String], `link-05-tag`: Option[JsValue],
+                       )
 object GameMetadata {
     implicit val format: Format[GameMetadata] = Json.format
 }

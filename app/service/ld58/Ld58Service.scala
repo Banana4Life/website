@@ -67,11 +67,18 @@ class Ld58Service(ldjam: LdjamService,
   }
 
   private def mapGameNodeToInfo(jamId: Int, node: GameNode)(implicit req: RequestHeader): GameInfo = {
-    val web = if (node.meta.`link-01-tag`.map(_.as[Seq[Int]]).getOrElse(Seq.empty).contains(LINK_TAG_WEB)) node.meta.`link-01`
-    else if (node.meta.`link-02-tag`.map(_.as[Seq[Int]]).getOrElse(Seq.empty).contains(LINK_TAG_WEB)) node.meta.`link-02` else None
+    val links = Seq((node.meta.`link-01-tag`, node.meta.`link-01`),
+                      (node.meta.`link-02-tag`, node.meta.`link-02`),
+                      (node.meta.`link-03-tag`, node.meta.`link-03`),
+                      (node.meta.`link-04-tag`, node.meta.`link-04`),
+                      (node.meta.`link-05-tag`, node.meta.`link-05`),
+    );
+    // -tag are arrays of int
+    val webUrl = links.find(tuple => tuple._1.map(_.as[Seq[Int]]).getOrElse(Seq.empty).contains(LINK_TAG_WEB)).flatMap(_._2)
+
     val coverUrl = node.meta.cover.map(cover => ldjam.cdnUrl(cover.replace("///", "/") + ".480x384.fit.jpg"))
 
-    GameInfo(node.id, node.parent, node.name, coverUrl.map(urlSigner.proxiedUrl), web, node.magic.cool)
+    GameInfo(node.id, node.parent, node.name, coverUrl.map(urlSigner.proxiedUrl), webUrl, node.magic.cool)
   }
 
   private def fetchGameNodes(jamId: Int,
@@ -118,8 +125,8 @@ class Ld58Service(ldjam: LdjamService,
       games <- fetchGameNodes(jamId, knownGames.map(_.id), Seq("cool"), 200, 50)
     }
     yield {
-      val allGames = knownGames ++ games.filter(gn => gn.meta.cover.nonEmpty)
-      allGames.map(mapGameNodeToInfo(jamId, _)).toList
+      val allGames = knownGames.map(mapGameNodeToInfo(jamId, _)) ++ games.map(mapGameNodeToInfo(jamId, _)).filter(_.web.nonEmpty)
+      allGames.toList
     }
   }
 
