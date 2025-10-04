@@ -52,6 +52,7 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
     private def get[T <: ApiResponse: Reads](url: String): Future[T] = {
         logger.info(url)
         request(url).get().flatMap { response =>
+          logger.info(response.body)
           if (response.status == 200) Future.successful(response.json.as[T])
           else Future.failed(new LdJamApiException(url, response.status, response.body))
         }
@@ -192,9 +193,13 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
         get[NodeFeedResponse](url)
     }
 
-    def getFeedOfNodes(node: Int, methods: Seq[String], mainType: String, subType: Option[String], subSubType: Option[String], sliceSize: Int = MaxLimit): Future[Seq[Node]] = {
+    def getFeedOfNodes(node: Int, methods: Seq[String], mainType: String, subType: Option[String], subSubType: Option[String], sliceSize: Int = MaxLimit, maxLimit: Int): Future[Seq[Node]] = {
 
         def getSlide(offset: Int, nodes: Seq[Node]): Future[Seq[Node]] = {
+            if (nodes.size >= maxLimit) {
+                return Future.successful(nodes)
+            }
+
             getNodeFeed(node, methods, mainType, subType, subSubType, offset, sliceSize).flatMap { response =>
                 if (response.feed.isEmpty) Future.successful(nodes)
                 else {
@@ -264,7 +269,7 @@ object Node2GetResponse {
     implicit val format: Format[Node2GetResponse] = Json.format
 }
 
-final case class NodeFeedResponse(status: Int, caller_id: Int, method: Seq[String], types: Seq[String], subtypes: Seq[String], offset: Int, limit: Int, feed: Seq[NodeFeedEntry], cached: Option[Boolean]) extends ApiResponse
+final case class NodeFeedResponse(status: Int, caller_id: Int, method: Seq[String], types: Seq[String], subtypes: Option[Seq[String]], offset: Int, limit: Int, feed: Seq[NodeFeedEntry], cached: Option[Boolean]) extends ApiResponse
 object NodeFeedResponse {
     implicit val format: Format[NodeFeedResponse] = Json.format
 }
@@ -277,7 +282,7 @@ object NodeWalkResponse {
     implicit val format: Format[NodeWalkResponse] = Json.format
 }
 
-final case class Node2WalkResponse(status: Int, caller_id: Int, root: Int, path: Seq[Int], node_id: Int, nodes_cached: Seq[Int], node: Seq[Node]) extends ApiResponse
+final case class Node2WalkResponse(status: Int, caller_id: Int, root: Int, path: Seq[Int], node_id: Int, nodes_cached: Option[Seq[Int]], node: Option[Seq[Node]]) extends ApiResponse
 object Node2WalkResponse {
     implicit val format: Format[Node2WalkResponse] = Json.format
 }
@@ -385,7 +390,7 @@ object PostNode {
     implicit val format: Format[PostNode] = Json.format
 }
 
-final case class GameNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int, meta: GameMetadata, grades: Option[Map[String, Int]], notes: Option[Int], `notes-timestamp`: Option[Instant], magic: GameMagic) extends Node
+final case class GameNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int, meta: GameMetadata, grade: Option[Map[String, Int]], notes: Option[Int], `notes-timestamp`: Option[Instant], magic: GameMagic) extends Node
 object GameNode {
     implicit val format: Format[GameNode] = Json.format
 }

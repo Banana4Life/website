@@ -97,19 +97,7 @@ class MainController(cached: Cached,
 
     }
 
-    def ldjamIndex(): Action[AnyContent] = Action.async {
-        for {
-            tags <- ldjam.getFeedOfNodes(0, Seq("all"), "tag", Some("platform"), None, 88)
-        } yield {
-            val values = Seq(
-                Json.toJson(tags),
-                Json.toJson(tags.map(_.id).sorted),
-                Json.toJson(tags.map(_.id).distinct.sorted),
-            )
-            Ok(views.html.ldjamevent(values.map(Json.prettyPrint)))
-        }
-
-    }
+    
 
 }
 

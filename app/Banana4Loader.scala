@@ -64,7 +64,7 @@ class Banana4Components(context: ApplicationLoader.Context)
     if (enabledGames.contains("LD58")) {
       // Controllers
       val ldjamService = new LdjamService(configuration, defaultCacheApi, executionContext, wsClient)
-      val ld58Controller = new Ld58Controller(controllerComponents, ldjamService)(using actorSystem, materializer)
+      val ld58Controller = new Ld58Controller(controllerComponents, ldjamService, executionContext)(using actorSystem, materializer)
       // Routes
       val ld58Routes = new _root_.ld58.Routes(errorHandler, ld58Controller)
       routes += ld58Routes

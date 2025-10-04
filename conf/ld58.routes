@@ -1,1 +1,4 @@
 GET        /ld58/stats                  controllers.ld58.Ld58Controller.stats()
+
+
+GET /ldjamevent controllers.ld58.Ld58Controller.ldjamIndex()
