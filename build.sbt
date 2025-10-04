@@ -27,7 +27,7 @@ Compile / doc / sources := Seq.empty
 
 Compile / packageDoc / publishArtifact := false
 
-Assets / pipelineStages := Seq(digest, gzip)
+pipelineStages := Seq(digest, gzip)
 
 jibBaseImage := "docker.io/library/eclipse-temurin:21-jre-alpine"
 jibRegistry := "ghcr.io"
