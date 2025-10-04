@@ -58,12 +58,16 @@ class Ld58Controller(cc: ControllerComponents,
       Ok(hexgrid.asJson)
     }
   }
-  
+
   def persistGameOnGrid(q: Int, r: Int, gameId: Int): Action[AnyContent] = Action.async {
     for (
       ret <- ld58.persistGameOnGrid(q, r, gameId)
     ) yield {
-      Ok("")
+      if (ret == gameId) {
+        Ok(ret.asJson)
+      } else {
+        BadRequest(ret.asJson)
+      }
     }
   }
 

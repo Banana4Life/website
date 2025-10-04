@@ -115,8 +115,13 @@ class Ld58Service(ldjam: LdjamService,
     }
   }
 
-  def persistGameOnGrid(q: Int, r: Int, gameId: Int): Future[Boolean] = {
-    // TODO check if allowed
-    persistence.hSetInt("hexgrid", s"$q:$r", gameId).map(_ => true)
+  def persistGameOnGrid(q: Int, r: Int, gameId: Int): Future[Int] = {
+    val coord = s"$q:$r"
+    for {
+      existing <- persistence.hGetInt("hexgrid", coord)
+      set <- existing.map(Future.successful).getOrElse(persistence.hSetInt("hexgrid", coord, gameId)) 
+    } yield {
+      set
+    }
   }
 }

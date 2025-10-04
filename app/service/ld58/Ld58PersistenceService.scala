@@ -44,6 +44,12 @@ class Ld58PersistenceService(configuration: Configuration, implicit val ec: Exec
     value
   }
 
+  def hGetInt(key: String, field: String): Future[Option[Int]] = Future {
+    Using(pool.getResource) {
+      jedis => jedis.hget(key, field).toInt
+    }.toOption
+  }
+
   def hGetAllInt(key: String): Future[Map[String, Int]] = Future {
     import scala.jdk.CollectionConverters.*
     Using(pool.getResource) {
