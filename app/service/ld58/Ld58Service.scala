@@ -3,6 +3,7 @@ package service.ld58
 import io.circe.derivation.{ConfiguredCodec, ConfiguredEncoder}
 import io.circe.{Encoder, derivation}
 import play.api.cache.AsyncCacheApi
+import play.api.mvc.{Request, RequestHeader}
 import service.{EventNode, GameNode, LdjamService, Node2WalkResponse}
 
 import scala.concurrent.duration.{Duration, DurationInt}
@@ -20,6 +21,7 @@ case class User(id: Int)
 class Ld58Service(ldjam: LdjamService,
                   persistence: Ld58PersistenceService,
                   cache: AsyncCacheApi,
+                  urlSigner: UrlSigner,
                   implicit val ec: ExecutionContext) {
   private val LINK_TAG_WEB = 42336
 
@@ -64,15 +66,15 @@ class Ld58Service(ldjam: LdjamService,
       .map(_.flatMap { case gn: GameNode => Some(gn); case _ => None })
   }
 
-  private def mapGameNodeToInfo(jamId: Int, node: GameNode): GameInfo = {
+  private def mapGameNodeToInfo(jamId: Int, node: GameNode)(implicit req: RequestHeader): GameInfo = {
     val web = if (node.meta.`link-01-tag`.map(_.as[Seq[Int]]).getOrElse(Seq.empty).contains(LINK_TAG_WEB)) node.meta.`link-01`
     else if (node.meta.`link-02-tag`.map(_.as[Seq[Int]]).getOrElse(Seq.empty).contains(LINK_TAG_WEB)) node.meta.`link-02` else None
     val coverUrl = node.meta.cover.map(cover => ldjam.cdnUrl(cover.replace("///", "/") + ".480x384.fit.jpg"))
 
-    GameInfo(node.id, node.parent, node.name, coverUrl, web, node.magic.cool)
+    GameInfo(node.id, node.parent, node.name, coverUrl.map(urlSigner.proxiedUrl), web, node.magic.cool)
   }
 
-  private def fetchGamesFromJam(jamId: Int): Future[List[GameInfo]] = {
+  private def fetchGamesFromJam(jamId: Int)(implicit req: RequestHeader): Future[List[GameInfo]] = {
     for {
       games <- ldjam.getFeedOfNodes(jamId, Seq("parent"), "item", Some("game"), Some("compo+jam+extra"), 200, 200)
     }
@@ -86,7 +88,7 @@ class Ld58Service(ldjam: LdjamService,
   }
 
 
-  def gamesFromJam(jam: String): Future[(JamState, Seq[GameInfo])] = {
+  def gamesFromJam(jam: String)(implicit req: RequestHeader): Future[(JamState, Seq[GameInfo])] = {
     for {
       jamState <- jamState(jam)
       gamesCached <- persistence.cached[List[GameInfo]]("games", fetchGamesFromJam(jamState.id))
@@ -95,7 +97,7 @@ class Ld58Service(ldjam: LdjamService,
     }
   }
 
-  def gameFromUser(jam: String, username: String): Future[(Option[GameInfo], Seq[GameInfo])] = {
+  def gameFromUser(jam: String, username: String)(implicit req: RequestHeader): Future[(Option[GameInfo], Seq[GameInfo])] = {
     for {
       jamState <- jamState(jam)
       user <- fetchUser(username)

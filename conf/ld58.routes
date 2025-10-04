@@ -1,7 +1,8 @@
-GET         /ld58/stats           controllers.ld58.Ld58Controller.stats()
+GET         /ld58/stats                        controllers.ld58.Ld58Controller.stats()
 
 
-GET         /ld58/userGame        controllers.ld58.Ld58Controller.gamesFromUser(jam: String, username: String)
-GET         /ld58/games           controllers.ld58.Ld58Controller.gamesFromJam(jam: String)
-GET         /ld58/hexGrid         controllers.ld58.Ld58Controller.gamesHexGrid(jam: String)
-POST        /ld58/hexGrid         controllers.ld58.Ld58Controller.persistGameOnGrid(q: Int, r: Int, gameId: Int)
+GET         /ld58/userGame                     controllers.ld58.Ld58Controller.gamesFromUser(jam: String, username: String)
+GET         /ld58/games                        controllers.ld58.Ld58Controller.gamesFromJam(jam: String)
+GET         /ld58/hexGrid                      controllers.ld58.Ld58Controller.gamesHexGrid(jam: String)
+POST        /ld58/hexGrid                      controllers.ld58.Ld58Controller.persistGameOnGrid(q: Int, r: Int, gameId: Int)
+GET         /ld58/imageProxy/:signedUrl        controllers.ld58.Ld58Controller.proxyImage(signedUrl: String)
