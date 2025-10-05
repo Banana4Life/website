@@ -5,8 +5,11 @@ import com.vladsch.flexmark.ext.emoji.{EmojiExtension, EmojiImageType}
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.data.MutableDataSet
+import io.circe.Decoder.Result
+import io.circe.{Decoder, DecodingFailure, Encoder, Json}
+import io.circe.derivation.ConfiguredCodec
+import io.circe.syntax.EncoderOps
 import play.api.cache.AsyncCacheApi
-import play.api.libs.json.*
 import play.api.libs.ws.{WSClient, WSRequest}
 import play.api.{Configuration, Logger}
 import service.CacheHelper.CacheDuration
@@ -49,12 +52,12 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
             .withHttpHeaders("User-Agent" -> "Banana4Life")
             .withRequestTimeout(5.seconds)
 
-    private def get[T <: ApiResponse: Reads](url: String): Future[T] = {
+    private def get[T <: ApiResponse: Decoder](url: String): Future[T] = {
         logger.info("GET " + url)
         request(url).get().flatMap { response =>
           logger.info(response.status.toString)
 //          logger.info(response.body)
-          if (response.status == 200) Future.successful(response.json.as[T])
+          if (response.status == 200) Future.successful(response.body[T])
           else Future.failed(new LdJamApiException(url, response.status, response.body))
         }
     }
@@ -268,50 +271,28 @@ case class LdjamEvent(id: Int, name: String, body: String)
 
 class LdJamApiException(url: String, status: Int, body: String) extends RuntimeException(s"$url -> $status -> $body")
 
-sealed trait ApiResponse {
+sealed trait ApiResponse derives ConfiguredCodec {
     val status: Int
     val caller_id: Int
 }
 
-final case class NodeGetResponse(status: Int, caller_id: Int, cached: Option[Seq[Int]], node: Seq[Node]) extends ApiResponse
-object NodeGetResponse {
-    implicit val format: Format[NodeGetResponse] = Json.format
-}
+final case class NodeGetResponse(status: Int, caller_id: Int, cached: Option[Seq[Int]], node: Seq[Node]) extends ApiResponse derives ConfiguredCodec
 
-final case class Node2GetResponse(status: Int, caller_id: Int, cached: Option[Seq[Int]], node: Seq[Node]) extends ApiResponse
-object Node2GetResponse {
-    implicit val format: Format[Node2GetResponse] = Json.format
-}
+final case class Node2GetResponse(status: Int, caller_id: Int, cached: Option[Seq[Int]], node: Seq[Node]) extends ApiResponse derives ConfiguredCodec
 
-final case class NodeFeedResponse(status: Int, caller_id: Int, method: Seq[String], types: Seq[String], subtypes: Option[Seq[String]], offset: Int, limit: Int, feed: Seq[NodeFeedEntry], cached: Option[Boolean]) extends ApiResponse
-object NodeFeedResponse {
-    implicit val format: Format[NodeFeedResponse] = Json.format
-}
-case class NodeFeedEntry(id: Int, modified: Instant)
-object NodeFeedEntry {
-    implicit val format: Format[NodeFeedEntry] = Json.format
-}
-final case class NodeWalkResponse(status: Int, caller_id: Int, root: Int, path: Seq[Int], node: Int) extends ApiResponse
-object NodeWalkResponse {
-    implicit val format: Format[NodeWalkResponse] = Json.format
-}
+final case class NodeFeedResponse(status: Int, caller_id: Int, method: Seq[String], types: Seq[String], subtypes: Option[Seq[String]], offset: Int, limit: Int, feed: Seq[NodeFeedEntry], cached: Option[Boolean]) extends ApiResponse derives ConfiguredCodec
 
-final case class LDStatsResponse(status: Int, caller_id: Int, stats: LDStats) extends ApiResponse
-object LDStatsResponse {
-    implicit val format: Format[LDStatsResponse] = Json.format
-}
+case class NodeFeedEntry(id: Int, modified: Instant) derives ConfiguredCodec
 
-final case class LDStats(jam: Int, compo: Int, extra: Int, signups: Int, authors: Int, unpublished: Int)
-object LDStats {
-    implicit val format: Format[LDStats] = Json.format
-}
+final case class NodeWalkResponse(status: Int, caller_id: Int, root: Int, path: Seq[Int], node: Int) extends ApiResponse derives ConfiguredCodec
 
-final case class Node2WalkResponse(status: Int, caller_id: Int, root: Int, path: Seq[Int], node_id: Int, nodes_cached: Option[Seq[Int]], node: Option[Seq[Node]]) extends ApiResponse
-object Node2WalkResponse {
-    implicit val format: Format[Node2WalkResponse] = Json.format
-}
+final case class LDStatsResponse(status: Int, caller_id: Int, stats: LDStats) extends ApiResponse derives ConfiguredCodec
 
-sealed trait Node {
+final case class LDStats(jam: Int, compo: Int, extra: Int, signups: Int, authors: Int, unpublished: Int) derives ConfiguredCodec
+
+final case class Node2WalkResponse(status: Int, caller_id: Int, root: Int, path: Seq[Int], node_id: Int, nodes_cached: Option[Seq[Int]], node: Option[Seq[Node]]) extends ApiResponse derives ConfiguredCodec
+
+sealed trait Node derives ConfiguredCodec {
     val id: Int
     val parent: Int
     val author: Int
@@ -330,22 +311,30 @@ sealed trait Node {
     val love: Int
 }
 object Node {
-    implicit val format: Format[Node] = new Format[Node] {
-        override def writes(o: Node): JsValue = o match {
-            case e: EventNode => implicitly[Writes[EventNode]].writes(e)
-            case a: UserNode => implicitly[Writes[UserNode]].writes(a)
-            case p: PostNode => implicitly[Writes[PostNode]].writes(p)
-            case g: GameNode => implicitly[Writes[GameNode]].writes(g)
-            case x: GenericNode => implicitly[Writes[GenericNode]].writes(x)
-        }
 
-        override def reads(json: JsValue): JsResult[Node] = (json \ "type", json \ "subtype", json \ "subsubtype") match {
-            case (JsDefined(JsString("event")), _, _) => EventNode.format.reads(json)
-            case (JsDefined(JsString("user")), _, _) => UserNode.format.reads(json)
-            case (JsDefined(JsString("post")), _, _) => PostNode.format.reads(json)
-            case (JsDefined(JsString("item")), JsDefined(JsString("game")), _) => GameNode.format.reads(json)
-            case _ => GenericNode.format.reads(json)
+  given encode: Encoder[Node] =
+    Encoder.instance[Node] {
+      case e: EventNode => e.asJson
+      case a: UserNode => a.asJson
+      case p: PostNode => p.asJson
+      case g: GameNode => g.asJson
+      case x: GenericNode => x.asJson
+    }
+
+  given decode: Decoder[Node] =
+    Decoder.instance[Node] { c =>
+      for {
+        `type` <- c.downField("type").as[String]
+        subtype <- c.downField("subtype").as[String]
+        subsubtype <- c.downField("subsubtype").as[String]
+        node <- (`type`, subtype, subsubtype) match {
+          case ("event", _, _) => c.as[EventNode]
+          case ("user", _, _) => c.as[UserNode]
+          case ("post", _, _) => c.as[PostNode]
+          case ("item", "game", _) => c.as[GameNode]
+          case _ => c.as[GenericNode]
         }
+      } yield node
     }
 }
 
@@ -365,18 +354,38 @@ object FuzzyOption {
         case None => FuzzyNone
     }
 
-    implicit def fuzzyOptionReads[T](implicit fmt: Reads[T]): Reads[FuzzyOption[T]] = {
-        case JsNull => JsSuccess(FuzzyNone)
-        case JsString("") => JsSuccess(FuzzyNone)
-        case JsArray(elems) if elems.isEmpty => JsSuccess(FuzzyNone)
-        case JsObject(elems) if elems.isEmpty => JsSuccess(FuzzyNone)
-        case json => fmt.reads(json).map(FuzzySome.apply)
+    given encode[T : Encoder]: Encoder[FuzzyOption[T]] =
+      Encoder.instance[FuzzyOption[T]] {
+        case FuzzyNone => Json.Null
+        case FuzzySome(value) => value.asJson
+      }
+
+    private def isEmptyArray(json: Json): Boolean = {
+      json.asArray match {
+        case Some(value) => value.isEmpty
+        case None => false
+      }
     }
 
-    implicit def fuzzyOptionWrites[T](implicit fmt: Writes[T]): Writes[FuzzyOption[T]] = {
-        case FuzzyNone => JsNull
-        case FuzzySome(value) => fmt.writes(value)
+    private def isEmptyObject(json: Json): Boolean = {
+      json.asObject match {
+        case Some(value) => value.isEmpty
+        case None => false
+      }
     }
+
+    given decode[T : Decoder]: Decoder[FuzzyOption[T]] =
+      Decoder.instance[FuzzyOption[T]] { c =>
+        for {
+          raw <- c.as[Json]
+          option <- raw match {
+            case json: Json if json.isNull => Right(FuzzyNone)
+            case json: Json if isEmptyArray(json) => Right(FuzzyNone)
+            case json: Json if isEmptyObject(json) => Right(FuzzyNone)
+            case json: Json => json.as[T].map(FuzzyOption.apply)
+          }
+        } yield option 
+      }
 }
 
 final case class FuzzySome[+A](value: A) extends FuzzyOption[A] {
@@ -390,32 +399,17 @@ case object FuzzyNone extends FuzzyOption[Nothing] {
     override def toOption: Option[Nothing] = None
 }
 
-final case class GenericNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], meta: FuzzyOption[Map[String, String]], love: Int) extends Node
-object GenericNode {
-    implicit val format: Format[GenericNode] = Json.format
-}
+final case class GenericNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], meta: FuzzyOption[Map[String, String]], love: Int) extends Node derives ConfiguredCodec
 
-final case class UserNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int, meta: FuzzyOption[UserMetadata], games: Int, posts: Int) extends Node
-case class UserMetadata(avatar: Option[String])
-object UserNode {
-    implicit val format: Format[UserNode] = Json.format
-}
-object UserMetadata {
-    implicit val format: Format[UserMetadata] = Json.format
-}
+final case class UserNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int, meta: FuzzyOption[UserMetadata], games: Int, posts: Int) extends Node derives ConfiguredCodec
+case class UserMetadata(avatar: Option[String]) derives ConfiguredCodec
 
 final case class EventNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String],
                            subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant,
                            meta: FuzzyOption[Map[String, String]],
-                           version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node
-object EventNode {
-    implicit val format: Format[EventNode] = Json.format
-}
+                           version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node derives ConfiguredCodec
 
-final case class PostNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node
-object PostNode {
-    implicit val format: Format[PostNode] = Json.format
-}
+final case class PostNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node derives ConfiguredCodec
 
 final case class GameNode(id: Int, parent: Int, author: Int, 
                           `type`: String,
@@ -425,23 +419,14 @@ final case class GameNode(id: Int, parent: Int, author: Int,
                           modified: Instant, version: Int, 
                           slug: String, name: String, 
                           body: String, path: String, 
-                          parents: Seq[Int], love: Int, meta: GameMetadata, grade: Option[Map[String, Int]], notes: Option[Int], `notes-timestamp`: Option[Instant], magic: Option[GameMagic]) extends Node
-object GameNode {
-    implicit val format: Format[GameNode] = Json.format
-}
+                          parents: Seq[Int], love: Int, meta: GameMetadata, grade: Option[Map[String, Int]], notes: Option[Int], `notes-timestamp`: Option[Instant], magic: Option[GameMagic]) extends Node derives ConfiguredCodec
 
-case class GameMetadata(author: Seq[Int], `allow-anonymous-comments`: Option[JsValue], cover: Option[String],
-                        `link-01`: Option[String], `link-01-tag`: Option[JsValue],
-                        `link-02`: Option[String], `link-02-tag`: Option[JsValue],
-                        `link-03`: Option[String], `link-03-tag`: Option[JsValue],
-                        `link-04`: Option[String], `link-04-tag`: Option[JsValue],
-                        `link-05`: Option[String], `link-05-tag`: Option[JsValue],
-                       )
-object GameMetadata {
-    implicit val format: Format[GameMetadata] = Json.format
-}
+case class GameMetadata(author: Seq[Int], `allow-anonymous-comments`: Option[Json], cover: Option[String],
+                        `link-01`: Option[String], `link-01-tag`: Option[Json],
+                        `link-02`: Option[String], `link-02-tag`: Option[Json],
+                        `link-03`: Option[String], `link-03-tag`: Option[Json],
+                        `link-04`: Option[String], `link-04-tag`: Option[Json],
+                        `link-05`: Option[String], `link-05-tag`: Option[Json],
+                       ) derives ConfiguredCodec
 
-case class GameMagic(cool: Double, feedback: Int, `given`: Double, grade: Double, smart: Double)
-object GameMagic {
-    implicit val format: Format[GameMagic] = Json.format
-}
+case class GameMagic(cool: Double, feedback: Int, `given`: Double, grade: Double, smart: Double) derives ConfiguredCodec

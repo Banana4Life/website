@@ -1,10 +1,13 @@
 package controllers.ld56
 
 import controllers.*
+import io.circe.derivation.ConfiguredCodec
+import io.circe.syntax.EncoderOps
+import io.circe.{Decoder, Encoder, derivation, parser}
 import org.apache.pekko.actor.{Actor, ActorRef, ActorSystem, PoisonPill, Props}
 import org.apache.pekko.stream.Materializer
 import play.api.Logger
-import play.api.libs.json.*
+import play.api.libs.circe.Circe
 import play.api.libs.streams.ActorFlow
 import play.api.mvc.{AbstractController, ControllerComponents, WebSocket}
 
@@ -24,65 +27,44 @@ import scala.math.Ordering.Implicits.infixOrderingOps
 
 private val logger = Logger(classOf[Ld56C2Controller])
 
-final case class JoiningMessage(id: UUID)
-object JoiningMessage {
-  implicit val format: Format[JoiningMessage] = Json.format
-}
+given derivation.Configuration = derivation.Configuration.default
 
-final case class OfferingMessage(id: UUID, offer: String)
-object OfferingMessage {
-  implicit val format: Format[OfferingMessage] = Json.format
-}
+final case class JoiningMessage(id: UUID) derives ConfiguredCodec
 
-final case class JoinAcceptMessage(id: UUID, peerId: Int)
-object JoinAcceptMessage {
-  implicit val format: Format[JoinAcceptMessage] = Json.format
-}
+final case class OfferingMessage(id: UUID, offer: String) derives ConfiguredCodec
 
-final case class IceCandidateMessage(sourceId: UUID, destinationId: UUID, m: String, i: Int, name: String) extends HosterMessage with JoinerMessage
-object IceCandidateMessage {
-  implicit val format: Format[IceCandidateMessage] = Json.format
-}
+final case class JoinAcceptMessage(id: UUID, peerId: Int) derives ConfiguredCodec
 
-final case class AnswerMessage(answer: String)
-object AnswerMessage {
-  implicit val format: Format[AnswerMessage] = Json.format
-}
+final case class IceCandidateMessage(sourceId: UUID, destinationId: UUID, m: String, i: Int, name: String) extends HosterMessage with JoinerMessage derives ConfiguredCodec
 
-sealed trait HosterMessage
-final case class HostingMessage(playerCount: Int) extends HosterMessage
-final case class  HostAcceptsJoinMessage(id: UUID, peerId: Int) extends HosterMessage
-final case class AnsweringMessage(destination: UUID, answer: String) extends HosterMessage
+final case class AnswerMessage(answer: String) derives ConfiguredCodec
+
+sealed trait HosterMessage derives ConfiguredCodec
+final case class HostingMessage(playerCount: Int) extends HosterMessage derives ConfiguredCodec
+final case class  HostAcceptsJoinMessage(id: UUID, peerId: Int) extends HosterMessage derives ConfiguredCodec
+final case class AnsweringMessage(destination: UUID, answer: String) extends HosterMessage derives ConfiguredCodec
 
 
 object HosterMessage {
-  implicit val hostingFormat: Format[HostingMessage] = Json.format
-  implicit val hostAcceptsJoinMessageFormat: Format[HostAcceptsJoinMessage] = Json.format
-  implicit val answeringMessageFormat: Format[AnsweringMessage] = Json.format
-  implicit val hosterMessageFormat: Format[HosterMessage] = Json.format
+  given derivation.Configuration = derivation.Configuration.default.withDiscriminator("type")
 }
 
-sealed trait JoinerMessage
-final case class JoinMessage() extends JoinerMessage
-final case class OfferMessage(destination: UUID, offer: String) extends JoinerMessage
+sealed trait JoinerMessage derives ConfiguredCodec
+final case class JoinMessage() extends JoinerMessage derives ConfiguredCodec
+final case class OfferMessage(destination: UUID, offer: String) extends JoinerMessage derives ConfiguredCodec
 
 object JoinerMessage {
-  implicit val joinFormat: Format[JoinMessage] = Json.format
-  implicit val offerFormat: Format[OfferMessage] = Json.format
-  implicit val joinerFormat: Format[JoinerMessage] = Json.format
+  given derivation.Configuration = derivation.Configuration.default.withDiscriminator("type")
 }
 
-final case class StatsResponse(servers: Int, latestServer: Option[Instant], players: Int, latestPlayer: Option[Instant])
-object StatsResponse {
-  implicit val format: Format[StatsResponse] = Json.format
-}
+final case class StatsResponse(servers: Int, latestServer: Option[Instant], players: Int, latestPlayer: Option[Instant]) derives ConfiguredCodec
 
 val HostTimeout = Duration.ofSeconds(30)
 final case class GameHost(id: UUID, playerCount: Int, lastUpdated: Instant, inceptionTime: Instant) {
   def isStale(asOf: Instant) = lastUpdated < asOf.minus(HostTimeout)
 }
 
-class Ld56C2Controller(cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer) extends AbstractController(cc) {
+class Ld56C2Controller(cc: ControllerComponents)(implicit system: ActorSystem, mat: Materializer) extends AbstractController(cc) with Circe {
   private val hosterConnections = ConcurrentHashMap[UUID, ActorRef]()
   private val joinerConnections = ConcurrentHashMap[UUID, ActorRef]()
   private val hosts = ConcurrentHashMap[UUID, GameHost]()
@@ -100,7 +82,7 @@ class Ld56C2Controller(cc: ControllerComponents)(implicit system: ActorSystem, m
 
   def stats() = Action.async { request =>
     logger.info(s"${request.connection.remoteAddress} requested stats")
-    Future.successful(Ok(Json.toJson(gatherStats())))
+    Future.successful(Ok(gatherStats().asJson))
   }
 
   def statsPicture() = Action.async { request =>
@@ -169,25 +151,23 @@ class HostHandler(out: ActorRef,
                   remote: InetAddress,
                   private val hosts: ConcurrentMap[UUID, GameHost]) extends SignalActor(out, myId, remote, hosters) {
   override def receiveText(text: String): Unit = {
-    try
-      Json.parse(text).as[HosterMessage] match
-        case HostingMessage(playerCount) =>
-          hosts.compute(myId, { (key, value) =>
-            val now = Instant.now()
-            if (value == null) GameHost(myId, playerCount, now, now)
-            else value.copy(playerCount = playerCount, lastUpdated = now)
-          })
-        case HostAcceptsJoinMessage(id, peerId) =>
-          val joiner = joiners.get(id)
-          if (joiner != null) {
-            joiner ! Json.toJson(JoinAcceptMessage(myId, peerId)).toString
-          }
-        case candidate @ IceCandidateMessage(_, dest, _, _, _) =>
-          joiners.get(dest) ! Json.toJson(candidate).toString
-        case AnsweringMessage(dest, answer) =>
-          joiners.get(dest) ! Json.toJson(AnswerMessage(answer)).toString
-    catch
-      case e: Exception =>
+    parser.parse(text).flatMap(_.as[HosterMessage]) match
+      case Right(HostingMessage(playerCount)) =>
+        hosts.compute(myId, { (key, value) =>
+          val now = Instant.now()
+          if (value == null) GameHost(myId, playerCount, now, now)
+          else value.copy(playerCount = playerCount, lastUpdated = now)
+        })
+      case Right(HostAcceptsJoinMessage(id, peerId)) =>
+        val joiner = joiners.get(id)
+        if (joiner != null) {
+          joiner ! JoinAcceptMessage(myId, peerId).asJson.noSpaces
+        }
+      case Right(candidate @ IceCandidateMessage(_, dest, _, _, _)) =>
+        joiners.get(dest) ! candidate.asJson.noSpaces
+      case Right(AnsweringMessage(dest, answer)) =>
+        joiners.get(dest) ! AnswerMessage(answer).asJson.noSpaces
+      case Left(e) =>
         logger.error("Kaputt", e)
   }
 
@@ -204,34 +184,32 @@ class JoinHandler(out: ActorRef,
                   remote: InetAddress,
                   private val hosts: ConcurrentMap[UUID, GameHost]) extends SignalActor(out, myId, remote, joiners) {
   override def receiveText(text: String): Unit = {
-    try
-      Json.parse(text).as[JoinerMessage] match
-        case JoinMessage() =>
-          val it = hosts.entrySet().iterator()
-          val viableHosts = ArrayBuffer[GameHost]()
-          val now = Instant.now()
-          while (it.hasNext) {
-            val entry = it.next()
-            val host = entry.getValue
-            if (host.isStale(now)) {
-              val actor = hosters.remove(entry.getKey)
-              it.remove()
-              actor ! PoisonPill
-            } else {
-                viableHosts.append(host)
-            }
+    parser.parse(text).flatMap(_.as[JoinerMessage]) match
+      case Right(JoinMessage()) =>
+        val it = hosts.entrySet().iterator()
+        val viableHosts = ArrayBuffer[GameHost]()
+        val now = Instant.now()
+        while (it.hasNext) {
+          val entry = it.next()
+          val host = entry.getValue
+          if (host.isStale(now)) {
+            val actor = hosters.remove(entry.getKey)
+            it.remove()
+            actor ! PoisonPill
+          } else {
+              viableHosts.append(host)
           }
-          if (viableHosts.nonEmpty) {
-            for { host <- pickBestHost(viableHosts.toIndexedSeq) } {
-              hosters.get(host.id) ! Json.toJson(JoiningMessage(myId)).toString
-            }
+        }
+        if (viableHosts.nonEmpty) {
+          for { host <- pickBestHost(viableHosts.toIndexedSeq) } {
+            hosters.get(host.id) ! JoiningMessage(myId).asJson.noSpaces
           }
-        case OfferMessage(dest, offer) =>
-          hosters.get(dest) ! Json.toJson(OfferingMessage(myId, offer)).toString
-        case candidate @ IceCandidateMessage(_, dest, _, _, _) =>
-          hosters.get(dest) ! Json.toJson(candidate).toString
-    catch
-      case e: Exception =>
+        }
+      case Right(OfferMessage(dest, offer)) =>
+        hosters.get(dest) ! OfferingMessage(myId, offer).asJson.noSpaces
+      case Right(candidate @ IceCandidateMessage(_, dest, _, _, _)) =>
+        hosters.get(dest) ! candidate.asJson.noSpaces
+      case Left(e) =>
         logger.error("Kaputt", e)
   }
 

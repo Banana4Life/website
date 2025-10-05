@@ -128,15 +128,16 @@ class Ld58Service(ldjam: LdjamService,
     getSlide(0, Vector.empty)
   }
 
-  private def findWebUrl(node: GameNode) = {
-    val links = Seq((node.meta.`link-01-tag`, node.meta.`link-01`),
+  private def findWebUrl(node: GameNode): Option[String] = {
+    val links = Seq(
+      (node.meta.`link-01-tag`, node.meta.`link-01`),
       (node.meta.`link-02-tag`, node.meta.`link-02`),
       (node.meta.`link-03-tag`, node.meta.`link-03`),
       (node.meta.`link-04-tag`, node.meta.`link-04`),
       (node.meta.`link-05-tag`, node.meta.`link-05`),
     );
     // -tag are arrays of int
-    links.find(tuple => tuple._1.map(_.as[Seq[Int]]).getOrElse(Seq.empty).contains(LINK_TAG_WEB)).flatMap(_._2)
+    links.find(tuple => tuple._1.flatMap(_.as[Seq[Int]].toOption).getOrElse(Seq.empty).contains(LINK_TAG_WEB)).flatMap(_._2)
   }
 
   private def fetchGameNodesByIdsLimited(nodeIds: Seq[Int], sliceSize: Int, maxLimit: Int, predicate: GameNode => Boolean): Future[Seq[GameNode]] = {

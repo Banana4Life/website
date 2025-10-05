@@ -1,10 +1,12 @@
 package service
 
+import io.circe.derivation
+import io.circe.derivation.ConfiguredCodec
 import play.api.Configuration
-import play.api.libs.json.{JsDefined, JsString}
 import play.api.libs.ws.WSClient
 import play.twirl.api.Html
 
+import java.net.URI
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -15,13 +17,12 @@ class TwitchService(conf: Configuration, client: WSClient, implicit val ec: Exec
     def getPlayer: Future[Option[Html]] = {
 
         client.url(apiUrl).withRequestTimeout(2.seconds).get() map { response =>
-            response.json \ "stream" \ "channel" \ "url" match {
-                case JsDefined(JsString(url)) =>
-                    Some(views.html.twitchplayer(url))
-                case _ => None
-            }
+            Some(views.html.twitchplayer(response.body[TwitchGetStreamReply].stream.channel.url ))
         } recover { case _ => None }
 
     }
-
 }
+
+private final case class TwitchGetStreamReply(stream: TwitchStream) derives ConfiguredCodec
+private final case class TwitchStream(channel: TwitchChannel) derives ConfiguredCodec
+private final case class TwitchChannel(url: URI) derives ConfiguredCodec

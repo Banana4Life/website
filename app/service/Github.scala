@@ -1,11 +1,10 @@
 package service
 
 import io.circe
-import io.circe.derivation.ConfiguredDecoder
-import io.circe.{Decoder, Json, ParsingFailure, derivation}
+import io.circe.derivation.{ConfiguredCodec, ConfiguredDecoder}
+import io.circe.{Decoder, Encoder, Json, ParsingFailure, derivation}
 import org.apache.pekko.util.ByteString
 import play.api.cache.SyncCacheApi
-import play.api.libs.json.{JsArray, JsDefined, JsNull, JsString}
 import play.api.libs.ws.WSAuthScheme.BASIC
 import play.api.libs.ws.{BodyWritable, InMemoryBody, WSClient}
 import play.api.{Configuration, Logger}
@@ -17,8 +16,6 @@ import java.time.temporal.ChronoUnit
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
-
-given derivation.Configuration = derivation.Configuration.default.withDefaults
 
 case class Repo(name: String, html_url: String, full_name: String, created_at: ZonedDateTime, default_branch: String) derives ConfiguredDecoder {
     def file(path: String, branch: String = default_branch) = s"https://raw.githubusercontent.com/$full_name/$branch/$path"
@@ -220,29 +217,19 @@ class GithubService(ws: WSClient, cache: SyncCacheApi, config: Configuration, im
         withBasicAuth(teamsMembersUrl(team.id)).get().map(_.body[List[Member]])
     }
 
-    private def getAllMembers = {
+    private def getAllMembers: Future[Map[String, User]] = {
         implicit val bodyWritableOfJson: BodyWritable[Json] = BodyWritable(json => InMemoryBody(ByteString.fromString(json.noSpaces)), "application/json")
         val query = Json.obj("query" -> Json.fromString("query { organization(login:\"Banana4Life\") { membersWithRole(last:100) { nodes { login, name } } } }"))
-        withBasicAuth(graphQlUrl).post(query)
-          .map(_.json)
-          .map { v => v \ "data" \ "organization" \ "membersWithRole" \ "nodes" } collect {
-            case JsDefined(JsArray(nodes)) => nodes.map { value =>
-                val login = (value \ "login").get
-                val name = value \ "name" match {
-                    case JsDefined(n) =>
-                        n match {
-                            case JsNull => login
-                            case JsString("") => login
-                            case _ => n
-                        }
-                    case _ => login
-                }
-
-                User(login.as[String], name.as[String])
-            }
-            case _ => Seq.empty
-        } map { users =>
-            users.map(user => (user.login, user)).toMap
-        }
+        withBasicAuth(graphQlUrl)
+          .post(query)
+          .map { response => response.body[GraphQlResult[GraphQlOrgs]] }
+          .map { result => result.data.organization.membersWithRole.nodes }
+          .map { members => members.map(m => (m.login, User(m.login, m.name.getOrElse(m.login)))).toMap }
     }
 }
+
+private final case class GraphQlResult[T](data: T) derives ConfiguredCodec
+private final case class GraphQlNodeList[T](nodes: List[T]) derives ConfiguredCodec
+private final case class GraphQlOrgs(organization: GraphQlMembers) derives ConfiguredCodec
+private final case class GraphQlMembers(membersWithRole: GraphQlNodeList[GraphQlMember]) derives ConfiguredCodec
+private final case class GraphQlMember(login: String, name: Option[String]) derives ConfiguredCodec
