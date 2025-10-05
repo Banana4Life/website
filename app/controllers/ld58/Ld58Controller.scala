@@ -72,12 +72,17 @@ class Ld58Controller(cc: ControllerComponents,
     }
   }
 
-  def proxyImage(signedUrl: String) = Action.async {
+  def proxyImage(signedUrl: String, cacheKey: Option[String]) = Action.async {
     urlSigner.verifySigned(signedUrl) match {
       case Some(trustedUrl) =>
         wsClient.url(trustedUrl).get() map { response =>
-//          logger.warn(s"Content type: ${response.contentType}")
+          val cacheHeaders =
+            if (cacheKey.isEmpty) Seq.empty
+            else Seq(
+              ("Cache-Control", "public, max-age=604800, immutable, stale-while-revalidate=86400")
+            )
           Ok.chunked(response.bodyAsSource, Option(response.contentType))
+            .withHeaders(cacheHeaders*)
         }
       case None => Future.successful(Forbidden)
     }
