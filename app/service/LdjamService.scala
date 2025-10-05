@@ -205,7 +205,7 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
                 if (response.feed.isEmpty) Future.successful(nodes)
                 else {
                     getNodes2(response.feed.map(_.id)).flatMap { nodesResponse =>
-                        getSlide(offset + sliceSize, nodes ++ nodesResponse.node)
+                        getSlide(offset + sliceSize, nodes ++ nodesResponse)
                     }
                 }
             }
@@ -219,9 +219,12 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
         get[NodeGetResponse](url)
     }
 
-    def getNodes2(nodes: Seq[Int]): Future[Node2GetResponse] = {
+    def getNodes2(nodes: Seq[Int]): Future[Seq[Node]] = {
+        if (nodes.isEmpty) {
+            return Future.successful(Seq.empty)
+        }
         val url = s"$apiBaseUrl/vx/node2/get/${urlList(nodes)}"
-        get[Node2GetResponse](url)
+        get[Node2GetResponse](url).map(_.node)
     }
 
     def walk(root: Int, path: String): Future[NodeWalkResponse] = {
@@ -414,7 +417,7 @@ object PostNode {
     implicit val format: Format[PostNode] = Json.format
 }
 
-final case class GameNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int, meta: GameMetadata, grade: Option[Map[String, Int]], notes: Option[Int], `notes-timestamp`: Option[Instant], magic: GameMagic) extends Node
+final case class GameNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int, meta: GameMetadata, grade: Option[Map[String, Int]], notes: Option[Int], `notes-timestamp`: Option[Instant], magic: Option[GameMagic]) extends Node
 object GameNode {
     implicit val format: Format[GameNode] = Json.format
 }
