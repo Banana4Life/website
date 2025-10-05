@@ -1,4 +1,4 @@
-GET         /ld58/stats                        controllers.ld58.Ld58Controller.stats()
+GET         /ld58/stats                        controllers.ld58.Ld58Controller.stats(jam: String)
 
 
 GET         /ld58/userGame                     controllers.ld58.Ld58Controller.gamesFromUser(jam: String, username: String)

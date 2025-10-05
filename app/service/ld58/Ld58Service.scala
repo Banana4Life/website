@@ -12,11 +12,18 @@ import scala.reflect.ClassTag
 
 given derivation.Configuration = derivation.Configuration.default
 
-case class JamState(id: Int, canGrade: Boolean)
+case class JamState(id: Int,
+                    canGrade: Boolean,
+                    published: Int,
+                    signups: Int,
+                    authors: Int,
+                    unpublished: Int
+                   ) derives ConfiguredCodec
 
 case class GameInfo(id: Int, jamId: Int, name: String, cover: Option[String], web: Option[String], cool: Double) derives ConfiguredCodec
 
 case class User(id: Int)
+
 
 class Ld58Service(ldjam: LdjamService,
                   persistence: Ld58PersistenceService,
@@ -38,13 +45,24 @@ class Ld58Service(ldjam: LdjamService,
     }
   }
 
-  private def jamState(jam: String): Future[JamState] = {
+  def jamState(jam: String): Future[JamState] = {
     for {
       walkedJam <- fetchJam(jam)
       jamNode <- fetchJamNode(walkedJam.node_id)
+      stats <- fetchJamStats(walkedJam.node_id)
     } yield {
-      JamState(walkedJam.node_id, jamNode.node.head.asInstanceOf[EventNode].meta.get("can-grade") == "1")
+      JamState(walkedJam.node_id,
+        jamNode.node.head.asInstanceOf[EventNode].meta.get("can-grade") == "1",
+        stats.stats.jam + stats.stats.compo + stats.stats.extra,
+        stats.stats.signups,
+        stats.stats.authors,
+        stats.stats.unpublished
+      )
     }
+  }
+
+  private def fetchJamStats(jamId: Int) = memCached(s"jamStats.$jamId") {
+    ldjam.stats(jamId)
   }
 
   private def fetchJam(jam: String) = memCached(s"jamState.$jam") {
@@ -175,4 +193,5 @@ class Ld58Service(ldjam: LdjamService,
       set
     }
   }
+
 }

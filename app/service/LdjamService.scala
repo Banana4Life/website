@@ -1,18 +1,18 @@
 package service
 
-import java.time.{Instant, ZoneId, ZonedDateTime}
-import java.util.Arrays.asList
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension
 import com.vladsch.flexmark.ext.emoji.{EmojiExtension, EmojiImageType}
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.data.MutableDataSet
 import play.api.cache.AsyncCacheApi
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.libs.ws.{WSClient, WSRequest}
 import play.api.{Configuration, Logger}
 import service.CacheHelper.CacheDuration
 
+import java.time.{Instant, ZoneId, ZonedDateTime}
+import java.util.Arrays.asList
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -233,6 +233,12 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
         get[NodeWalkResponse](url)
     }
 
+
+    def stats(nodeId: Int): Future[LDStatsResponse] = {
+        val url = s"$apiBaseUrl/vx/stats/$nodeId"
+        get[LDStatsResponse](url)
+    }
+
     def walk2(root: Int, path: String): Future[Node2WalkResponse] = {
         if (!path.startsWith("/")) {
             throw new IllegalArgumentException("path must begin with a /")
@@ -285,6 +291,16 @@ object NodeFeedEntry {
 final case class NodeWalkResponse(status: Int, caller_id: Int, root: Int, path: Seq[Int], node: Int) extends ApiResponse
 object NodeWalkResponse {
     implicit val format: Format[NodeWalkResponse] = Json.format
+}
+
+final case class LDStatsResponse(status: Int, caller_id: Int, stats: LDStats) extends ApiResponse
+object LDStatsResponse {
+    implicit val format: Format[LDStatsResponse] = Json.format
+}
+
+final case class LDStats(jam: Int, compo: Int, extra: Int, signups: Int, authors: Int, unpublished: Int)
+object LDStats {
+    implicit val format: Format[LDStats] = Json.format
 }
 
 final case class Node2WalkResponse(status: Int, caller_id: Int, root: Int, path: Seq[Int], node_id: Int, nodes_cached: Option[Seq[Int]], node: Option[Seq[Node]]) extends ApiResponse

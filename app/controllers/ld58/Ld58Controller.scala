@@ -25,19 +25,20 @@ class Ld58Controller(cc: ControllerComponents,
                     (implicit system: ActorSystem, mat: Materializer) extends AbstractController(cc) with Circe {
 
 
-  def stats() = Action.async { request =>
+  def stats(jam: String = "56") = Action.async { request =>
     logger.info(s"${request.connection.remoteAddress} requested stats")
-    Future.successful(Ok("OK".asJson))
+    for (
+      stats <- ld58.jamState(jam)
+    ) yield {
+      Ok(stats.asJson)
+    }
   }
 
   def gamesFromJam(jam: String): Action[AnyContent] = Action.async { implicit req =>
     for (
       (jamState, games) <- ld58.gamesFromJam(jam)
     ) yield {
-      Ok(Json.obj(
-        "can-grade" -> jamState.canGrade.asJson,
-        "games" -> games.asJson
-      ))
+      Ok(games.asJson)
     }
   }
 
