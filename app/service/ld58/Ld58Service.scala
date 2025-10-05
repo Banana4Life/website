@@ -37,15 +37,8 @@ class Ld58Service(ldjam: LdjamService,
   private val LINK_TAG_WEB = 42336
 
   private def memCached[T: ClassTag](key: String)(future: => Future[T], duration: Duration = 1.minutes): Future[T] = {
-    cache.get[T](key) flatMap {
-      case Some(v) => {
-        //        println("cache hit " + key)
-        Future.successful(v)
-      }
-      case None => {
-        //        println("cache miss " + key)
-        future.flatMap(v => cache.set(key, v, duration).map(_ => v))
-      }
+    cache.getOrElseUpdate(key) {
+      future.flatMap(v => cache.set(key, v, duration).map(_ => v))
     }
   }
 
