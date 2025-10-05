@@ -10,7 +10,8 @@ import play.api.Logger
 import play.api.libs.circe.Circe
 import play.api.libs.ws.WSClient
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
-import service.ld58.{GameInfo, Ld58Service, UrlSigner}
+import service.ld58.Award.AWARDS
+import service.ld58.{Award, GameInfo, Ld58Service, UrlSigner}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
@@ -53,7 +54,6 @@ class Ld58Controller(cc: ControllerComponents,
     }
   }
 
-
   def gamesHexGrid(jam: String): Action[AnyContent] = Action.async {
     for (
       hexgrid <- ld58.hexGridFromJam(jam)
@@ -87,5 +87,22 @@ class Ld58Controller(cc: ControllerComponents,
       case None => Future.successful(Forbidden)
     }
   }
+  
+  def awards(): Action[AnyContent] = Action {
+    Ok(AWARDS.asJson)
+  }
+
+  def givenAwards(jam: String): Action[AnyContent] = Action.async {
+    ld58.givenAwards(jam).map { awards =>
+      Ok(awards.asJson)
+    }
+  }
+
+  def giveAward(gameId: Int, user: String, awardKey: String): Action[AnyContent] = Action.async {
+    ld58.giveAward(gameId, user, awardKey).map { r =>
+      Ok(r.asJson)
+    }
+  }
+
 
 }

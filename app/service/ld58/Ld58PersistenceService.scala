@@ -34,6 +34,36 @@ class Ld58PersistenceService(configuration: Configuration, implicit val ec: Exec
   }
 
 
+  def hSet(key: String, field: String, value: String): Future[String] = Future {
+    Using(pool.getResource) {
+      jedis => {
+        jedis.hset(key, field, value)
+      }
+    }
+    value
+  }
+
+  def hGet(key: String, field: String): Future[Option[String]] = Future {
+    Using(pool.getResource) {
+      jedis => jedis.hget(key, field)
+    }.toOption
+  }
+
+  def hGetAll(key: String): Future[Map[String, String]] = Future {
+    import scala.jdk.CollectionConverters.*
+    Using(pool.getResource) {
+      jedis => jedis.hgetAll(key).asScala.view.toMap
+    }.toOption.getOrElse(Map.empty)
+  }
+
+  def hClear(key: String): Future[Unit] = Future {
+    Using(pool.getResource) {
+      jedis => {
+        jedis.hkeys(key).forEach(field => jedis.hdel(key, field))
+      }
+    }.toOption
+  }
+
   def hSetInt(key: String, field: String, value: Int): Future[Int] = Future {
     Using(pool.getResource) {
       jedis => {
@@ -49,13 +79,7 @@ class Ld58PersistenceService(configuration: Configuration, implicit val ec: Exec
     }.toOption
   }
 
-  def hClear(key: String ): Future[Unit] = Future {
-    Using(pool.getResource) {
-      jedis => {
-        jedis.hkeys(key).forEach(field => jedis.hdel(key, field))
-      }
-    }.toOption
-  }
+
 
   def hGetAllInt(key: String): Future[Map[String, Int]] = Future {
     import scala.jdk.CollectionConverters.*

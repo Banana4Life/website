@@ -4,5 +4,13 @@ GET         /ld58/stats                        controllers.ld58.Ld58Controller.s
 GET         /ld58/userGame                     controllers.ld58.Ld58Controller.gamesFromUser(jam: String, username: String)
 GET         /ld58/games                        controllers.ld58.Ld58Controller.gamesFromJam(jam: String)
 GET         /ld58/hexGrid                      controllers.ld58.Ld58Controller.gamesHexGrid(jam: String)
+GET         /ld58/awards                       controllers.ld58.Ld58Controller.awards()
+GET         /ld58/givenAwards                  controllers.ld58.Ld58Controller.givenAwards(jam: String)
+POST        /ld58/award                        controllers.ld58.Ld58Controller.giveAward(gameId: Int, user: String, awardKey: String)
+
 POST        /ld58/hexGrid                      controllers.ld58.Ld58Controller.persistGameOnGrid(q: Int, r: Int, gameId: Int)
+
 GET         /ld58/imageProxy/*signedUrl        controllers.ld58.Ld58Controller.proxyImage(signedUrl: String, cacheKey: Option[String] ?= None)
+
+
+

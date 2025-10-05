@@ -1,8 +1,8 @@
 package service.ld58
 
-import controllers.ld58.Ld58Controller
 import io.circe.derivation.{ConfiguredCodec, ConfiguredEncoder}
-import io.circe.{Encoder, derivation}
+import io.circe.syntax.EncoderOps
+import io.circe.{Encoder, derivation, parser}
 import play.api.Logger
 import play.api.cache.AsyncCacheApi
 import play.api.mvc.RequestHeader
@@ -28,6 +28,25 @@ case class GameInfo(id: Int, jamId: Int, name: String, cover: Option[String], we
 
 case class User(id: Int)
 
+
+case class Award(key: String, icon: String, name: String) derives ConfiguredCodec {
+
+}
+object Award {
+  val AWARDS = Seq(
+    Award(key = "sleep", icon = "💤", name = "Probably did not sleep"),
+    Award(key = "caffeine", icon = "☕", name = "Fueled by Caffeine"),
+    Award(key = "surprise", icon = "🔥", name = "Surprised it runs"),
+    Award(key = "bug", icon = "🐛", name = "Look, a Bug"),
+    Award(key = "collision", icon = "🧱", name = "Collisions"),
+    Award(key = "rocket", icon = "🚀", name = "Rocket Science"),
+    Award(key = "yesterday", icon = "🫠", name = "It Worked Yesterday"),
+  )
+}
+
+case class GivenAward(key: String, byUser: String) derives ConfiguredCodec {
+
+}
 
 class Ld58Service(ldjam: LdjamService,
                   persistence: Ld58PersistenceService,
@@ -170,7 +189,7 @@ class Ld58Service(ldjam: LdjamService,
 
   private def fetchGamesFromJam(jamId: Int)(implicit req: RequestHeader): Future[List[GameInfo]] = memCached(s"games.$jamId") {
     for {
-      hexGrid <- persistence.hGetAllInt(hexGridName(jamId))
+      hexGrid <- persistence.hGetAllInt(hexGridCacheKey(jamId))
       knownGames <- fetchGameNodesByIds(hexGrid.values.toSeq) // TODO nothing works when persistence is unavailable
       allGameIds <- fetchGameNodeFeed(jamId, knownGames.map(_.id), Seq("cool", "parent"), 200)
       webGames <- fetchGameNodesByIdsLimited(allGameIds.filterNot(knownGames.map(_.id).contains), 200, 50,
@@ -211,23 +230,51 @@ class Ld58Service(ldjam: LdjamService,
   def hexGridFromJam(jam: String): Future[Map[String, Int]] = {
     for {
       jamId <- fetchJamId(jam)
-      hexGrid <- persistence.hGetAllInt(hexGridName(jamId))
+      hexGrid <- persistence.hGetAllInt(hexGridCacheKey(jamId))
     } yield {
       hexGrid
     }
+  }
+
+  def givenAwards(jam: String): Future[Map[Int, List[GivenAward]]] = {
+
+    for {
+      jamId <- fetchJamId(jam)
+      awards <- persistence.hGetAll(awardsCacheKey(jamId))
+    } yield {
+      awards.map { case (key, value) => (key.toInt, parser.parse(value).flatMap(_.as[List[GivenAward]]).toOption.getOrElse(List.empty)) }
+    }
+  }
+
+  def giveAward(gameId: Int, user: String, awardKey: String): Future[Boolean] = {
+    val found = Award.AWARDS.find(_.key == awardKey)
+    if (found.isEmpty) {
+      return Future.successful(false)
+    }
+    for {
+      game <- fetchNode[GameNode](gameId)
+      prevAwardsRaw <- persistence.hGet(awardsCacheKey(game.parent), gameId.toString)
+      prevAwards = prevAwardsRaw.flatMap(parser.parse(_).toOption)
+                                .flatMap(_.as[List[GivenAward]].toOption)
+                                .getOrElse(Seq.empty)
+      awards <- persistence.hSet(awardsCacheKey(game.parent), gameId.toString, (prevAwards ++ Seq(GivenAward(awardKey, user))).distinct.asJson.noSpaces)
+    } yield {
+      true
+    }
+
   }
 
   def persistGameOnGrid(q: Int, r: Int, gameId: Int): Future[Int] = {
     val coord = s"$q:$r"
     for {
       gameNode <- fetchNode[GameNode](gameId)
-      existing <- persistence.hGetInt(hexGridName(gameNode.parent), coord)
-      hexGrid <- persistence.hGetAllInt(hexGridName(gameNode.parent))
+      existing <- persistence.hGetInt(hexGridCacheKey(gameNode.parent), coord)
+      hexGrid <- persistence.hGetAllInt(hexGridCacheKey(gameNode.parent))
       set <- existing.map(Future.successful).getOrElse(
           if (hexGrid.values.exists(_ == gameId))
             Future.failed(new Exception("Game already on grid"))
           else
-            persistence.hSetInt(hexGridName(gameNode.parent), coord, gameId))
+            persistence.hSetInt(hexGridCacheKey(gameNode.parent), coord, gameId))
     } yield {
 
       if (gameId == set) {
@@ -237,5 +284,6 @@ class Ld58Service(ldjam: LdjamService,
     }
   }
 
-  private def hexGridName(jamId: Int) = "hexgrid." + jamId
+  private def hexGridCacheKey(jamId: Int) = "hexgrid." + jamId
+  private def awardsCacheKey(jamId: Int) = "awards." + jamId
 }
