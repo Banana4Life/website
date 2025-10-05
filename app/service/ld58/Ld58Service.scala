@@ -48,6 +48,10 @@ case class GivenAward(key: String, byUser: String) derives ConfiguredCodec {
 
 }
 
+case class GivenRating(rating: Int, byUser: String) derives ConfiguredCodec {
+
+}
+
 class Ld58Service(ldjam: LdjamService,
                   persistence: Ld58PersistenceService,
                   cache: AsyncCacheApi,
@@ -264,6 +268,46 @@ class Ld58Service(ldjam: LdjamService,
 
   }
 
+  def userRatings(jam: String, user: String): Future[Map[Int, Int]] = {
+    for {
+      jamId <- fetchJamId(jam)
+      ratings <- persistence.hGetAll(ratingsCacheKey(jamId))
+    } yield {
+      val allRatings = ratings.map { case (key, value) => (key.toInt, parser.parse(value).flatMap(_.as[List[GivenRating]]).toOption.getOrElse(List.empty)) }
+      allRatings.view.mapValues(_.find(a => a.byUser == user)).collect {
+        case (k, Some(v)) => (k, v.rating)
+      }.toMap
+    }
+  }
+
+  def gameRating(gameId: Int): Future[Int] = {
+    for {
+      gameNode <- fetchNode[GameNode](gameId)
+      ratings <- persistence.hGet(ratingsCacheKey(gameNode.parent), gameId.toString)
+    } yield {
+      val givenRatings = ratings.flatMap(parser.parse(_).toOption)
+        .flatMap(_.as[List[GivenRating]].toOption)
+        .getOrElse(Seq.empty)
+      if (givenRatings.isEmpty)
+        0
+      else
+        (givenRatings.map(_.rating).sum.toFloat / givenRatings.length).round
+    }
+  }
+
+  def giveRating(gameId: Int, user: String, rating: Int): Future[Boolean] = {
+    for {
+      game <- fetchNode[GameNode](gameId)
+      prevRatingsRaw <- persistence.hGet(ratingsCacheKey(game.parent), gameId.toString)
+      prevRatings = prevRatingsRaw.flatMap(parser.parse(_).toOption)
+        .flatMap(_.as[List[GivenRating]].toOption)
+        .getOrElse(Seq.empty)
+      rating <- persistence.hSet(ratingsCacheKey(game.parent), gameId.toString, (prevRatings ++ Seq(GivenRating(rating, user))).distinct.asJson.noSpaces)
+    } yield {
+      true
+    }
+  }
+
   def persistGameOnGrid(q: Int, r: Int, gameId: Int): Future[Int] = {
     val coord = s"$q:$r"
     for {
@@ -286,4 +330,5 @@ class Ld58Service(ldjam: LdjamService,
 
   private def hexGridCacheKey(jamId: Int) = "hexgrid." + jamId
   private def awardsCacheKey(jamId: Int) = "awards." + jamId
+  private def ratingsCacheKey(jamId: Int) = "ratings." + jamId
 }

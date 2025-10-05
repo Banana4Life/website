@@ -104,5 +104,22 @@ class Ld58Controller(cc: ControllerComponents,
     }
   }
 
+  def userRatings(jam: String, user: String): Action[AnyContent] = Action.async {
+    ld58.userRatings(jam, user).map { rating =>
+      Ok(rating.asJson)
+    }
+  }
+
+  def gameRating(gameId: Int): Action[AnyContent] = Action.async {
+    ld58.gameRating(gameId).map { rating =>
+      Ok(rating.asJson)
+    }
+  }
+
+  def giveRating(gameId: Int, user: String, rating: Int): Action[AnyContent] = Action.async {
+    ld58.giveRating(gameId, user, rating).map { r =>
+      Ok(r.asJson)
+    }
+  }
 
 }

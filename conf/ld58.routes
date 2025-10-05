@@ -7,6 +7,9 @@ GET         /ld58/hexGrid                      controllers.ld58.Ld58Controller.g
 GET         /ld58/awards                       controllers.ld58.Ld58Controller.awards()
 GET         /ld58/givenAwards                  controllers.ld58.Ld58Controller.givenAwards(jam: String)
 POST        /ld58/award                        controllers.ld58.Ld58Controller.giveAward(gameId: Int, user: String, awardKey: String)
+GET         /ld58/userRatings                  controllers.ld58.Ld58Controller.userRatings(jam: String, user: String)
+GET         /ld58/gameRating                   controllers.ld58.Ld58Controller.gameRating(gameId: Int)
+POST        /ld58/rate                         controllers.ld58.Ld58Controller.giveRating(gameId: Int, user: String, rating: Int)
 
 POST        /ld58/hexGrid                      controllers.ld58.Ld58Controller.persistGameOnGrid(q: Int, r: Int, gameId: Int)
 
