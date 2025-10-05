@@ -41,6 +41,11 @@ object Award {
     Award(key = "collision", icon = "🧱", name = "Collisions"),
     Award(key = "rocket", icon = "🚀", name = "Rocket Science"),
     Award(key = "yesterday", icon = "🫠", name = "It Worked Yesterday"),
+    Award(key = "gitgud", icon = "💀", name = "Git Gud"),
+    Award(key = "easy", icon = "👶🏻", name = "Easy gg"),
+    Award(key = "onemoretime", icon = "🔄", name = "Just one more time"),
+    Award(key = "grass", icon = "🌿", name = "Touch some grass"),
+    Award(key = "chefkiss", icon = "👨🏽‍🍳", name = "Chef's kiss"),
   )
 }
 
