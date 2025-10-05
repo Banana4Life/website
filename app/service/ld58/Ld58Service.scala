@@ -24,7 +24,7 @@ case class JamState(id: Int,
                     unpublished: Int
                    ) derives ConfiguredCodec
 
-case class GameInfo(id: Int, jamId: Int, name: String, cover: Option[String], web: Option[String], cool: Double) derives ConfiguredCodec
+case class GameInfo(id: Int, jamId: Int, name: String, cover: Option[String], web: Option[String], cool: Double, path: String) derives ConfiguredCodec
 
 case class User(id: Int)
 
@@ -92,7 +92,7 @@ class Ld58Service(ldjam: LdjamService,
     val webUrl = findWebUrl(node)
     val coverUrl = node.meta.cover.map(cover => ldjam.cdnUrl(cover.replace("///", "/") + ".480x384.fit.jpg"))
 
-    GameInfo(node.id, node.parent, node.name, coverUrl.map(urlSigner.proxiedUrl), webUrl, node.magic.map(_.cool).getOrElse(0))
+    GameInfo(node.id, node.parent, node.name, coverUrl.map(urlSigner.proxiedUrl), webUrl, node.magic.map(_.cool).getOrElse(0), node.path)
   }
 
   private def fetchGameNodeFeed(jamId: Int,
