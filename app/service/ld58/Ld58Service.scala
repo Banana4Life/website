@@ -188,8 +188,17 @@ class Ld58Service(ldjam: LdjamService,
     val coord = s"$q:$r"
     for {
       existing <- persistence.hGetInt("hexgrid", coord)
-      set <- existing.map(Future.successful).getOrElse(persistence.hSetInt("hexgrid", coord, gameId))
+      hexGrid <- persistence.hGetAllInt("hexgrid")
+      set <- existing.map(Future.successful)
+        .getOrElse(
+          if (hexGrid.values.exists(_ == gameId))
+            Future.failed(new Exception("Game already on grid"))
+          else
+          persistence.hSetInt("hexgrid", coord, gameId))
     } yield {
+      if (gameId == set) {
+        cache.remove("games")
+      }
       set
     }
   }

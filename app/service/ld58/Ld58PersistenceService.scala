@@ -4,7 +4,6 @@ import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder, parser}
 import io.valkey.params.SetParams
 import io.valkey.{JedisPool, JedisPoolConfig}
-import org.apache.pekko.japi.Option.scala2JavaOption
 import play.api.{Configuration, Logger}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -47,6 +46,14 @@ class Ld58PersistenceService(configuration: Configuration, implicit val ec: Exec
   def hGetInt(key: String, field: String): Future[Option[Int]] = Future {
     Using(pool.getResource) {
       jedis => jedis.hget(key, field).toInt
+    }.toOption
+  }
+
+  def hClear(key: String ): Future[Unit] = Future {
+    Using(pool.getResource) {
+      jedis => {
+        jedis.hkeys(key).forEach(field => jedis.hdel(key, field))
+      }
     }.toOption
   }
 

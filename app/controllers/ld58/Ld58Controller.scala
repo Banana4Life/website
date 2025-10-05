@@ -78,7 +78,7 @@ class Ld58Controller(cc: ControllerComponents,
     urlSigner.verifySigned(signedUrl) match {
       case Some(trustedUrl) =>
         wsClient.url(trustedUrl).get() map { response =>
-          logger.warn(s"Content type: ${response.contentType}")
+//          logger.warn(s"Content type: ${response.contentType}")
           Ok.chunked(response.bodyAsSource, Option(response.contentType))
         }
       case None => Future.successful(Forbidden)
