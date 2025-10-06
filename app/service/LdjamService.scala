@@ -113,7 +113,7 @@ class LdjamService(conf: Configuration, cache: AsyncCacheApi, implicit val ec: E
             posts.map { n =>
                 val author = authors.getOrElse(n.author, {
                     logger.warn(s"Unknown user ID found in post ${n.id}: ${n.author}. Known authors: ${users.map(_.id).mkString(",")}")
-                    UserNode(n.author, -1, n.author, "author", FuzzyNone, FuzzyNone, Instant.now(), Instant.now(), Instant.now(), -1, "unknown", "Unknown", "", "", Nil, -1, FuzzyNone, 0, 0)
+                    UserNode(n.author, -1, n.author, "author", FuzzyNone, FuzzyNone, Some(Instant.now()), Instant.now(), Instant.now(), -1, "unknown", "Unknown", "", "", Nil, -1, FuzzyNone, 0, 0)
                 })
                 val avatar = author.meta.flatMap(_.avatar).map(avatar => cdnBaseUrl + avatar.substring(2) + ".32x32.fit.jpg")
                 val body = compileMarkdown(n.body)
@@ -299,7 +299,7 @@ sealed trait Node derives ConfiguredCodec {
     val `type`: String
     val subtype: FuzzyOption[String]
     val subsubtype: FuzzyOption[String]
-    val published: Instant
+    val published: Option[Instant]
     val created: Instant
     val modified: Instant
     val version: Int
@@ -399,26 +399,26 @@ case object FuzzyNone extends FuzzyOption[Nothing] {
     override def toOption: Option[Nothing] = None
 }
 
-final case class GenericNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], meta: FuzzyOption[Map[String, String]], love: Int) extends Node derives ConfiguredCodec
+final case class GenericNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published:  Option[Instant], created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], meta: FuzzyOption[Map[String, String]], love: Int) extends Node derives ConfiguredCodec
 
-final case class UserNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int, meta: FuzzyOption[UserMetadata], games: Int, posts: Int) extends Node derives ConfiguredCodec
+final case class UserNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published:  Option[Instant], created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int, meta: FuzzyOption[UserMetadata], games: Int, posts: Int) extends Node derives ConfiguredCodec
 case class UserMetadata(avatar: Option[String]) derives ConfiguredCodec
 
 final case class EventNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String],
-                           subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant,
+                           subsubtype: FuzzyOption[String], published:  Option[Instant], created: Instant, modified: Instant,
                            meta: FuzzyOption[Map[String, String]],
                            version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node derives ConfiguredCodec
 
-final case class PostNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published: Instant, created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node derives ConfiguredCodec
+final case class PostNode(id: Int, parent: Int, author: Int, `type`: String, subtype: FuzzyOption[String], subsubtype: FuzzyOption[String], published:  Option[Instant], created: Instant, modified: Instant, version: Int, slug: String, name: String, body: String, path: String, parents: Seq[Int], love: Int) extends Node derives ConfiguredCodec
 
-final case class GameNode(id: Int, parent: Int, author: Int, 
+final case class GameNode(id: Int, parent: Int, author: Int,
                           `type`: String,
-                          subtype: FuzzyOption[String], 
-                          subsubtype: FuzzyOption[String], 
-                          published: Instant, created: Instant, 
-                          modified: Instant, version: Int, 
-                          slug: String, name: String, 
-                          body: String, path: String, 
+                          subtype: FuzzyOption[String],
+                          subsubtype: FuzzyOption[String],
+                          published:  Option[Instant], created: Instant,
+                          modified: Instant, version: Int,
+                          slug: String, name: String,
+                          body: String, path: String,
                           parents: Seq[Int], love: Int, meta: GameMetadata, grade: Option[Map[String, Int]], notes: Option[Int], `notes-timestamp`: Option[Instant], magic: Option[GameMagic]) extends Node derives ConfiguredCodec
 
 case class GameMetadata(author: Seq[Int], `allow-anonymous-comments`: Option[Json], cover: Option[String],
