@@ -261,17 +261,29 @@ class Ld58Service(ldjam: LdjamService,
     if (found.isEmpty) {
       return Future.successful(false)
     }
+    if (user == "Guest") {
+      return Future.successful(false)
+    }
+
     for {
+      userObj <- fetchUser(user)
       game <- fetchNode[GameNode](gameId)
+      userGames <- fetchGamesOfUser(userObj.id)
       prevAwardsRaw <- persistence.hGet(awardsCacheKey(game.parent), gameId.toString)
       prevAwards = prevAwardsRaw.flatMap(parser.parse(_).toOption)
                                 .flatMap(_.as[List[GivenAward]].toOption)
                                 .getOrElse(Seq.empty)
-      awards <- persistence.hSet(awardsCacheKey(game.parent), gameId.toString, (prevAwards ++ Seq(GivenAward(awardKey, user))).distinct.asJson.noSpaces)
+      awards <- persistAwards(userGames.map(_.id), gameId, user, awardKey, game, prevAwards)
     } yield {
-      true
+      awards
     }
+  }
 
+  private def persistAwards(ownGames: Seq[Int], gameId: Int, user: String, awardKey: String, game: GameNode, prevAwards: Seq[GivenAward]) = {
+    if (ownGames.contains(gameId))
+      Future.successful(false)
+    else
+      persistence.hSet(awardsCacheKey(game.parent), gameId.toString, (prevAwards ++ Seq(GivenAward(awardKey, user))).distinct.asJson.noSpaces).map(_ => true)
   }
 
   def userRatings(jam: String, user: String): Future[Map[Int, Int]] = {
