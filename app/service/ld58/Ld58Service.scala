@@ -274,18 +274,19 @@ class Ld58Service(ldjam: LdjamService,
       userObj <- fetchUser(user)
       game <- fetchNode[GameNode](gameId)
       userGames <- fetchGamesOfUser(userObj.id)
+      currentGame = userGames.find(_.parent == game.parent)
       prevAwardsRaw <- persistence.hGet(awardsCacheKey(game.parent), gameId.toString)
       prevAwards = prevAwardsRaw.flatMap(parser.parse(_).toOption)
                                 .flatMap(_.as[List[GivenAward]].toOption)
                                 .getOrElse(Seq.empty)
-      awards <- persistAwards(userGames.map(_.id), gameId, user, awardKey, game, prevAwards)
+      awards <- persistAwards(userGames.map(_.id), currentGame, gameId, user, awardKey, game, prevAwards)
     } yield {
       awards
     }
   }
 
-  private def persistAwards(ownGames: Seq[Int], gameId: Int, user: String, awardKey: String, game: GameNode, prevAwards: Seq[GivenAward]) = {
-    if (ownGames.contains(gameId))
+  private def persistAwards(ownGames: Seq[Int], currentGame: Option[GameNode], gameId: Int, user: String, awardKey: String, game: GameNode, prevAwards: Seq[GivenAward]) = {
+    if (ownGames.contains(gameId) || currentGame.isEmpty)
       Future.successful(false)
     else
       persistence.hSet(awardsCacheKey(game.parent), gameId.toString, (prevAwards ++ Seq(GivenAward(awardKey, user))).distinct.asJson.noSpaces).map(_ => true)
@@ -323,18 +324,19 @@ class Ld58Service(ldjam: LdjamService,
       game <- fetchNode[GameNode](gameId)
       userObj <- fetchUser(user)
       userGames <- fetchGamesOfUser(userObj.id)
+      currentGame = userGames.find(_.parent == game.parent)
       prevRatingsRaw <- persistence.hGet(ratingsCacheKey(game.parent), gameId.toString)
       prevRatings = prevRatingsRaw.flatMap(parser.parse(_).toOption)
         .flatMap(_.as[List[GivenRating]].toOption)
         .getOrElse(Seq.empty)
-      rating <- persistRating(userGames.map(_.id), gameId, user, rating, game, prevRatings)
+      rating <- persistRating(userGames.map(_.id), currentGame, gameId, user, rating, game, prevRatings)
     } yield {
       rating
     }
   }
 
-  private def persistRating(ownGames: Seq[Int], gameId: Int, user: String, rating: Int, game: GameNode, prevRatings: Seq[GivenRating]) = {
-    if (ownGames.contains(gameId))
+  private def persistRating(ownGames: Seq[Int], currentGame: Option[GameNode], gameId: Int, user: String, rating: Int, game: GameNode, prevRatings: Seq[GivenRating]) = {
+    if (ownGames.contains(gameId) || currentGame.isEmpty)
       Future.successful(false)
     else
       persistence.hSet(ratingsCacheKey(game.parent), gameId.toString, (prevRatings ++ Seq(GivenRating(rating, user))).distinct.asJson.noSpaces).map(_ => true)
