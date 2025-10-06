@@ -206,7 +206,7 @@ class Ld58Service(ldjam: LdjamService,
   private def fetchGamesFromJam(jamId: Int)(implicit req: RequestHeader): Future[List[GameInfo]] = memCached(s"games.$jamId") {
     for {
       hexGrid <- persistence.hGetAllInt(hexGridCacheKey(jamId))
-      knownGames <- fetchGameNodesByIds(hexGrid.values.toSeq) // TODO nothing works when persistence is unavailable
+      knownGames <- fetchGameNodesByIds(hexGrid.values.toSeq)
       allGameIds <- fetchGameNodeFeed(jamId, knownGames.map(_.id), Seq("cool", "parent"), 200)
       webGames <- fetchGameNodesByIdsLimited(allGameIds.filterNot(knownGames.map(_.id).contains), 200, 50,
                         n => n.meta.cover.isDefined && findWebUrl(n).isDefined)
