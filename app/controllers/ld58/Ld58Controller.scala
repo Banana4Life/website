@@ -11,7 +11,7 @@ import play.api.libs.circe.Circe
 import play.api.libs.ws.WSClient
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import service.ld58.Award.AWARDS
-import service.ld58.{Award, GameInfo, Ld58Service, UrlSigner}
+import service.ld58.{Award, GameInfo, Ld58Service, PersistResult, UrlSigner}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
@@ -64,11 +64,14 @@ class Ld58Controller(cc: ControllerComponents,
 
   def persistGameOnGrid(q: Int, r: Int, gameId: Int): Action[AnyContent] = Action.async {
     for (
-      ret <- ld58.persistGameOnGrid(q, r, gameId) recover { case e => 0 }
+      ret <- ld58.persistGameOnGrid(q, r, gameId)
     ) yield {
-      if (ret == 0) Conflict(ret.asJson)
-      else if (ret == gameId) Ok(ret.asJson)
-      else BadRequest(ret.asJson)
+      ret match {
+        case PersistResult.Success(gameId) => Ok(gameId.asJson)
+        case PersistResult.WrongGame(gameId) => BadRequest(gameId.asJson)
+        case PersistResult.AlreadyPlaced => Conflict(0.asJson)
+        case PersistResult.OutOfReach => Forbidden(0.asJson)
+      }
     }
   }
 

@@ -28,6 +28,12 @@ case class GameInfo(id: Int, jamId: Int, name: String, cover: Option[String], we
 
 case class User(id: Int)
 
+enum PersistResult {
+  case Success(gameId: Int)
+  case WrongGame(gameId: Int)
+  case AlreadyPlaced
+  case OutOfReach
+}
 
 case class Award(key: String, icon: String, name: String) derives ConfiguredCodec {
 
@@ -335,24 +341,37 @@ class Ld58Service(ldjam: LdjamService,
       persistence.hSet(ratingsCacheKey(game.parent), gameId.toString, (prevRatings ++ Seq(GivenRating(rating, user))).distinct.asJson.noSpaces).map(_ => true)
   }
 
-  def persistGameOnGrid(q: Int, r: Int, gameId: Int): Future[Int] = {
+  def persistGameOnGrid(q: Int, r: Int, gameId: Int): Future[PersistResult] = {
     val coord = s"$q:$r"
-    for {
+    val neighbors = Array(s"${q + 1}:$r", s"${q + 1}:${r - 1}", s"$q:${r - 1}", s"${q - 1}:$r", s"${q - 1}:${r + 1}", s"$q:${r + 1}")
+
+    val a = for {
       gameNode <- fetchNode[GameNode](gameId)
       existing <- persistence.hGetInt(hexGridCacheKey(gameNode.parent), coord)
       hexGrid <- persistence.hGetAllInt(hexGridCacheKey(gameNode.parent))
-      set <- existing.map(Future.successful).getOrElse(
-          if (hexGrid.values.exists(_ == gameId))
-            Future.failed(new Exception("Game already on grid"))
-          else
-            persistence.hSetInt(hexGridCacheKey(gameNode.parent), coord, gameId))
     } yield {
-
-      if (gameId == set) {
-        cache.remove("games")
+      existing match {
+        case Some(id) =>
+          if (gameId == id) {
+            Future.successful(PersistResult.Success(id))
+          } else {
+            Future.successful(PersistResult.WrongGame(id))
+          }
+        case None =>
+          if (hexGrid.values.exists(_ == gameId))
+            Future.successful(PersistResult.AlreadyPlaced)
+          else {
+            if (coord == "0:0" || neighbors.exists(hexGrid.contains)) {
+              val eventualInt = persistence.hSetInt(hexGridCacheKey(gameNode.parent), coord, gameId)
+              cache.remove("games")
+              eventualInt.map(PersistResult.Success.apply)
+            } else {
+              Future.successful(PersistResult.OutOfReach)
+            }
+          }
       }
-      set
     }
+    a.flatten
   }
 
   private def hexGridCacheKey(jamId: Int) = "hexgrid." + jamId
