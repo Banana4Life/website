@@ -316,14 +316,23 @@ class Ld58Service(ldjam: LdjamService,
   def giveRating(gameId: Int, user: String, rating: Int): Future[Boolean] = {
     for {
       game <- fetchNode[GameNode](gameId)
+      userObj <- fetchUser(user)
+      userGames <- fetchGamesOfUser(userObj.id)
       prevRatingsRaw <- persistence.hGet(ratingsCacheKey(game.parent), gameId.toString)
       prevRatings = prevRatingsRaw.flatMap(parser.parse(_).toOption)
         .flatMap(_.as[List[GivenRating]].toOption)
         .getOrElse(Seq.empty)
-      rating <- persistence.hSet(ratingsCacheKey(game.parent), gameId.toString, (prevRatings ++ Seq(GivenRating(rating, user))).distinct.asJson.noSpaces)
+      rating <- persistRating(userGames.map(_.id), gameId, user, rating, game, prevRatings)
     } yield {
-      true
+      rating
     }
+  }
+
+  private def persistRating(ownGames: Seq[Int], gameId: Int, user: String, rating: Int, game: GameNode, prevRatings: Seq[GivenRating]) = {
+    if (ownGames.contains(gameId))
+      Future.successful(false)
+    else
+      persistence.hSet(ratingsCacheKey(game.parent), gameId.toString, (prevRatings ++ Seq(GivenRating(rating, user))).distinct.asJson.noSpaces).map(_ => true)
   }
 
   def persistGameOnGrid(q: Int, r: Int, gameId: Int): Future[Int] = {
