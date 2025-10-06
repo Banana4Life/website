@@ -253,7 +253,6 @@ class Ld58Service(ldjam: LdjamService,
   }
 
   def givenAwards(jam: String): Future[Map[Int, List[GivenAward]]] = {
-
     for {
       jamId <- fetchJamId(jam)
       awards <- persistence.hGetAll(awardsCacheKey(jamId))

@@ -102,7 +102,10 @@ class Ld58Controller(cc: ControllerComponents,
   }
 
   def giveAward(gameId: Int, user: String, awardKey: String): Action[AnyContent] = Action.async {
-    ld58.giveAward(gameId, user, awardKey).map { r =>
+    if (user.length > 50)
+      Future.successful(BadRequest("User name too long".asJson))
+    else
+      ld58.giveAward(gameId, user, awardKey).map { r =>
       Ok(r.asJson)
     }
   }
@@ -120,8 +123,11 @@ class Ld58Controller(cc: ControllerComponents,
   }
 
   def giveRating(gameId: Int, user: String, rating: Int): Action[AnyContent] = Action.async {
-    ld58.giveRating(gameId, user, rating).map { r =>
-      Ok(r.asJson)
+    if (user.length > 50)
+      Future.successful(BadRequest("User name too long".asJson))
+    else
+      ld58.giveRating(gameId, user, rating).map { r =>
+        Ok(r.asJson)
     }
   }
 
