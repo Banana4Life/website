@@ -292,13 +292,20 @@ class Ld58Service(ldjam: LdjamService,
       persistence.hSet(awardsCacheKey(game.parent), gameId.toString, (prevAwards ++ Seq(GivenAward(awardKey, user))).distinct.asJson.noSpaces).map(_ => true)
   }
 
-  def userRatings(jam: String, user: String): Future[Map[Int, Int]] = {
+  private def getRatings(jam: String): Future[Map[Int, List[GivenRating]]] = {
     for {
       jamId <- fetchJamId(jam)
       ratings <- persistence.hGetAll(ratingsCacheKey(jamId))
     } yield {
-      val allRatings = ratings.map { case (key, value) => (key.toInt, parser.parse(value).flatMap(_.as[List[GivenRating]]).toOption.getOrElse(List.empty)) }
-      allRatings.view.mapValues(_.find(a => a.byUser == user)).collect {
+      ratings.map { case (key, value) => (key.toInt, parser.parse(value).flatMap(_.as[List[GivenRating]]).getOrElse(List.empty)) }
+    }
+  }
+  
+  def userRatings(jam: String, user: String): Future[Map[Int, Int]] = {
+    for {
+      ratings <- getRatings(jam)
+    } yield {
+      ratings.view.mapValues(_.find(a => a.byUser == user)).collect {
         case (k, Some(v)) => (k, v.rating)
       }.toMap
     }
@@ -309,13 +316,25 @@ class Ld58Service(ldjam: LdjamService,
       gameNode <- fetchNode[GameNode](gameId)
       ratings <- persistence.hGet(ratingsCacheKey(gameNode.parent), gameId.toString)
     } yield {
-      val givenRatings = ratings.flatMap(parser.parse(_).toOption)
+      ratings.flatMap(parser.parse(_).toOption)
         .flatMap(_.as[List[GivenRating]].toOption)
         .getOrElse(Seq.empty)
-      if (givenRatings.isEmpty)
-        0
-      else
-        (givenRatings.map(_.rating).sum.toFloat / givenRatings.length).round
+        .map(_.rating)
+        .avg
+    }
+  }
+
+  def topRatings(jam: String): Future[Seq[(Int, Int)]] = {
+    for {
+      ratings <- getRatings(jam)
+    } yield {
+      ratings
+        .view
+        .mapValues { value => value.map(_.rating).avg }
+        .toSeq
+        .sortBy(_._2)
+        .reverse
+        .take(10)
     }
   }
 
@@ -378,4 +397,14 @@ class Ld58Service(ldjam: LdjamService,
   private def hexGridCacheKey(jamId: Int) = "hexgrid." + jamId
   private def awardsCacheKey(jamId: Int) = "awards." + jamId
   private def ratingsCacheKey(jamId: Int) = "ratings." + jamId
+}
+
+extension (l: Seq[Int]) {
+  def avg: Int = {
+    if (l.isEmpty) {
+      0
+    } else {
+      (l.sum.toFloat / l.length).round
+    }
+  } 
 }

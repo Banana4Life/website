@@ -122,6 +122,12 @@ class Ld58Controller(cc: ControllerComponents,
     }
   }
 
+  def topRatings(jam: String): Action[AnyContent] = Action.async {
+    ld58.topRatings(jam).map { rating =>
+      Ok(rating.asJson)
+    }
+  }
+
   def giveRating(gameId: Int, user: String, rating: Int): Action[AnyContent] = Action.async {
     if (user.length > 50)
       Future.successful(BadRequest("User name too long".asJson))
