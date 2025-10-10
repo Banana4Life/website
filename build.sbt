@@ -28,7 +28,13 @@ Compile / doc / sources := Seq.empty
 
 Compile / packageDoc / publishArtifact := false
 
-Assets / pipelineStages := Seq(digest, gzip)
+// only in runProd (stage)
+pipelineStages := Seq(digest, gzip)
+// jibImageBuild does not run stage - but this would run in dev mode too so
+// only in play.env=prod
+Assets / pipelineStages := {
+  if (sys.props.get("play.env").contains("prod")) Seq(digest, gzip) else Nil
+}
 
 jibBaseImage := "docker.io/library/eclipse-temurin:21-jre-alpine"
 jibRegistry := "ghcr.io"

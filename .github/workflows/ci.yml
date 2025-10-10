@@ -21,7 +21,7 @@ jobs:
         env:
           JIB_TARGET_IMAGE_USERNAME: ${{ github.actor }}
           JIB_TARGET_IMAGE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        run: sbt jibImageBuild
+        run: sbt -Dplay.env=prod jibImageBuild
       - name: Deploy
         env:
           DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
