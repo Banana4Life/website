@@ -5,20 +5,7 @@
 
 @if(single) {
     @for(web <- project.web){
-        <div id="load-game-button" class="web-game-button animateOnHover">
-            <span>Load Web Game (this may take a while)</span>
-        </div>
-        <script src="@routes.Assets.versioned("javascripts/LoadIFrameWebGame.js")"></script>
-
-        <div class="content">
-            <div id="gameContainer" data-url="@project.web">
-                <iframe id="gameIFrame" src="" frameborder="0"
-                style="display: none"
-                allow="fullscreen"
-                width="100%" height="700">
-                        </iframe>
-            </div>
-        </div>
+        @loadwebgame(web)
     }
 }
 

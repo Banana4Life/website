@@ -1,16 +1,19 @@
+@import views.html.snippet.loadwebgame
 @(project: service.Project, ldjamEntry: service.LdJamEntry)
 
 @for(web <- project.web){
 
-    <div id="load-game-button" class="web-game-button">Load Web Game (this may take a while)</div>
-    <div id="fullscreen-game-button" class="web-game-button fullscreen">Fullscreen</div>
-    <div class="webgl-content">
-        <div id="gameContainer" data-buildjson="@web.toString/Build/Build.json"></div>
-    </div>
+    @loadwebgame(web)
+@*    *@
+@*    <div id="load-game-button" class="web-game-button">Load Web Game (this may take a while)</div>*@
+@*    <div id="fullscreen-game-button" class="web-game-button fullscreen">Fullscreen</div>*@
+@*    <div class="webgl-content">*@
+@*        <div id="gameContainer" data-buildjson="@web.toString/Build/Build.json"></div>*@
+@*    </div>*@
 
-    <script src="@{web.toString}/TemplateData/UnityProgress.js"></script>
-    <script src="@{web.toString}/Build/UnityLoader.js"></script>
-    <script src="@routes.Assets.versioned("javascripts/LoadWebVersion.js")"></script>
+@*    <script src="@{web.toString}/TemplateData/UnityProgress.js"></script>*@
+@*    <script src="@{web.toString}/Build/UnityLoader.js"></script>*@
+@*    <script src="@routes.Assets.versioned("javascripts/LoadWebVersion.js")"></script>*@
 }
 
 <div class="top-project round">
