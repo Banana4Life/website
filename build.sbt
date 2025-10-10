@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
   "com.vladsch.flexmark" % "flexmark-all"                % "0.64.8",
   "org.webjars"          % "font-awesome"                % "7.0.1",
   "com.dripower"        %% "play-circe"                  % "3014.1",
-  "io.valkey"            % "valkey-java"                 % "5.4.0",
+  "io.valkey"            % "valkey-java"                 % "5.5.0",
 )
 
 Compile / doc / sources := Seq.empty
