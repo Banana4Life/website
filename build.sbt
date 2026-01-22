@@ -7,7 +7,7 @@ version := "1.0"
 lazy val root = (project in file("."))
     .enablePlugins(PlayScala)
 
-scalaVersion := "3.8.0"
+scalaVersion := "3.8.1"
 
 routesGenerator := InjectedRoutesGenerator
 
