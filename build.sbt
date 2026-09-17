@@ -7,7 +7,7 @@ version := "1.0"
 lazy val root = (project in file("."))
     .enablePlugins(PlayScala)
 
-scalaVersion := "3.8.4"
+scalaVersion := "3.9.0"
 
 routesGenerator := InjectedRoutesGenerator
 
@@ -17,7 +17,7 @@ libraryDependencies ++= Seq(
   specs2 % Test,
   "gov.sandia.foundry"   % "porter-stemmer"              % "1.4",
   "com.vladsch.flexmark" % "flexmark-all"                % "0.64.8",
-  "org.webjars"          % "font-awesome"                % "7.2.0",
+  "org.webjars"          % "font-awesome"                % "7.3.0",
   "com.dripower"        %% "play-circe"                  % "3014.1",
   "io.valkey"            % "valkey-java"                 % "5.5.0",
 )
